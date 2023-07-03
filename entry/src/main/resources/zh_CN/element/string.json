@@ -1,0 +1,308 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "模块描述"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "label"
+    },
+    {
+      "name": "unified_identity_control_app",
+      "value": "统一身份控件自测App"
+    },
+    {
+      "name": "single_command_authentication",
+      "value": "单口令认证"
+    },
+    {
+      "name": "northbound_interface_testing",
+      "value": "北向接口测试"
+    },
+    {
+      "name": "api_9",
+      "value": "API9 接口测试"
+    },
+    {
+      "name": "api_8",
+      "value": "API8 接口测试"
+    },
+    {
+      "name": "api_6",
+      "value": "API6 接口测试"
+    },
+    {
+      "name": "api_10",
+      "value": "API10 接口测试"
+    },
+    {
+      "name": "prefabrication_condition",
+      "value": "凭据管理"
+    },
+    {
+      "name": "back",
+      "value": "返回"
+    },
+    {
+      "name": "authType",
+      "value": "authType"
+    },
+    {
+      "name": "trust",
+      "value": "trustlevel"
+    },
+    {
+      "name": "pop_type",
+      "value": "弹窗类型"
+    },
+    {
+      "name": "Auth",
+      "value": "Auth"
+    },
+    {
+      "name": "getAuthinstance",
+      "value": "getAuthinstance"
+    },
+    {
+      "name": "on",
+      "value": "on"
+    },
+    {
+      "name": "off",
+      "value": "off"
+    },
+    {
+      "name": "start",
+      "value": "start"
+    },
+    {
+      "name": "cancel",
+      "value": "取消"
+    },
+    {
+      "name": "authResult",
+      "value": "authResult"
+    },
+    {
+      "name": "single_fingerprint_authentication",
+      "value": "单指纹认证"
+    },
+    {
+      "name": "single_face_authentication",
+      "value": "单人脸认证"
+    },
+    {
+      "name": "face_password_authentication",
+      "value": "人脸+口令认证"
+    },
+    {
+      "name": "fingerprint_password_authentication",
+      "value": "指纹+口令认证"
+    },
+    {
+      "name": "face_fingerprint_password_authentication",
+      "value": "人脸+指纹+口令认证"
+    },
+    {
+      "name": "execution_result",
+      "value": "执行结果"
+    },
+    {
+      "name": "control_title",
+      "value": "控件标题"
+    },
+    {
+      "name": "navigation_button_text",
+      "value": "Navigation 按钮文字"
+    },
+    {
+      "name": "popup_six_digit_password_authentication",
+      "value": "弹窗--6位数字口令认证"
+    },
+    {
+      "name": "popup_any_digit_password_authentication",
+      "value": "弹窗--任意数字口令认证"
+    },
+    {
+      "name": "popup_any_character_password_authentication",
+      "value": "弹窗--任意字符口令认证"
+    },
+    {
+      "name": "full_screen_six_character_password_authentication",
+      "value": "全屏--6位字符口令认证"
+    },
+    {
+      "name": "full_screen_any_digit_password_authentication",
+      "value": "全屏--任意数字口令认证"
+    },
+    {
+      "name": "full_screen_any_character_password_authentication",
+      "value": "全屏--任意字符口令认证"
+    },
+    {
+      "name": "preset_face",
+      "value": "预置人脸"
+    },
+    {
+      "name": "preset_fingerprint",
+      "value": "预置指纹"
+    },
+    {
+      "name": "delete_face",
+      "value": "删除人脸"
+    },
+    {
+      "name": "delete_fingerprint",
+      "value": "删除指纹"
+    },
+    {
+      "name": "screen_single_fingerprint_authentication",
+      "value": "屏下单指纹认证"
+    },
+    {
+      "name": "off_screen_single_fingerprint_authentication",
+      "value": "屏外单指纹认证"
+    },
+    {
+      "name": "confirm",
+      "value": "确定"
+    },
+    {
+      "name": "locked",
+      "value": "已锁定"
+    },
+    {
+      "name": "please_try_again_in_60_seconds",
+      "value": "请在60秒后重试"
+    },
+    {
+      "name": "forgot_password",
+      "value": "忘记密码"
+    },
+    {
+      "name": "use_password",
+      "value": "使用密码"
+    },
+    {
+      "name": "unified_authwidget_forgotpwd",
+      "value": "忘记密码"
+    },
+    {
+      "name": "unified_authwidget_locked",
+      "value": "已锁定"
+    },
+    {
+      "name": "unified_authwidget_confirm",
+      "value": "确定"
+    },
+    {
+      "name": "unified_authwidget_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "unified_authwidget_delete",
+      "value": "删除"
+    },
+    {
+      "name": "unified_authwidget_back",
+      "value": "返回"
+    },
+    {
+      "name": "unified_authwidget_usepwd",
+      "value": "使用密码"
+    },
+    {
+      "name": "unified_authwidget_hint_pwd_error",
+      "value": "密码错误"
+    },
+    {
+      "name": "fingerprint_matching_failed",
+      "value": "指纹匹配失败"
+    },
+    {
+      "name": "unified_authwidget_hint_inscreen_fp",
+      "value": "请按压屏内指纹感应区验证指纹"
+    },
+    {
+      "name": "unified_authwidget_hint_normal_fp_only",
+      "value": "请轻触感应器验证指纹"
+    },
+    {
+      "name": "unified_authwidget_hint_fp_verify_success",
+      "value": "指纹识别成功"
+    },
+    {
+      "name": "unified_authwidget_hint_fp_retry_s1",
+      "value": "指纹不匹配，请保持手指和感应器清洁"
+    },
+    {
+      "name": "unified_authwidget_title_fp_forbidden_enter_pwd",
+      "value": "指纹已禁用，请输入密码"
+    },
+    {
+      "name": "unified_authwidget_title_fp_forbidden_enter_pin",
+      "value": "指纹已禁用，请输入密码"
+    },
+    {
+      "name": "unified_authwidget_title_fp_forbidden_use_face_pattern",
+      "value": "指纹已禁用，请使用人脸或图案"
+    },
+    {
+      "name": "unified_authwidget_title_fp_forbidden_use_face_pwd",
+      "value": "指纹已禁用，请使用人脸或密码"
+    },
+    {
+      "name": "unified_authwidget_title_fp_forbidden_use_face_pin",
+      "value": "指纹已禁用，请使用人脸或密码"
+    },
+    {
+      "name": "unified_authwidget_hint_recognizing",
+      "value": "正在识别中"
+    },
+    {
+      "name": "unified_authwidget_hint_recognize_success",
+      "value": "人脸识别成功"
+    },
+    {
+      "name": "unified_authwidget_hint_face_verify_fail_click_retry_s1",
+      "value": "未识别成功，点击此处重试"
+    },
+    {
+      "name": "unified_authwidget_hint_face_verify_fail_click_retry_s2",
+      "value": "未识别成功，双击屏幕重试"
+    },
+    {
+      "name": "unified_authwidget_title_face_forbidden_use_pwd",
+      "value": "人脸已禁用，请输入密码"
+    },
+    {
+      "name": "unified_authwidget_title_face_forbidden_use_pin",
+      "value": "人脸已禁用，请输入密码"
+    },
+    {
+      "name": "unified_authwidget_title_face_forbidden_use_fp_pwd",
+      "value": "人脸已禁用，请使用指纹或密码"
+    },
+    {
+      "name": "unified_authwidget_title_face_fp_forbidden_use_pwd",
+      "value": "人脸和指纹已禁用，请输入密码"
+    },
+    {
+      "name": "unified_authwidget_title_face_fp_forbidden_use_pin",
+      "value": "人脸和指纹已禁用，请输入密码"
+    },
+    {
+      "name": "unified_authwidget_title_face_fp_forbidden_use_pattern",
+      "value": "人脸和指纹已禁用，请绘制图案"
+    },
+    {
+      "name": "unified_authwidget_hint_pin_error",
+      "value": "密码错误"
+    }
+  ]
+}

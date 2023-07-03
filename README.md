@@ -1,39 +1,42 @@
-# useriam_auth_widget
+# 统一认证控件
 
-#### 介绍
-{**以下是 Gitee 平台说明，您可以替换此简介**
-Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用 Gitee 实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+- [简介](#简介)
+- [目录](#目录)
+- [说明](#说明)
+  - [使用说明](#使用说明)
+- [相关仓](#相关仓)
+## 简介
 
-#### 软件架构
-软件架构说明
+**统一认证控件** 配套统一用户认证框架（user_auth_framework），提供统一的用户身份认证控件能力，在统一用户认证框架处理用户认证请求时，提供用户认证交互界面，支持用户通过界面操作选项切换认证方式或取消认证，支持业务自定义控件显示信息。
+**图1** 统一认证控件架构图
+<img src="figures/统一认证控件架构图.png" alt="统一认证控件架构图" style="zoom:80%;" />
 
+## 目录
 
-#### 安装教程
+```
+//base/useriam/auth_widget
+├── entry                              # entry模块目录
+│   ├── src/main
+│   │          ├─ets
+│   │          │  └─extensionability   # 系统弹框扩展能力实现，入口
+│   │          │  └─common             # 公共工具目录
+│   │          │  └─pages              # 弹框内容页面
+│   │          │  └─image              # 页面使用的预置图标资源
+│   │          └─resources             # 资源文件
+│   │          └─module.json5          # 全局配置文件
+│   └─ src/ohostest                    # arkXTest实现的自动化单元测试
+├── signature                          # 证书文件目录
+├── LICENSE                            # 许可文件
+└── figures                            # readme的截图
+```
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## 说明
 
-#### 使用说明
+### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1.  统一认证控件是采用系统弹框能力实现的UIExtensionAbility,对应组件UIExtensionComponent的类型ExtensionType:sysDialog/userAuth；是非常驻系统预置应用，只能由统一认证框架服务拉起、管理，不对外开放接口。
+2.  调用者使用统一认证控件，仅需参考统一认证框架北向使用指导，选择使用带控件的接口getUserAuthInstance,AuthParam指定认证参数，WidgetParam指定控件显示参数。
 
-#### 参与贡献
+## 相关仓
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+**[useriam_user_auth_framework](https://gitee.com/openharmony/useriam_user_auth_framework)**
