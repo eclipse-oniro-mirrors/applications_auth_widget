@@ -30,6 +30,22 @@
 └── figures                            # readme的截图
 ```
 
+## 编译构建
+
+在OpenHarmony源码根目录下，调用以下指令，单独编译统一身份认证控件部件。
+
+```
+./build.sh --product-name rk3568 --ccache --build-target useriam_auth_widget
+```
+
+> 说明：
+>
+> --product-name：产品名称，例如rk3568。
+>
+> --ccache：编译时使用缓存功能。
+>
+> --build-target: 编译的部件名称。
+
 ## 说明
 
 ### 使用说明
