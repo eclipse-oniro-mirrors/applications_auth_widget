@@ -25,6 +25,23 @@
 ├── LICENSE                            # License files
 └── figures                            # Architecture figures
 ```
+
+## Building the Unified Authentication Widget
+
+In the root directory of the OpenHarmony source code, run the following command to separately build the unified authentication widget component:
+
+```
+./build.sh --product-name rk3568 --ccache --build-target useriam_auth_widget
+```
+
+> NOTE
+>
+> --product-name indicates the product name, for example, rk3568.
+>
+> --ccache indicates the cache function used during the compilation.
+>
+> --build-target indicates the name of the component to build.
+
 ## Usage
 
 ### Usage Guidelines

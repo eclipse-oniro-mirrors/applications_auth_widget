@@ -1,7 +1,7 @@
 {
-  "name": "useriam_auth_widget_project",
+  "name": "@openharmony/auth_widget",
+  "version": "4.0",
   "description": "User Authentication capability",
-  "version": "3.1",
   "license": "Apache License 2.0",
   "publishAs": "code-segment",
   "segment": {
