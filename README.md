@@ -1,11 +1,12 @@
-# Unified User Authentication Widget
+# Authentication Widget
 
 ## Introduction
 
-**Unified authentication widget** comes with a unified user authentication framework (user_auth_framework), providing unified user identity authentication widget capabilities. When the unified user authentication framework processes user authentication requests, it provides a user authentication interaction interface, supports users to switch authentication auth types or cancel authentication through interface operation options, and supports business custom widget display information.
+The Authentication Widget works with the User Authentication Framework (user_auth_framework) to provide a user authentication interaction interface when the user_auth_framework processes user authentication requests. The user interface provided by the authentication widget supports custom display information and provides buttons for the user to switch the authentication mode or cancel the authentication.
 
-#### Software Architecture
-<img src="figures/authwidget_architecture.png" alt="authwidget_architecture" style="zoom:80%;" />
+**Figure 1** Authentication Widget architecture
+
+<img src="figures/authwidget_architecture_en.png" alt="authentication widge architecture"/>
 
 ## Directory Structure
 
@@ -14,40 +15,40 @@
 ├── entry                              # entry module code
 │   ├── src/main
 │   │          ├─ets
-│   │          │  └─extensionability   # System dialog implementation
-│   │          │  └─common             # Common implementation
-│   │          │  └─pages              # Dialog pages
-│   │          │  └─image              # Image files
-│   │          └─resources             # Resource configuration files
-│   │          └─module.json5          # Global configuration files
-│   └─ src/ohostest                    # Unit testing implemented through arkXTest
-├── signature                          # Certificate files
-├── LICENSE                            # License files
-└── figures                            # Architecture figures
+│   │          │  └─extensionability   # Implementation of system dialog boxes
+│   │          │  └─common             # Common components and utils
+│   │          │  └─pages              # Dialog boxes displayed during the user authentication
+│   │          │  └─image              # Preinstalled icon resources
+│   │          └─resources             # Resource files
+│   │          └─module.json5          # Global configuration file
+│   └─ src/ohostest                    # Unit test implemented by arkXTest
+├── signature                          # Certificates
+└── LICENSE                            # License file
+└── figures                            # Figures used in the README
 ```
 
-## Building the Unified Authentication Widget
+## Building the Authentication Widget
 
-In the root directory of the OpenHarmony source code, run the following command to separately build the unified authentication widget component:
+In the root directory of the OpenHarmony source code, run the following command to build the Authentication Widget separately:
 
 ```
 ./build.sh --product-name rk3568 --ccache --build-target useriam_auth_widget
 ```
 
-> NOTE
+> **NOTE**
 >
-> --product-name indicates the product name, for example, rk3568.
+> --**product-name** specifies the product name, for example, **rk3568**.
 >
-> --ccache indicates the cache function used during the compilation.
+> --**ccache** specifies the cache function used during the compilation.
 >
-> --build-target indicates the name of the component to build.
+> --**build-target** specifies the component to build.
 
 ## Usage
 
 ### Usage Guidelines
 
-1. The unified authentication widget is a UIExtensionAbility implemented using the system's pop-up capability, corresponding to the sysDialog/userAuth extensionType of component UIExtensionComponent; It is a non resident system preset application that can only be pulled and managed by the unified authentication framework, and the interface is not open to the public.
-2. If the caller uses the unified authentication widget, they only need to refer to the northbound usage guide of the unified authentication framework and choose to use the interface getUserAuthInstance with widget, where AuthParam specifies authentication parameters and WidgetParam specifies widget display parameters.
+- The Authentication Widget provides the default user identity authentication interface. For details about how to use the APIs, see the API reference of the User Authentication Framework. Use the **getUserAuthInstance** method with the widget to create an authentication instance, use the **AuthParam** to specify authentication parameters, and use **WidgetParam** to specify widget display parameters.
+- To ensure consistent user identity authentication experience, the authentication APIs that do not provide the user authentication interface will be deprecated. You are advised to use the authentication APIs provided by API version 10.
 
 ## Repositories Involved
 
