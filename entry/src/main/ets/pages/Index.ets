@@ -13,82 +13,176 @@
  * limitations under the License.
  */
 
+import screen from '@ohos.screen';
 import userAuth from '@ohos.userIAM.userAuth';
-import window from '@ohos.window'
+import window from '@ohos.window';
+import { DialogType } from '../common/module/DialogType';
+import AuthUtils from '../common/utils/AuthUtils';
+import FuncUtils from '../common/utils/FuncUtils';
 import LogUtils from '../common/utils/LogUtils';
-import Constants from '../common/vm/Constants';
+import Constants, { CmdType } from '../common/vm/Constants';
 import CustomPassword from './components/CustomPassword';
-import FaceAuth from './components/FaceAuth'
-import FingerprintAuth from './components/FingerprintAuth'
+import FaceAuth from './components/FaceAuth';
+import FingerprintAuth from './components/FingerprintAuth';
 import PasswordAuth from './components/PasswordAuth';
 
 const TAG = 'Index';
+const defaultSize = 72;
+const THEME_WHITE = 1;
+let userAuthWidgetMgr;
 
-let storage = LocalStorage.GetShared()
-
-@Entry(storage)
+@Entry
 @Component
 struct Index {
-  @State authType: Array<userAuth.UserAuthType> = [userAuth.UserAuthType.PIN]
-  @State trust: string = '10000'
-  @State control_title: string = '请输入密码'
-  @State navigation_button_text: string = '确定'
-  @State topHeight: number = 72;
-  @State bottomHeight: number = 72;
-  // dialog 0:six number 1:arbitrary character 2:arbitrary number
-  // full 3:six number 4:arbitrary character 5:arbitrary number
-  @State type: number = Constants.TYPE_DIALOG_ARBITRARY_NUMBER
+  @State authType: Array<userAuth.UserAuthType> = [userAuth.UserAuthType.PIN];
+  @State type: string[] = [];
+  @State topHeight: number = defaultSize;
+  @State bottomHeight: number = defaultSize;
+  @State pinSubType: string = Constants.pinNumber;
+  @State dialogType: DialogType = DialogType.ALL;
+  @State windowModeType: string = 'DIALOG_BOX';
   // background 1:white 2:Gaussian Blur
-  @State themeType: number = Constants.THEME_TYPE_WHITE
+  @State themeType: number = THEME_WHITE;
+  @State cmdData: Array<CmdType> = [];
+  @Provide isLandscape: boolean = false;
+  @Provide underFingerPrint: boolean = false;
 
-  randomChallenge() {
-    let arr = [];
-    for (let index = 0; index <= 5; index++) {
-      arr.push(Math.ceil(Math.random() * 9));
+  onScreenChange(): void {
+    try {
+      screen.getAllScreens((err, data) => {
+        if (err.code) {
+          LogUtils.e(TAG, 'Failed to get all screens. Cause: ' + JSON.stringify(err));
+          return;
+        }
+        this.isLandscape = data[0].orientation === 2;
+        LogUtils.d(TAG, ' get all screens. result: ' + JSON.stringify(this.isLandscape));
+        LogUtils.d(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
+      });
+    } catch (exception) {
+      LogUtils.e(TAG, 'getAllScreens catch exception: ' + exception);
     }
-    return new Uint8Array(arr);
+
   }
 
-  onCancel() {
-    LogUtils.d(TAG, 'Callback when the first button is clicked')
-    globalThis.session?.terminateSelf();
-    storage?.clear();
+  handleIsUnder(cmd: []): void {
+    cmd?.length > 0 && this.cmdData.map((item) => {
+      const { type,sensorInfo} = item.payload;
+      if (type === Constants.noticeTypeFinger) {
+        if (sensorInfo && JSON.stringify(sensorInfo) !== '{}') {
+          const fingerPosition = JSON.parse(sensorInfo);
+          if (fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR'
+          || fingerPosition.sensorType === 'BOTH_SENSOR'
+          || fingerPosition.sensorType === 'SensorType1') {
+            if (this.authType.includes(userAuth.UserAuthType.FINGERPRINT) && this.authType.length < 2) {
+              this.underFingerPrint = true;
+            }
+          }
+        }
+      }
+    })
   }
 
-  onAccept() {
-    LogUtils.d(TAG, 'Callback when the second button is clicked')
+  handleAuthStart(): void {
+    try {
+      userAuthWidgetMgr = userAuth.getUserAuthWidgetMgr(Constants.userAuthWidgetMgrVersion);
+      LogUtils.i(TAG, 'getUserAuthWidgetMgr success');
+      let that = this;
+      userAuthWidgetMgr.on('command', {
+        callback: function (result) {
+          LogUtils.i(TAG, 'userAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
+          const cmdDataObj = JSON.parse(result?.cmdData || '{}');
+          if (cmdDataObj?.cmd?.[0]?.payload?.result === Constants.userAuthWidgetMgrSuccess) {
+            globalThis.session?.terminateSelf();
+          } else {
+            that.cmdData = cmdDataObj?.cmd || [];
+            that.pinSubType = cmdDataObj?.pinSubType;
+            that.handleIsUnder(cmdDataObj?.cmd || []);
+          }
+        }
+      });
+    } catch (error) {
+      LogUtils.e(TAG, 'getUserAuthWidgetMgr catch error: ' + JSON.stringify(error));
+    }
+    AuthUtils.getInstance().sendNotice('CMD_NOTIFY_AUTH_START', [Constants.noticeTypePin]);
   }
 
-  existApp() {
-    LogUtils.d(TAG, 'Click the callback in the blank area')
-    globalThis.session?.terminateSelf();
-    storage?.clear();
-  }
-
-  aboutToAppear() {
+  aboutToAppear(): void {
     LogUtils.d(TAG, 'aboutToAppear');
     if (globalThis.wantParams) {
-      this.getParams();
-      LogUtils.d(TAG, 'globalThis.wantParams' + JSON.stringify(globalThis.wantParams));
+      this.getParams(globalThis.wantParams);
+      this.handleAuthStart();
+      this.cmdData = globalThis.wantParams?.cmd;
+      AuthUtils.getInstance().sendNotice('CMD_NOTIFY_AUTH_START', this.type);
+      LogUtils.d(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
     } else {
       LogUtils.e(TAG, 'aboutToAppear wantParams null');
     }
+    this.getWindowHeight();
+  }
 
+  aboutToDisappear(): void {
+    LogUtils.i(TAG, 'aboutToDisappear');
+    if (userAuthWidgetMgr) {
+      userAuthWidgetMgr.off('command', {
+        callback: function (result) {
+          LogUtils.i(TAG, 'aboutToDisappear userAuthWidgetMgr offCommand result: ' + JSON.stringify(result));
+        }
+      });
+    }
+  }
+
+  onPageShow(): void {
+    LogUtils.i(TAG, 'onPageShow');
+  }
+
+  onPageHide(): void {
+    LogUtils.i(TAG, 'onPageHide');
+  }
+
+  onBackPress(): void {
+    LogUtils.i(TAG, 'onBackPress');
+  }
+
+  getParams(result): void {
+    LogUtils.i(TAG, 'getParams');
+    const { pinSubType, windowModeType, cmd, type, widgetContextId } = result;
+    this.pinSubType = pinSubType;
+    const newType = type && type.map(item => {
+      switch (item) {
+        case Constants.noticeTypePin:
+          return userAuth.UserAuthType.PIN;
+        case Constants.noticeTypeFinger:
+          return userAuth.UserAuthType.FINGERPRINT;
+        case Constants.noticeTypeFace:
+          return userAuth.UserAuthType.FACE;
+      }
+    })
+    globalThis.widgetContextId = widgetContextId;
+    this.authType = newType;
+    this.type = type;
+    this.windowModeType = windowModeType;
+    this.dialogType = FuncUtils.getDialogType(newType);
+    this.cmdData = cmd || [];
+    this.handleIsUnder(cmd || []);
+  }
+
+  getWindowHeight(): void {
+    LogUtils.i(TAG, 'getWindowHeight');
     try {
       window.on('systemBarTintChange', (data) => {
         LogUtils.d(TAG, 'Succeeded in enabling the listener for window stage event changes. Data: ' +
         JSON.stringify(data));
-       for (let i = 0; i < data.regionTint.length; i++) {
-         let regionData = data.regionTint[i]
-         if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
-           this.topHeight  = px2vp(regionData.region.height)
-           continue
-         }
-         if (regionData.type === window.WindowType.TYPE_NAVIGATION_BAR) {
-           this.bottomHeight = px2vp(regionData.region.top)
-           continue
-         }
-       }
+        for (let i = 0; i < data.regionTint.length; i++) {
+          let regionData = data.regionTint[i];
+          if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
+            this.topHeight = px2vp(regionData.region.height);
+            continue;
+          }
+          if (regionData.type === window.WindowType.TYPE_NAVIGATION_BAR) {
+            this.bottomHeight = px2vp(regionData.region.top);
+            continue;
+          }
+        }
       });
     } catch (exception) {
       LogUtils.e(TAG, 'Failed to enable the listener for window stage event changes. Cause:' +
@@ -96,78 +190,58 @@ struct Index {
     }
   }
 
-  aboutToDisappear() {
-    LogUtils.d(TAG, 'aboutToDisappear')
-  }
-
-  onPageShow() {
-    LogUtils.i(TAG, 'onPageShow');
-  }
-
-  onPageHide() {
-    LogUtils.i(TAG, 'onPageHide');
-  }
-
-  onBackPress() {
-    LogUtils.i(TAG, 'onBackPress');
-  }
-
-  getParams() {
-    LogUtils.i(TAG, 'getParams');
-    this.authType = globalThis.wantParams.authParam?.authType;
-    this.trust = globalThis.wantParams.authParam?.authTrustLevel;
-    this.control_title = globalThis.wantParams.widgetParam?.title;
-    this.navigation_button_text = globalThis.wantParams.widgetParam?.navigationButtonText;
-    this.type = globalThis.wantParams.widgetParam?.windowMode;
-    LogUtils.i(TAG, 'getParams--' + this.type.toString() + JSON.stringify(globalThis.wantParams.authParam) + JSON.stringify(globalThis.wantParams.widgetParam));
-  }
-
   build() {
     Flex({ direction: FlexDirection.Column, justifyContent: FlexAlign.SpaceAround, alignItems: ItemAlign.Center }) {
-      if (userAuth.WindowModeType.DIALOG_BOX === this.type) {
-        if (this.authType.includes(2)) {
-          FaceAuth({
-            cancel: this.onCancel,
-            confirm: this.onAccept,
-            type: $type
-          })
-        } else if (this.authType.includes(4)) {
-          FingerprintAuth({
-            cancel: this.onCancel,
-            confirm: this.onAccept,
-            type: $type
-          })
+      if (this.isLandscape && this.underFingerPrint) {
+        Column() {
+          Text(globalThis.context.resourceManager.getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode')))
+            .height('40vp')
+            .fontColor(this.themeType === THEME_WHITE
+              ? $r('sys.color.ohos_id_color_text_primary')
+              : $r('sys.color.ohos_id_color_text_primary_contrary'))
+            .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
+            .fontWeight(FontWeight.Medium)
+        }.justifyContent(FlexAlign.End)
+        .width(Constants.fullContainerWidth)
+        .height(Constants.fullContainerWidth)
+      } else {
+        if ('DIALOG_BOX' === this.windowModeType) {
+          if (this.authType.includes(userAuth.UserAuthType.FACE)) {
+            FaceAuth({
+              type: $windowModeType,
+              pinSubType: $pinSubType,
+              dialogType: $dialogType,
+              cmdData: $cmdData,
+            })
+          } else if (this.authType.includes(userAuth.UserAuthType.FINGERPRINT)) {
+            FingerprintAuth({
+              type: $windowModeType,
+              pinSubType: $pinSubType,
+              dialogType: $dialogType,
+              cmdData: $cmdData,
+            })
+          } else {
+            PasswordAuth({
+              pinSubType: $pinSubType,
+              cmdData: $cmdData
+            })
+          }
+
         } else {
-          PasswordAuth({
-            cancel: this.onCancel,
-            confirm: this.onAccept,
-            type: $type
+          // full screen PIN
+          CustomPassword({
+            themeType: $themeType,
+            authType: $authType,
+            pinSubType: $pinSubType,
+            cmdData: $cmdData,
           })
         }
-
-      } else if (userAuth.WindowModeType.FULLSCREEN === this.type) {
-        // full screen pin
-        CustomPassword({
-          cancel: this.onCancel,
-          confirm: this.onCancel,
-          themeType: $themeType,
-          type: $type,
-          authType: $authType
-        })
-      } else if (this.type === 6 || this.type === 9 || this.type === 10) {
-        // dialog face
-        FaceAuth({
-          cancel: this.onCancel,
-          confirm: this.onAccept,
-          type: $type
-        })
-      } else if (this.type === 7 || this.type === 8) {
-        // dialog finger
-
       }
     }
-    .backgroundColor(Color.Pink)
-    .position({ x: 0, y: this.topHeight })
-    .height((this.bottomHeight-this.topHeight))
+    .onAreaChange(() => {
+      this.onScreenChange();
+    })
+    .backgroundColor(Color.Transparent)
+    .padding(this.isLandscape ? 0 : { top: this.topHeight, bottom: this.topHeight })
   }
 }

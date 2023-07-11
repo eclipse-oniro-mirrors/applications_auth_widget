@@ -17,7 +17,7 @@ import Constants from '../../common/vm/Constants';
 
 @Component
 export default struct Pwd {
-  @Link type: number;
+  @Link pinSubType: string;
   @Link @Watch('onTextValueChange') textValue: string;
   @Link inputValue: string;
   @Link isEdit: boolean;
@@ -26,30 +26,30 @@ export default struct Pwd {
   cancel: () => void;
   confirm: () => void;
 
-  onTextValueChange() {
+  onTextValueChange(): void {
     this.passwordArrNumber = this.textValue.replace(/[^\d]/g, '').split('');
   }
 
-  clearPassword() {
+  clearPassword(): void {
     this.passwordArrNumber = [];
     this.textValue = '';
     this.inputValue = ' ';
   }
 
-  aboutToDisappear() {
+  aboutToDisappear(): void {
     this.clearPassword();
   }
 
   build() {
     Column() {
-      Text(globalThis.title)
+      Text(globalThis.wantParams?.title)
         .margin({ top: $r('app.float.content_padding_top') })
         .fontSize($r('sys.float.ohos_id_text_size_body1'))
         .fontColor($r('sys.color.ohos_id_color_text_primary'))
         .fontWeight(FontWeight.Medium)
       TextInput({
         placeholder: '',
-        text: this.type === Constants.TYPE_DIALOG_ARBITRARY_NUMBER ? this.passwordArrNumber.join('') : this.textValue
+        text: this.pinSubType === Constants.pinNumber ? this.passwordArrNumber.join('') : this.textValue
       })
         .maxLength(32)
         .enabled(this.isEdit)
@@ -63,18 +63,19 @@ export default struct Pwd {
         .textAlign(TextAlign.Center)
         .fontColor($r('sys.color.ohos_id_color_text_primary'))
         .border({
-          width: this.inputValue == ' ' ? '' : $r('app.float.input_border'),
-          color: this.inputValue == ' ' ? '' : ($r('sys.color.ohos_id_color_warning'))
+          width: this.inputValue === ' ' ? '' : $r('app.float.input_border'),
+          color: this.inputValue === ' ' ? '' : ($r('sys.color.ohos_id_color_warning'))
         })
         .onChange((value: string) => {
-          if (this.type === Constants.TYPE_DIALOG_ARBITRARY_NUMBER) {
+          if (this.pinSubType === Constants.pinNumber) {
             this.passwordArrNumber = value.replace(/[^\d]/g, '').split('');
           }
           this.textValue = value;
         })
+        .id('pinInputMix')
       Text(this.inputValue)
         .fontSize($r('sys.float.ohos_id_text_size_body2'))
-        .margin({ top: $r("app.float.element_margin") })
+        .margin({ top: $r('app.float.element_margin') })
         .fontColor($r('sys.color.ohos_id_color_warning'))
     }
   }

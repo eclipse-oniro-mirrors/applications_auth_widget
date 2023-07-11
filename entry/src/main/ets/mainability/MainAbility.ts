@@ -20,16 +20,15 @@ import window from '@ohos.window';
 const TAG = 'MainAbility';
 
 export default class MainAbility extends UIAbility {
-  onCreate(want, launchParam) {
+  onCreate(): void {
     LogUtils.i(TAG, 'Ability onCreate');
   }
 
-  onDestroy() {
+  onDestroy(): void | Promise<void> {
     LogUtils.i(TAG, 'Ability onDestroy');
   }
 
-  onWindowStageCreate(windowStage: window.WindowStage) {
-    // Main window is created, set main page for this ability
+  onWindowStageCreate(windowStage: window.WindowStage): void {
     LogUtils.i(TAG, 'Ability onWindowStageCreate');
 
     windowStage.loadContent('pages/Index', (err, data) => {
@@ -41,18 +40,15 @@ export default class MainAbility extends UIAbility {
     });
   }
 
-  onWindowStageDestroy() {
-    // Main window is destroyed, release UI related resources
+  onWindowStageDestroy(): void {
     LogUtils.i(TAG, 'Ability onWindowStageDestroy');
   }
 
-  onForeground() {
-    // Ability has brought to foreground
+  onForeground(): void {
     LogUtils.i(TAG, 'Ability onForeground');
   }
 
-  onBackground() {
-    // Ability has back to background
+  onBackground(): void {
     LogUtils.i(TAG, 'Ability onBackground');
   }
 }

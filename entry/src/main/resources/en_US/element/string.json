@@ -10,183 +10,7 @@
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
-    },
-    {
-      "name": "unified_identity_control_app",
-      "value": "unified identity control self-test app"
-    },
-    {
-      "name": "single_command_authentication",
-      "value": "single_command_authentication"
-    },
-    {
-      "name": "northbound_interface_testing",
-      "value": "northbound_interface_testing"
-    },
-    {
-      "name": "api_9",
-      "value": "api_9"
-    },
-    {
-      "name": "api_8",
-      "value": "api_8"
-    },
-    {
-      "name": "api_6",
-      "value": "api_6"
-    },
-    {
-      "name": "api_10",
-      "value": "api_10"
-    },
-    {
-      "name": "prefabrication_condition",
-      "value": "prefabrication_condition"
-    },
-    {
-      "name": "back",
-      "value": "back"
-    },
-    {
-      "name": "authType",
-      "value": "authType"
-    },
-    {
-      "name": "trust",
-      "value": "trustlevel"
-    },
-    {
-      "name": "pop_type",
-      "value": "pop_up_type"
-    },
-    {
-      "name": "Auth",
-      "value": "Auth"
-    },
-    {
-      "name": "getAuthinstance",
-      "value": "getAuthinstance"
-    },
-    {
-      "name": "on",
-      "value": "on"
-    },
-    {
-      "name": "off",
-      "value": "off"
-    },
-    {
-      "name": "start",
-      "value": "start"
-    },
-    {
-      "name": "cancel",
-      "value": "cancel"
-    },
-    {
-      "name": "authResult",
-      "value": "authResult"
-    },
-    {
-      "name": "single_fingerprint_authentication",
-      "value": "single fingerprint authentication"
-    },
-    {
-      "name": "single_face_authentication",
-      "value": "single face authentication"
-    },
-    {
-      "name": "face_password_authentication",
-      "value": "face password authentication"
-    },
-    {
-      "name": "fingerprint_password_authentication",
-      "value": "fingerprint password authentication"
-    },
-    {
-      "name": "face_fingerprint_password_authentication",
-      "value": "face fingerprint password authentication"
-    },
-    {
-      "name": "execution_result",
-      "value": "execution result"
-    },
-    {
-      "name": "control_title",
-      "value": "control title"
-    },
-    {
-      "name": "popup_six_digit_password_authentication",
-      "value": "popup--six digit password authentication"
-    },
-    {
-      "name": "popup_any_digit_password_authentication",
-      "value": "popup--any digit password authentication"
-    },
-    {
-      "name": "popup_any_character_password_authentication",
-      "value": "popup--any character password authentication"
-    },
-    {
-      "name": "full_screen_six_character_password_authentication",
-      "value": "full_screen--six_character password authentication"
-    },
-    {
-      "name": "full_screen_any_digit_password_authentication",
-      "value": "full_screen--any digit password authentication"
-    },
-    {
-      "name": "full_screen_any_character_password_authentication",
-      "value": "full_screen--any character_password authentication"
-    },
-    {
-      "name": "preset_face",
-      "value": "preset face"
-    },
-    {
-      "name": "preset_fingerprint",
-      "value": "preset fingerprint"
-    },
-    {
-      "name": "delete_face",
-      "value": "delete face"
-    },
-    {
-      "name": "delete_fingerprint",
-      "value": "delete fingerprint"
-    },
-    {
-      "name": "navigation_button_text",
-      "value": "navigation button text"
-    },
-    {
-      "name": "screen_single_fingerprint_authentication",
-      "value": "screen single fingerprint authentication"
-    },
-    {
-      "name": "off_screen_single_fingerprint_authentication",
-      "value": "off screen single fingerprint authentication"
-    },
-    {
-      "name": "confirm",
-      "value": "confirm"
-    },
-    {
-      "name": "locked",
-      "value": "locked"
-    },
-    {
-      "name": "please_try_again_in_60_seconds",
-      "value": "please try again in 60 seconds"
-    },
-    {
-      "name": "forgot_password",
-      "value": "forgot password"
-    },
-    {
-      "name": "use_password",
-      "value": "use password"
+      "value": "AuthWidget"
     },
     {
       "name": "unified_authwidget_forgotpwd",
@@ -303,6 +127,70 @@
     {
       "name": "unified_authwidget_hint_pin_error",
       "value": "Incorrect PIN"
+    },
+    {
+      "name": "unified_authwidget_use_pwd",
+      "value": "Enter password"
+    },
+    {
+      "name": "unified_authwidget_title_face_forbidden",
+      "value": "Face Recognition disabled."
+    },
+    {
+      "name": "unified_authwidget_hint_fp_retry_s2",
+      "value": "Fingerprint not recognized. Press down a little longer."
+    },
+    {
+      "name": "unified_authwidget_title_fp_forbidden",
+      "value": "Fingerprint ID disabled."
+    },
+    {
+      "name": "unified_authwidget_hint_recognition",
+      "value": "Face Scanning…"
+    },
+    {
+      "name": "unified_authwidget_title_number_failed_fp_forbidden",
+      "value": "Excessive failure, fingerprint is disabled"
+    },
+    {
+      "name": "unified_authwidget_tip_verify_in_portrait_mode",
+      "value": "Verify in portrait mode"
+    },
+    {
+      "name": "unified_authwidget_pwd_error_can_try_frequency",
+      "value": "Password error, can still try %d frequency"
+    },
+    {
+      "name": "unified_authwidget_pwd_error_can_try",
+      "value": "Password error, can still try "
+    },
+    {
+      "name": "unified_authwidget_frequency",
+      "value": " frequency"
+    },
+    {
+      "name": "unified_authwidget_many_failures",
+      "value": "Too many failures, please "
+    },
+    {
+      "name": "unified_authwidget_postretry",
+      "value": "retry"
+    },
+    {
+      "name": "unified_authwidget_minutes",
+      "value": "minutes "
+    },
+    {
+      "name": "unified_authwidget_seconds",
+      "value": "seconds "
+    },
+    {
+      "name": "unified_authwidget_notarize",
+      "value": "OK"
+    },
+    {
+      "name": "unified_authwidget_title_number_failed_face_forbidden",
+      "value": "Excessive failure, face is disabled"
     }
   ]
 }

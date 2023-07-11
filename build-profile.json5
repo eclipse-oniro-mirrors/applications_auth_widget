@@ -15,22 +15,8 @@
 
 {
   "app": {
-    "signingConfigs": [
-      {
-        "name": "default",
-        "material": {
-          "certpath": "C:\\Users\\ts\\.ohos\\config\\openharmony\\auto_ohos_default_test_com.ohos.useriam.authwidget.cer",
-          "storePassword": "0000001B95C3BFF9FC66AF4788B56350F08D1C09A84E93313B4122E02C2F546342F0D02159856F3C270AC2",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001BF70E01A0D166CD6A6F57519ED203AF9C7CDFFEDD663346CCA33525440E7427F96EF86592C5961D",
-          "profile": "C:\\Users\\ts\\.ohos\\config\\openharmony\\auto_ohos_default_test_com.ohos.useriam.authwidget.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\ts\\.ohos\\config\\openharmony\\auto_ohos_default_test_com.ohos.useriam.authwidget.p12"
-        }
-      }
-    ],
     "compileSdkVersion": 10,
-    "compatibleSdkVersion": 9,
+    "compatibleSdkVersion": 10,
     "products": [
       {
         "name": "default",

@@ -13,8 +13,36 @@
  * limitations under the License.
  */
 
-import abilityTest from './Ability.test'
+import IndexTest from './Index.test';
+import funcUtilsTest from './jsunit/commonUtilsTest/FuncUtils.test';
+import constantsTest from './jsunit/constantsTest/Constants.test';
+import customPasswordTest from './jsunit/widgetTest/CustomPassword.test';
+import CustomPasswordFaceTest from './jsunit/widgetTest/CustomPasswordFace.test';
+import CustomPasswordFingerTest from './jsunit/widgetTest/CustomPasswordFinger.test';
+import FaceAuth from './jsunit/widgetTest/FaceAuth.test';
+import FingerprintAuth from './jsunit/widgetTest/FingerprintAuth.test';
+import pageComTest from './jsunit/widgetTest/PageCom.test';
+import passwordAuthTest from './jsunit/widgetTest/PasswordAuth.test';
+import PasswordAuthTestSix from './jsunit/widgetTest/PasswordAuthSix.test';
+import CustomPasswordTest from './uitest/CustomPassword.test';
+import FaceAuthTest from './uitest/FaceAuth.test';
+import FingerprintAuthTest from './uitest/FingerprintAuth.test';
+import PasswordAuthTest from './uitest/PasswordAuth.test';
 
 export default function testsuite() {
-  abilityTest()
+  IndexTest();
+  CustomPasswordTest();
+  PasswordAuthTest();
+  FaceAuthTest();
+  FingerprintAuthTest();
+  funcUtilsTest();
+  pageComTest();
+  constantsTest();
+  passwordAuthTest();
+  PasswordAuthTestSix();
+  FaceAuth();
+  FingerprintAuth();
+  customPasswordTest();
+  CustomPasswordFaceTest();
+  CustomPasswordFingerTest();
 }

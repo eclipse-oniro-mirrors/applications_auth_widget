@@ -1,17 +1,21 @@
 {
-  "name": "auth_widget",
-  "version": "1.0.0",
+  "license": "ISC",
+  "devDependencies": {},
+  "author": "",
+  "name": "authwidget",
+  "description": "Please describe the basic information.",
   "ohos": {
     "org": "huawei",
-    "buildTool": "hvigor",
-    "directoryLevel": "project"
+    "directoryLevel": "project",
+    "buildTool": "hvigor"
   },
-  "description": "example description",
-  "repository": {},
-  "license": "ISC",
+  "main": "",
+  "version": "1.0.0",
   "dependencies": {
-    "@ohos/hypium": "1.0.5",
-    "@ohos/hvigor": "1.4.0",
-    "@ohos/hvigor-ohos-plugin": "1.4.0"
+    "@ohos/hypium": "1.0.3",
+    "@ohos/hvigor-ohos-plugin": "1.3.1",
+    "hypium": "^1.0.0",
+    "@ohos/hvigor": "1.3.1"
   }
 }
+

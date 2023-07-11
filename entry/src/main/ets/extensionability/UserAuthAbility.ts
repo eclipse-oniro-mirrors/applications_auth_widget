@@ -20,33 +20,30 @@ const TAG = 'UserAuthAbility';
 
 export default class UserAuthAbility extends UserAuthExtensionAbility {
   onCreate() {
-    LogUtils.i(TAG, `UserAuthExtensionAbility onCreate context: ` + JSON.stringify(this.context))
+    LogUtils.i(TAG, 'UserAuthExtensionAbility onCreate context: ' + JSON.stringify(this.context));
     globalThis.context = this.context;
   }
 
-  onForeground() {
-    LogUtils.i(TAG, `UserAuthExtensionAbility onForeground`)
+  onForeground(): void {
+    LogUtils.i(TAG, 'UserAuthExtensionAbility onForeground');
   }
 
-  onBackground() {
-    LogUtils.i(TAG, `UserAuthExtensionAbility onBackground`)
+  onBackground(): void {
+    LogUtils.i(TAG, 'UserAuthExtensionAbility onBackground');
   }
 
-  onDestroy() {
-    LogUtils.i(TAG, `UserAuthExtensionAbility onDestroy`)
+  onDestroy(): void | Promise<void> {
+    LogUtils.i(TAG, 'UserAuthExtensionAbility onDestroy');
   }
 
-  onSessionCreate(want, session) {
-    LogUtils.i(TAG, `UserAuthExtensionAbility onSessionCreate, want: ${JSON.stringify(want)}`)
-    let storage: LocalStorage = new LocalStorage({
-      'session': session
-    });
-    globalThis.wantParams = want?.parameters?.wantParams;
+  onSessionCreate(want, session): void {
+    LogUtils.i(TAG, 'UserAuthExtensionAbility onSessionCreate want: ' + JSON.stringify(want));
+    globalThis.wantParams = want?.parameters?.useriamCmdData;
     globalThis.session = session;
-    session.loadContent('pages/Index', storage);
+    session.loadContent('pages/Index');
   }
 
-  onSessionDestroy(session) {
-    LogUtils.i(TAG, `UserAuthExtensionAbility onSessionDestroy`)
+  onSessionDestroy(session): void {
+    LogUtils.i(TAG, 'UserAuthExtensionAbility onSessionDestroy');
   }
 }
