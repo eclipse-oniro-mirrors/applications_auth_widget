@@ -14,53 +14,76 @@
  */
 
 import account_osAccount from '@ohos.account.osAccount';
-import userAuth from '@ohos.userIAM.userAuth';
-import util from '@ohos.util';
 import Pwd from '../../common/components/Pwd';
 import SixPwd from '../../common/components/SixPwd';
+import AuthUtils from '../../common/utils/AuthUtils';
+import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
-import Constants from '../../common/vm/Constants';
+import Constants, { CmdType } from '../../common/vm/Constants';
 
 const TAG = 'PasswordAuth';
+const INTERVAL = 1000;
 
 let pinAuthManager;
 let pinData = '';
 
-
 @Component
 export default struct PasswordAuth {
-  // 0:six number 1:arbitrary character 2:arbitrary number
-  @Link type: number;
-  @State @Watch('onFlagChange') controllerFlag: boolean = false;
+  @Link pinSubType: string;
   @State @Watch('onTextValueChange') textValue: string = '';
+  @Link @Watch('onCmdDataChange') cmdData: Array<CmdType>;
   @State isEdit: boolean = true;
   // tip
   @State inputValue: string = ' ';
-  controller: CustomDialogController;
-  cancel: () => void;
-  confirm: () => void;
 
-  onFlagChange() {
-    if (this.controllerFlag) {
-      globalThis.session?.terminateSelf();
-    }
-  }
-
-  onTextValueChange() {
+  onTextValueChange(): void {
     pinData = this.textValue;
   }
 
-  aboutToAppear() {
+  onCmdDataChange(num?: string): void {
+    this.cmdData.length > 0 && this.cmdData.map((item) => {
+      const { type,remainAttempts, lockoutDuration} = item.payload;
+      if (type === Constants.noticeTypePin) {
+        if (remainAttempts) {
+          this.inputValue = globalThis.context.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
+          this.textValue = '';
+          if (num === 'first') {
+            this.inputValue = '';
+          }
+          if (remainAttempts < 3) {
+            this.inputValue = globalThis.context.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
+            + remainAttempts + globalThis.context.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_frequency'));
+          }
+          return;
+        }
+        if (remainAttempts === 0 && lockoutDuration) {
+          this.countTime(lockoutDuration);
+          this.isEdit = false;
+          this.textValue = '';
+          return;
+        }
+        this.inputValue = globalThis.context.resourceManager
+          .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
+        this.textValue = '';
+      }
+    })
+  }
+
+  aboutToAppear(): void {
+    if (this.cmdData && this.cmdData.length > 0) {
+      this.onCmdDataChange('first');
+    }
     // register input
     try {
-      LogUtils.d(TAG, 'aboutToAppear PINAuth start');
+      LogUtils.i(TAG, 'aboutToAppear PINAuth start');
       pinAuthManager = new account_osAccount.PINAuth();
       pinAuthManager.registerInputer({
         onGetData: (authSubType, callback) => {
-          let textEncoder = new util.TextEncoder();
-          let uint8PW = textEncoder.encode(pinData);
-          LogUtils.d(TAG, `aboutToAppear PINAuth onGetData pinData: ${pinData}, uint8PW: ${uint8PW}`);
+          const uint8PW = FuncUtils.getUint8PW(pinData);
           callback.onSetData(authSubType, uint8PW);
         }
       });
@@ -69,20 +92,22 @@ export default struct PasswordAuth {
     }
   }
 
-  aboutToDisappear() {
-    pinAuthManager?.unregisterInputer?.()
+  aboutToDisappear(): void {
+    LogUtils.i(TAG, 'aboutToAppear pinAuthManager unregisterInputer');
+    pinAuthManager?.unregisterInputer?.();
   }
 
-  countTime(freezingTime) {
-    const TRY_AGAIN = '后重试';
+  countTime(freezingTime): void {
+    const TRY_AGAIN = globalThis.context.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond);
-      promptText += TRY_AGAIN;
-      setTimeout(this.countTime.bind(this), 1000, freezingTime - 1000);
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalThis.context);
+      promptText = globalThis.context.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_many_failures')) + promptText + TRY_AGAIN;
+      setTimeout(this.countTime.bind(this), INTERVAL, freezingTime - INTERVAL);
     } else {
-      promptText = Constants.INPUT_PASSWORD;
+      promptText = ' ';
       this.isEdit = true;
     }
     this.inputValue = promptText;
@@ -93,7 +118,7 @@ export default struct PasswordAuth {
       GridRow({
         columns: 8,
         gutter: { x: 5, y: 10 },
-        breakpoints: { value: ['360vp', '780vp'],
+        breakpoints: { value: Constants.deviceDpi,
           reference: BreakpointsReference.WindowSize },
         direction: GridRowDirection.Row
       }) {
@@ -103,18 +128,18 @@ export default struct PasswordAuth {
           span: { xs: 8, sm: 8, md: 4, lg: 4 },
         }) {
           Column() {
-            if (this.type !== Constants.TYPE_DIALOG_SIX_NUMBER) {
+            if (this.pinSubType !== Constants.pinSix) {
               // arbitrary input
               Column() {
                 Pwd({
-                  type: $type,
+                  pinSubType: $pinSubType,
                   textValue: $textValue,
                   inputValue: $inputValue,
                   isEdit: $isEdit,
                 })
                 Row() {
                   Column() {
-                    Button($r('app.string.cancel'), { stateEffect: true })
+                    Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                       .margin({ left: $r('app.float.content_padding') })
                       .width('90%')
                       .height($r('app.float.btn_height'))
@@ -123,12 +148,9 @@ export default struct PasswordAuth {
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
-                        globalThis.session?.terminateSelf();
-                        LogUtils.d(TAG, `globalThis.session` + JSON.stringify(globalThis.session) + globalThis.session.terminateSelf());
-                        this.cancel();
-                        this.textValue = '';
-                        this.inputValue = ' ';
+                        globalThis.session?.terminateSelf?.();
                       })
+                      .id('cancelBtnDialogPwd')
                   }.width('50%')
 
                   Divider()
@@ -137,69 +159,9 @@ export default struct PasswordAuth {
                     .color($r('sys.color.ohos_id_color_list_separator'))
                     .width($r('app.float.divider_width'))
                   Column() {
-                    Button($r('app.string.confirm'))
+                    Button($r('app.string.unified_authwidget_confirm'))
                       .onClick(async () => {
-                        // check callback
-                        let userAuthWidgetMgr;
-                        try {
-                          let that = this;
-                          LogUtils.d(TAG, 'getUserAuthWidgetMgr start');
-                          userAuthWidgetMgr = await userAuth.getUserAuthWidgetMgr(1);
-                          // check callback
-                          userAuthWidgetMgr.on('command', {
-                            callback: function (result) {
-                              LogUtils.d(TAG, 'getUserAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
-                              // fail
-                              const cmdData = JSON.parse(result?.cmdData)
-                              if (cmdData?.cmd?.[0]?.payload?.result !== Constants.USER_AUTH_WIDGET_MGR_SUCCESS) {
-                                // frequency
-                                const frequency = cmdData?.cmd?.[0]?.payload?.remainAttempts;
-                                if (frequency) {
-                                  that.inputValue = Constants.ERROR_PASSWORD;
-                                  that.textValue = '';
-                                  if (frequency < 4) {
-                                    that.inputValue = `密码错误，还可尝试${frequency}次`;
-                                  }
-                                  return;
-                                }
-                                // countdown
-                                const time = cmdData?.cmd?.[0]?.payload?.lockoutDuration;
-                                if (frequency === 0 && time) {
-                                  that.countTime(time);
-                                  that.isEdit = false;
-                                  that.textValue = '';
-                                  return;
-                                }
-                                that.inputValue = Constants.ERROR_PASSWORD;
-                                that.textValue = '';
-                              } else {
-                                // success
-                                that.controller.close();
-                              }
-                            }
-                          });
-                          LogUtils.d(TAG, 'getUserAuthWidgetMgr success userAuthWidgetMgr: ' + JSON.stringify(userAuthWidgetMgr));
-                        } catch (error) {
-                          LogUtils.e(TAG, 'getUserAuthWidgetMgr catch error: ' + JSON.stringify(error));
-                        }
-                        // check
-                        try {
-                          const eventData = {
-                            // widgetContextId from onCreate
-                            widgetContextId: 123456,
-                            event: 'EVENT_AUTH_TYPE_READY',
-                            version: '1',
-                            payload: {
-                              type: ['pin']
-                            }
-                          };
-                          const jsonEventData = JSON.stringify(eventData);
-                          LogUtils.d(TAG, 'sendNotice start eventData: ' + jsonEventData);
-                          await userAuth.sendNotice(1, jsonEventData);
-                          LogUtils.d(TAG, 'sendNotice success');
-                        } catch (error) {
-                          LogUtils.e(TAG, 'sendNotice catch error: ' + JSON.stringify(error));
-                        }
+                        AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
                       })
                       .enabled(this.textValue.length >= 4)
                       .margin({ right: $r('app.float.content_padding') })
@@ -210,10 +172,11 @@ export default struct PasswordAuth {
                       .opacity(this.textValue.length >= 4 ? 1 : $r('sys.float.ohos_fa_alpha_disabled'))
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
+                      .id('okBtn')
                   }.width('50%')
                 }
                 .height($r('app.float.btn_height'))
-                .margin({ top: $r("app.float.element_margin"), bottom: $r('app.float.content_padding') })
+                .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
               }
             } else {
               // six number
@@ -221,23 +184,22 @@ export default struct PasswordAuth {
                 SixPwd({
                   textValue: $textValue,
                   inputValue: $inputValue,
-                  isEdit: $isEdit,
-                  controllerFlag: $controllerFlag
+                  isEdit: $isEdit
                 })
-                Button($r('app.string.cancel'), { stateEffect: true })
+                Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                   .onClick(() => {
-                    globalThis.session?.terminateSelf();
-                    this.cancel()
-                    this.textValue = ''
-                    this.inputValue = ' '
+                    globalThis.session?.terminateSelf?.();
+                    this.textValue = '';
+                    this.inputValue = ' ';
                   })
                   .backgroundColor(Color.Transparent)
                   .height($r('app.float.btn_height'))
                   .width('50%')
-                  .margin({ top: $r("app.float.element_margin"), bottom: $r('app.float.content_padding') })
+                  .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
                   .fontSize($r('sys.float.ohos_id_text_size_button1'))
                   .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
                   .fontWeight(FontWeight.Medium)
+                  .id('cancelBtnDialogSixPwd')
               }
             }
           }
@@ -256,7 +218,3 @@ export default struct PasswordAuth {
     .backgroundColor(Color.Transparent)
   }
 }
-
-
-
-

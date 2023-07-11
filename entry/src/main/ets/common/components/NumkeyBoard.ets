@@ -14,24 +14,20 @@
  */
 
 import deviceInfo from '@ohos.deviceInfo';
-import LogUtils from '../utils/LogUtils';
-import Constants from '../vm/Constants'
+import Constants from '../vm/Constants';
 
-const TAG = 'NumKeyBoard'
+const DIGITALPSD_BUTTON_DIAMETER = 60;
+const DIGITALPSD_BUTTON_RECT_WH = 100;
+const DIGITALPSD_BUTTON_RECT_HH = 50;
+const DEL_PWD = -2;
+const CALL_PHONE = -1;
+const GO_BACK = -3;
 
 @Component
 export default struct NumKeyBoard {
-  @Link themeType: number
+  @Link themeType: number;
   private onKeyPress: (params, callback) => void;
-  @StorageLink('numKeyboard') numKeyboard: any[] = Constants.NUM_KEY_BOARD;
-
-  aboutToAppear() {
-    LogUtils.i(TAG, 'aboutToAppear')
-  }
-
-  aboutToDisappear() {
-    LogUtils.i(TAG, 'aboutToDisappear')
-  }
+  @StorageLink('numKeyboard') numKeyboard: any[] = Constants.numKeyBoard;
 
   build() {
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
@@ -46,15 +42,15 @@ export default struct NumKeyBoard {
                   alignItems: ItemAlign.Center,
                   justifyContent: FlexAlign.Center
                 }) {
-                  if (item.value == Constants.CALL_PHONE ||
-                  item.value == Constants.GO_BACK ||
-                  item.value == Constants.DEL_PWD) {
+                  if (item.value === CALL_PHONE ||
+                  item.value === GO_BACK ||
+                  item.value === DEL_PWD) {
                     Text(item.row1)
                       .fontSize($r('app.float.digitalpsd_prompt_fontsize'))
                       .fontWeight(FontWeight.Medium)
                       .fontColor(this.themeType === 1 ? Color.Black : Color.White)
                       .textAlign(TextAlign.Center)
-                      .width(Constants.FULL_CONTAINER_WIDTH)
+                      .width(Constants.fullContainerWidth)
                       .padding(0)
                       .margin(0)
                   } else {
@@ -63,7 +59,7 @@ export default struct NumKeyBoard {
                       .fontWeight(FontWeight.Medium)
                       .fontColor(this.themeType === 1 ? Color.Black : Color.White)
                       .textAlign(TextAlign.Center)
-                      .width(Constants.FULL_CONTAINER_WIDTH)
+                      .width(Constants.fullContainerWidth)
                       .padding(0)
                       .margin(0)
                   }
@@ -72,33 +68,33 @@ export default struct NumKeyBoard {
                       .fontSize($r('app.float.digitalpsd_row2_fontsize'))
                       .fontWeight(FontWeight.Regular)
                       .fontColor(this.themeType === 1 ? Color.Black : Color.White)
-                      .opacity($r("app.float.numkeyBoard_text_opacity"))
+                      .opacity($r('app.float.numkeyBoard_text_opacity'))
                       .textAlign(TextAlign.Center)
-                      .width(Constants.FULL_CONTAINER_WIDTH)
+                      .width(Constants.fullContainerWidth)
                       .padding(0)
                       .margin(0)
                   }
                 }
-                .width(Constants.FULL_CONTAINER_WIDTH)
+                .width(Constants.fullContainerWidth)
                 .height('120px')
               }
 
               if (deviceInfo.deviceType === 'tablet') {
-                if (item.value == Constants.CALL_PHONE ||
-                item.value == Constants.GO_BACK ||
-                item.value == Constants.DEL_PWD) {
+                if (item.value === CALL_PHONE ||
+                item.value === GO_BACK ||
+                item.value === DEL_PWD) {
                   Column() {
                     Button({ type: ButtonType.Normal, stateEffect: true })
-                      .backgroundColor("#00FFFFFF")
-                      .width(Constants.DIGITALPSD_BUTTON_RECT_WH)
-                      .height(Constants.DIGITALPSD_BUTTON_RECT_HH)
+                      .backgroundColor('#00FFFFFF')
+                      .width(DIGITALPSD_BUTTON_RECT_WH)
+                      .height(DIGITALPSD_BUTTON_RECT_HH)
                   }
                 } else {
                   Column() {
                     Button({ type: ButtonType.Circle })
-                      .backgroundColor("#00FFFFFF")
-                      .width(Constants.DIGITALPSD_BUTTON_DIAMETER)
-                      .height(Constants.DIGITALPSD_BUTTON_DIAMETER)
+                      .backgroundColor('#00FFFFFF')
+                      .width(DIGITALPSD_BUTTON_DIAMETER)
+                      .height(DIGITALPSD_BUTTON_DIAMETER)
                   }
                 }
               }
@@ -107,16 +103,17 @@ export default struct NumKeyBoard {
               setTimeout(this.onKeyPress.bind(this), 0, item.index, () => {
               });
             })
+            .id('numKeyBordCustomPwd')
           }
         })
       }
       .columnsTemplate('1fr 1fr 1fr')
       .rowsTemplate('1fr 1fr 1fr 1fr')
-      .rowsGap($r("app.float.numkeyBoard_rowsGap"))
-      .width(Constants.FULL_CONTAINER_WIDTH)
-      .height(Constants.FULL_CONTAINER_HEIGHT)
+      .rowsGap($r('app.float.numkeyBoard_rowsGap'))
+      .width(Constants.fullContainerWidth)
+      .height(Constants.fullContainerHeight)
     }
-    .width(Constants.FULL_CONTAINER_WIDTH)
-    .height(Constants.FULL_CONTAINER_HEIGHT)
+    .width(Constants.fullContainerWidth)
+    .height(Constants.fullContainerHeight)
   }
 }

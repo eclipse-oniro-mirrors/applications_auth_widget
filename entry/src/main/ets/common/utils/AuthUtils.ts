@@ -12,6 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import userAuth from '@ohos.userIAM.userAuth';
+import Constants from '../vm/Constants';
+import LogUtils from './LogUtils';
+
+const TAG = 'AuthUtils';
 
 export default class AuthUtils {
   private static authUtilsInstance: AuthUtils;
@@ -23,7 +28,22 @@ export default class AuthUtils {
     return AuthUtils.authUtilsInstance;
   }
 
-  getCurrentAuthMode() {
-    return 1;
+  sendNotice(cmd: string, type: Array<string>): void {
+    try {
+      const eventData = {
+        widgetContextId: globalThis.widgetContextId,
+        event: cmd,
+        version: Constants.noticeVersion,
+        payload: {
+          type: type
+        }
+      };
+      const jsonEventData = JSON.stringify(eventData);
+      LogUtils.i(TAG, 'sendNotice start eventData: ' + jsonEventData);
+      userAuth.sendNotice(userAuth.NoticeType.WIDGET_NOTICE, jsonEventData);
+      LogUtils.i(TAG, 'sendNotice success');
+    } catch (error) {
+      LogUtils.e(TAG, 'sendNotice catch error: ' + JSON.stringify(error));
+    }
   }
 }

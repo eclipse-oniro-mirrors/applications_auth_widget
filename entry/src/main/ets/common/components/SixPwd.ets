@@ -16,29 +16,29 @@
 import userAuth from '@ohos.userIAM.userAuth';
 import LogUtils from '../../common/utils/LogUtils';
 import Constants from '../../common/vm/Constants';
+import AuthUtils from '../utils/AuthUtils';
 import TimeUtils from '../utils/TimeUtils';
 
 const TAG = 'SixPwd';
+const INTERVAL = 1000;
 
 @Component
 export default struct SixPwd {
   @Link textValue: string;
   @Link inputValue: string;
   @Link isEdit: boolean;
-  @Link controllerFlag: boolean;
-  cancel: () => void;
-  confirm: () => void;
 
-  countTime(freezingTime) {
-    const TRY_AGAIN = '后重试';
+  countTime(freezingTime): void {
+    const TRY_AGAIN = globalThis.context.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond);
-      promptText += TRY_AGAIN;
-      setTimeout(this.countTime.bind(this), 1000, freezingTime - 1000);
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalThis.context);
+      promptText = globalThis.context.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_many_failures')) + promptText + TRY_AGAIN;
+      setTimeout(this.countTime.bind(this), INTERVAL, freezingTime - INTERVAL);
     } else {
-      promptText = Constants.INPUT_PASSWORD
+      promptText = ' ';
       this.isEdit = true;
     }
     this.inputValue = promptText;
@@ -46,7 +46,7 @@ export default struct SixPwd {
 
   build() {
     Column() {
-      Text(globalThis.title)
+      Text(globalThis.wantParams?.title)
         .margin({ top: $r('app.float.content_padding_top') })
         .fontSize($r('sys.float.ohos_id_text_size_body1'))
         .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -61,21 +61,28 @@ export default struct SixPwd {
                 let userAuthWidgetMgr;
                 try {
                   let that = this;
-                  LogUtils.d(TAG, 'getUserAuthWidgetMgr start');
-                  userAuthWidgetMgr = await userAuth.getUserAuthWidgetMgr(1);
+                  LogUtils.i(TAG, 'getUserAuthWidgetMgr start');
+                  userAuthWidgetMgr = await userAuth.getUserAuthWidgetMgr(Constants.userAuthWidgetMgrVersion);
                   userAuthWidgetMgr.on('command', {
                     callback: function (result) {
-                      LogUtils.d(TAG, 'getUserAuthWidgetMgr result: ' + JSON.stringify(result));
-                      // fail
+                      LogUtils.i(TAG, 'userAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
                       const cmdData = JSON.parse(result?.cmdData)
-                      if (cmdData?.cmd?.[0]?.payload?.result !== Constants.USER_AUTH_WIDGET_MGR_SUCCESS) {
+                      if (cmdData?.cmd?.[0]?.payload?.result === Constants.userAuthWidgetMgrSuccess) {
+                        // success
+                        globalThis.session?.terminateSelf?.();
+                      } else {
+                        // fail
                         // frequency
                         const frequency = cmdData?.cmd?.[0]?.payload?.remainAttempts;
                         if (frequency) {
-                          that.inputValue = Constants.ERROR_PASSWORD;
+                          that.inputValue = globalThis.context.resourceManager
+                            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
                           that.textValue = '';
-                          if (frequency < 4) {
-                            that.inputValue = `密码错误，还可尝试${frequency}次`;
+                          if (frequency < 3) {
+                            that.inputValue = globalThis.context.resourceManager
+                              .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
+                            + frequency + globalThis.context.resourceManager
+                              .getStringSync($r('app.string.unified_authwidget_frequency'));
                           }
                           return;
                         }
@@ -87,37 +94,19 @@ export default struct SixPwd {
                           that.textValue = '';
                           return;
                         }
-                        that.inputValue = Constants.ERROR_PASSWORD;
+                        that.inputValue = globalThis.context.resourceManager
+                          .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
                         that.textValue = '';
-                      } else {
-                        // success
-                        that.controllerFlag = true;
                       }
                     }
                   });
-                  LogUtils.d(TAG, 'getUserAuthWidgetMgr success userAuthWidgetMgr: ' + JSON.stringify(userAuthWidgetMgr));
+                  LogUtils.i(TAG, 'getUserAuthWidgetMgr success');
                 } catch (error) {
                   LogUtils.e(TAG, 'getUserAuthWidgetMgr catch error: ' + JSON.stringify(error));
                 }
 
                 // check
-                try {
-                  const eventData = {
-                    // widgetContextId from onCreate
-                    widgetContextId: 123456,
-                    event: 'EVENT_AUTH_TYPE_READY',
-                    version: '1',
-                    payload: {
-                      type: ['pin']
-                    }
-                  };
-                  const jsonEventData = JSON.stringify(eventData);
-                  LogUtils.d(TAG, 'sendNotice start eventData: ' + jsonEventData);
-                  await userAuth.sendNotice(1, jsonEventData);
-                  LogUtils.d(TAG, 'sendNotice success');
-                } catch (error) {
-                  LogUtils.e(TAG, 'sendNotice catch error: ' + JSON.stringify(error));
-                }
+                AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
               }
             })
             .backgroundImageSize(ImageSize.Auto)
@@ -126,6 +115,7 @@ export default struct SixPwd {
             .visibility(Visibility.Visible)
             .opacity(0)
             .caretColor('transparent')
+            .id('pinSix')
           List({ space: 4 }) {
             ForEach(['', '', '', '', '', ''], (item, index) => {
               ListItem() {
@@ -154,7 +144,7 @@ export default struct SixPwd {
 
       Text(this.inputValue)
         .fontSize($r('sys.float.ohos_id_text_size_body2'))
-        .margin({ top: $r("app.float.element_margin") })
+        .margin({ top: $r('app.float.element_margin') })
         .fontColor($r('sys.color.ohos_id_color_warning'))
     }
   }

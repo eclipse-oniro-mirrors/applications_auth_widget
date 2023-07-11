@@ -28,8 +28,8 @@
 import hiLog from '@ohos.hilog';
 
 const DOMAIN: number = 0x002A;
-const TAG = "useriam_auth_widget";
-const SYMBOL = " --> ";
+const TAG = 'useriam_auth_widget';
+const SYMBOL = ' --> ';
 
 /**
  *  log package tool class
@@ -40,12 +40,11 @@ export class LogUtils {
    *
    * @param tag Identifies the log tag.
    * @param format Indicates the log format string.
-   * @param args Indicates the log parameters.
    * @since 7
    */
-  d(tag: string, format: string, ...args: any[]) {
+  d(tag: string, format: string): void {
     if (LogUtils.isLogGable(hiLog.LogLevel.DEBUG)) {
-      hiLog.debug(DOMAIN, TAG, tag + SYMBOL + format, args);
+      hiLog.debug(DOMAIN, TAG, tag + SYMBOL + format);
     }
   }
 
@@ -54,12 +53,11 @@ export class LogUtils {
    *
    * @param tag Identifies the log tag.
    * @param format Indicates the log format string.
-   * @param args Indicates the log parameters.
    * @since 7
    */
-  i(tag: string, format: string, ...args: any[]) {
+  i(tag: string, format: string): void {
     if (LogUtils.isLogGable(hiLog.LogLevel.INFO)) {
-      hiLog.info(DOMAIN, TAG, tag + SYMBOL + format, args);
+      hiLog.info(DOMAIN, TAG, tag + SYMBOL + format);
     }
   }
 
@@ -68,12 +66,11 @@ export class LogUtils {
    *
    * @param tag Identifies the log tag.
    * @param format Indicates the log format string.
-   * @param args Indicates the log parameters.
    * @since 7
    */
-  w(tag: string, format: string, ...args: any[]) {
+  w(tag: string, format: string): void {
     if (LogUtils.isLogGable(hiLog.LogLevel.WARN)) {
-      hiLog.warn(DOMAIN, TAG, tag + SYMBOL + format, args);
+      hiLog.warn(DOMAIN, TAG, tag + SYMBOL + format);
     }
   }
 
@@ -82,12 +79,11 @@ export class LogUtils {
    *
    * @param tag Identifies the log tag.
    * @param format Indicates the log format string.
-   * @param args Indicates the log parameters.
    * @since 7
    */
-  e(tag: string, format: string, ...args: any[]) {
+  e(tag: string, format: string): void {
     if (LogUtils.isLogGable(hiLog.LogLevel.ERROR)) {
-      hiLog.error(DOMAIN, TAG, tag + SYMBOL + format, args);
+      hiLog.error(DOMAIN, TAG, tag + SYMBOL + format);
     }
   }
 
@@ -96,12 +92,11 @@ export class LogUtils {
    *
    * @param tag Identifies the log tag.
    * @param format Indicates the log format string.
-   * @param args Indicates the log parameters.
    * @since 7
    */
-  f(tag: string, format: string, ...args: any[]) {
+  f(tag: string, format: string): void {
     if (LogUtils.isLogGable(hiLog.LogLevel.FATAL)) {
-      hiLog.fatal(DOMAIN, TAG, tag + SYMBOL + format, args);
+      hiLog.fatal(DOMAIN, TAG, tag + SYMBOL + format);
     }
   }
 

@@ -12,17 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export class TimeUtils {
-  getFreezingTimeNm(freezingMillisecond: number): string {
-    const MINUTE_NM = '分钟';
-    const SECOND_NM = '秒';
-    let minute = Math.floor(freezingMillisecond / (60 * 1000));
-    let second = Math.round((freezingMillisecond % (60 * 1000)) / 1000);
+  getFreezingTimeNm(freezingMillisecond: number, context: Context): string {
+    const MINUTE_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_minutes'));
+    const SECOND_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_seconds'));
+    const ONE_MINUTE = 60;
+    const RATE = 1000;
+    let minute = Math.floor(freezingMillisecond / (ONE_MINUTE * RATE));
+    let second = Math.round((freezingMillisecond % (ONE_MINUTE * RATE)) / RATE);
     let timeName = '';
-    if (minute != 0) {
+    if (minute !== 0) {
       timeName += minute + MINUTE_NM;
     }
-    if (second != 0) {
+    if (second !== 0 && minute < 1) {
       timeName += second + SECOND_NM;
     }
     return timeName;

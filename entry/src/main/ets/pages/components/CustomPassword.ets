@@ -15,40 +15,33 @@
 
 import account_osAccount from '@ohos.account.osAccount';
 import userAuth from '@ohos.userIAM.userAuth';
-import util from '@ohos.util';
 import CustomPSD from '../../common/components/CustomPSD'
+import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import Constants from '../../common/vm/Constants';
 
 const TAG = 'CustomPassword';
-
+const WHITE_OPACITY = 1;
+const BLUR_OPACITY = 0.2;
+const BTN_BORDER_RADIUS = 25;
+const THEME_WHITE = 1;
 let pinAuthManager;
 let pinData = '';
 
 @Component
 export default struct CustomPassword {
-  @Link type: number;
+  @Link pinSubType: string;
   @Link themeType: number;
   @Link authType: Array<userAuth.UserAuthType>;
-  @State @Watch('onFlagChange') controllerFlag: boolean = false;
+  @Link cmdData: [];
+  @State isBackTouched: boolean = false
   @State @Watch('onTextValueChange') textValue: string = '';
-  controller: CustomDialogController;
-  cancel: () => void;
-  confirm: () => void;
 
-  onFlagChange() {
-    LogUtils.i(TAG, 'onFlagChange controllerFlag: ' + this.controllerFlag);
-    if (this.controllerFlag) {
-      globalThis.session?.terminateSelf();
-    }
-  }
-
-  onTextValueChange() {
-    LogUtils.i(TAG, 'aboutToAppear onTextValueChange this.textValue: ' + this.textValue);
+  onTextValueChange(): void {
     pinData = this.textValue;
   }
 
-  aboutToAppear() {
+  aboutToAppear(): void {
     // register input
     try {
       LogUtils.i(TAG, 'aboutToAppear PINAuth start');
@@ -56,9 +49,8 @@ export default struct CustomPassword {
       LogUtils.i(TAG, 'aboutToAppear PINAuth pinAuthManager： ' + JSON.stringify(pinAuthManager));
       pinAuthManager.registerInputer({
         onGetData: (authSubType, callback) => {
-          let textEncoder = new util.TextEncoder();
-          let uint8PW = textEncoder.encode(pinData);
-          LogUtils.i(TAG, `aboutToAppear PINAuth onGetData pinData：${this.textValue}, uint8PW:${uint8PW}`);
+          const uint8PW = FuncUtils.getUint8PW(pinData);
+          LogUtils.i(TAG, 'PINAuth onGetData pinData');
           callback.onSetData(authSubType, uint8PW);
         }
       });
@@ -67,52 +59,77 @@ export default struct CustomPassword {
     }
   }
 
-  aboutToDisappear() {
+  aboutToDisappear(): void {
     LogUtils.i(TAG, 'aboutToDisappear PINAuth unregisterInputer');
-    pinAuthManager?.unregisterInputer?.()
+    pinAuthManager?.unregisterInputer?.();
   }
 
   build() {
     Stack() {
-      Text().width(Constants.FULL_CONTAINER_WIDTH)
-        .height(Constants.FULL_CONTAINER_WIDTH)
+      Text().width(Constants.fullContainerWidth)
+        .height(Constants.fullContainerWidth)
         .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
-        .opacity(this.themeType === Constants.THEME_TYPE_WHITE ? 1 : 0.2)
+        .opacity(this.themeType === THEME_WHITE ? WHITE_OPACITY : BLUR_OPACITY)
       Column() {
         Flex({ direction: FlexDirection.Row }) {
-          if (this.themeType === Constants.THEME_TYPE_WHITE) {
-            Text('←')
-              .borderRadius(8)
-              .fontSize($r('app.float.title_size'))
-              .width($r('app.float.title_size'))
-              .height($r('app.float.title_size'))
-              .margin({ left: $r("app.float.element_margin"), right: $r("app.float.element_margin"), top: '2vp' })
-              .backgroundColor(Color.Transparent)
-              .fontColor(Color.Black)
-              .onClick(() => {
-                globalThis.session?.terminateSelf();
-              })
-            Text($r('app.string.back'))
-              .fontSize($r('app.float.title_size'))
-              .fontWeight(FontWeight.Medium)
-              .fontColor(Color.Black)
-              .textAlign(TextAlign.Center)
-              .textOverflow({ overflow: TextOverflow.None })
+          if (this.themeType === THEME_WHITE) {
+            Flex() {
+              Text('←')
+                .borderRadius(8)
+                .fontSize($r('app.float.title_size'))
+                .backgroundColor(Color.Transparent)
+                .fontColor(Color.Black)
+              Text($r('app.string.unified_authwidget_back'))
+                .fontSize($r('app.float.title_size'))
+                .fontWeight(FontWeight.Medium)
+                .fontColor(Color.Black)
+                .textAlign(TextAlign.Center)
+                .textOverflow({ overflow: TextOverflow.None })
+                .margin({ left: 12 })
+            }
+            .id('cancelIconCustomPwd')
+            .margin({ left: $r('sys.float.ohos_id_max_padding_start'), right: $r('app.float.element_margin'), top:
+            '2vp' })
+            .padding($r('app.float.back_padding'))
+            .width($r('app.float.back_width'))
+            .backgroundColor(this.isBackTouched ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
+            .borderRadius(BTN_BORDER_RADIUS)
+            .onClick(() => {
+              globalThis.session?.terminateSelf?.();
+            })
+            .onTouch((event: TouchEvent) => {
+              if (event.type === TouchType.Down) {
+                this.isBackTouched = true;
+              }
+              if (event.type === TouchType.Up) {
+                this.isBackTouched = false;
+              }
+            });
           } else {
             Image($r('app.media.ic_white_cancel'))
-              .width($r('app.float.title_size'))
-              .height($r('app.float.title_size'))
-              .margin({ left: $r("app.float.element_margin"), top: $r("app.float.element_margin") })
+              .id('cancelImgCustomPwd')
+              .width($r('app.float.image_small'))
+              .height($r('app.float.image_small'))
+              .margin({ left: $r('app.float.element_margin'), top: $r('app.float.element_margin') })
+              .backgroundColor(this.isBackTouched ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
               .onClick(() => {
-                globalThis.session?.terminateSelf();
+                globalThis.session?.terminateSelf?.();
               })
+              .onTouch((event: TouchEvent) => {
+                if (event.type === TouchType.Down) {
+                  this.isBackTouched = true;
+                }
+                if (event.type === TouchType.Up) {
+                  this.isBackTouched = false;
+                }
+              });
           }
         }
 
         GridRow({
           columns: 8,
           gutter: { x: 5, y: 10 },
-          breakpoints: { value: ['360vp', '780vp'],
+          breakpoints: { value: Constants.deviceDpi,
             reference: BreakpointsReference.WindowSize },
           direction: GridRowDirection.Row
         }) {
@@ -123,21 +140,20 @@ export default struct CustomPassword {
           }) {
             CustomPSD({
               themeType: $themeType,
-              type: $type,
               textValue: $textValue,
-              controllerFlag: $controllerFlag,
-              authType: $authType
+              authType: $authType,
+              pinSubType: $pinSubType,
+              cmdData: $cmdData
             })
           }.margin({ left: 'auto', right: 'auto' })
         }
-
       }
       .justifyContent(FlexAlign.SpaceBetween)
-      .width(Constants.FULL_CONTAINER_WIDTH)
-      .height(Constants.FULL_CONTAINER_WIDTH)
+      .width(Constants.fullContainerWidth)
+      .height(Constants.fullContainerWidth)
     }
-    .width(Constants.FULL_CONTAINER_WIDTH)
-    .height(Constants.FULL_CONTAINER_WIDTH)
+    .width(Constants.fullContainerWidth)
+    .height(Constants.fullContainerWidth)
     .backdropBlur(80)
   }
 }

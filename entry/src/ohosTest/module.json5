@@ -18,7 +18,7 @@
     "name": "entry_test",
     "type": "feature",
     "description": "$string:module_test_desc",
-    "mainElement": "TestAbility",
+    "mainElement": "userauthuiextensionability",
     "deviceTypes": [
       "default",
       "tablet"
@@ -47,6 +47,38 @@
           }
         ]
       }
+    ],
+    "extensionAbilities": [
+      {
+        "name": "userauthuiextensionability",
+        "srcEntry": "./ets/extensionability/UserAuthAbility.ts",
+        "icon": "$media:app_icon",
+        "label": "$string:EntryAbility_label",
+        "type": "sysDialog/userAuth",
+        "permissions": [
+          "ohos.permission.ACCESS_PIN_AUTH",
+          "ohos.permission.ACCESS_BIOMETRIC",
+          "ohos.permission.SUPPORT_USER_AUTH"
+        ],
+        "metadata": [
+          {
+            // 新增key值，定义垂域服务业务细分类型
+            "name": "ohos.extension.servicetype",
+            "value": "commonDialog"
+          }
+        ]
+      }
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.ACCESS_PIN_AUTH"
+      },
+      {
+        "name": "ohos.permission.ACCESS_BIOMETRIC"
+      },
+      {
+        "name": "ohos.permission.SUPPORT_USER_AUTH"
+      },
     ]
   }
 }
