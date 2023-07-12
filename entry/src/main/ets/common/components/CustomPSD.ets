@@ -82,6 +82,7 @@ export default struct CustomPSD {
     sensorType: ''
   }
   @State screen: number[] = [];
+  @State lockArr: boolean[] = [false, false];
   @Consume isLandscape: boolean;
   @Consume underFingerPrint: boolean;
 
@@ -132,6 +133,7 @@ export default struct CustomPSD {
           if (remainAttempts) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'));
+            this.lockArr[0] = false;
           }
           if (num === 'first') {
             this.prompt = globalThis.context.resourceManager
@@ -140,6 +142,7 @@ export default struct CustomPSD {
           if (remainAttempts === 0) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden'));
+            this.lockArr[0] = true;
           }
           break;
         case Constants.noticeTypeFinger:
@@ -153,6 +156,9 @@ export default struct CustomPSD {
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
             this.fingerText = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
+            if (remainAttempts < 5) {
+              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+            }
           }
           if (num === 'first') {
             this.prompt = globalThis.context.resourceManager
@@ -163,6 +169,7 @@ export default struct CustomPSD {
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
             this.fingerText = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
+            this.lockArr[1] = true;
           }
         default:
           break;
@@ -176,8 +183,17 @@ export default struct CustomPSD {
     if (this.cmdData && this.cmdData.length > 0) {
       this.onCmdDataChange('first');
     }
+    if (this.controlType.isShowFace && this.controlType.isShowFinger) {
+      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace, Constants.noticeTypeFace]);
+      return;
+    }
     if (this.controlType.isShowFace) {
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+      return;
+    }
+    if (this.controlType.isShowFinger) {
+      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+      return;
     }
   }
 
@@ -237,10 +253,7 @@ export default struct CustomPSD {
                 .height('30vp')
                 .margin({ bottom: '16vp' })
                 .onClick(() => {
-                  if (this.prompt !== globalThis.context.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden')) &&
-                  this.prompt !== globalThis.context.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
+                  if (!this.lockArr[0]) {
                     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                   }
                 })
@@ -252,6 +265,11 @@ export default struct CustomPSD {
                 .margin({ bottom: '16vp' })
                 .visibility(Visibility.Visible)
                 .colorBlend($r('sys.color.ohos_id_color_activated'))
+                .onClick(() => {
+                  if (!this.lockArr[0]) {
+                    AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+                  }
+                })
             }
           }
           Text(this.prompt)
@@ -471,6 +489,7 @@ export default struct CustomPSD {
                           this.underFingerPrint = true;
                         } else {
                           this.controlType.jumpFinger = true;
+                          AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                         }
 
                       })
@@ -504,6 +523,7 @@ export default struct CustomPSD {
                           this.underFingerPrint = true;
                         } else {
                           this.controlType.jumpFinger = true;
+                          AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                         }
                       })
                   }

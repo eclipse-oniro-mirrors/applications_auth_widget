@@ -51,6 +51,7 @@ export default struct FaceAuth {
     sensorType: ''
   }
   @State screen: number[] = [];
+  @State faceLock: boolean = false;
   @Consume isLandscape: boolean;
 
   countTime(freezingTime): void {
@@ -73,16 +74,16 @@ export default struct FaceAuth {
     if (this.cmdData && this.cmdData.length > 0) {
       this.onCmdDataChange('first');
     }
-    if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.ALL ||
+    if (this.dialogType === DialogType.PIN_FACE ||
     this.dialogType === DialogType.FACE) {
-      if( this.dialogType === DialogType.ALL){
-        AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-      }
       this.prompt = globalThis.context.resourceManager
         .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
     }
-
+    if (this.dialogType === DialogType.ALL) {
+      AuthUtils.getInstance()
+        .sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+    }
     try {
       LogUtils.d(TAG, 'PINAuth start');
       pinAuthManager = new account_osAccount.PINAuth();
@@ -154,6 +155,7 @@ export default struct FaceAuth {
           if (remainAttempts) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'));
+            this.faceLock = false;
           }
           if (num === 'first') {
             this.prompt = globalThis.context.resourceManager
@@ -162,6 +164,7 @@ export default struct FaceAuth {
           if (remainAttempts === 0) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden'));
+            this.faceLock = true
             if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.ALL) {
               if (this.pinSubType !== Constants.pinSix) {
                 this.flagN = 4;
@@ -169,7 +172,6 @@ export default struct FaceAuth {
                 this.flagN = 5;
               }
             }
-
           }
           break;
         case Constants.noticeTypeFinger:
@@ -205,6 +207,9 @@ export default struct FaceAuth {
           if (remainAttempts) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
+            if (remainAttempts < 5) {
+              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+            }
           }
           if (num === 'first') {
             this.prompt = globalThis.context.resourceManager
@@ -358,6 +363,11 @@ export default struct FaceAuth {
                   .height($r('app.float.image_small'))
                   .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
                   .colorBlend($r('sys.color.ohos_id_color_activated'))
+                  .onClick(() => {
+                    if (!this.faceLock) {
+                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+                    }
+                  })
                 Text(globalThis.wantParams.title).fontSize($r('sys.float.ohos_id_text_size_body1'))
                   .fontColor($r('sys.color.ohos_id_color_text_primary'))
                 Text(this.prompt)
