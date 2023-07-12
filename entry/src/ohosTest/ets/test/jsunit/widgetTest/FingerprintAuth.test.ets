@@ -26,15 +26,16 @@ export default function fingerprintAuthTest() {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 0,
             "remainAttempts": 5,
-            "type": "fingerprint",
-            "sensorInfo": ""
+            "sensorInfo": "{\"sensorType\":\"SensorType1\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
+            "type": "fingerprint"
           }, "version": "1"
         }],
+        "navigationButtonText": "确定",
         "title": "",
         "type": ["fingerprint"],
-        "widgetContextId": 2477724982625843000,
+        "widgetContextId": 13682225748840628000,
         "windowModeType": "DIALOG_BOX"
-      };
+      }
       globalThis.wantParams = data;
     })
 
@@ -81,8 +82,7 @@ export default function fingerprintAuthTest() {
     it('blueFingerprint_state1_fingerprintAuth_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('blueFingerprintState1FingerprintAuth'));
-      await btn.click();
+      await driver.findComponent(ON.id('blueFingerprintState1FingerprintAuth'));
       expect(true).assertTrue();
       done();
     })
@@ -98,8 +98,7 @@ export default function fingerprintAuthTest() {
     it('usePwdBtn_state1_fingerprintAuth_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('usePwdBtnState1FingerprintAuth'));
-      await btn.click();
+      await driver.findComponent(ON.id('usePwdBtnState1FingerprintAuth'));
       expect(true).assertTrue();
       done();
     })

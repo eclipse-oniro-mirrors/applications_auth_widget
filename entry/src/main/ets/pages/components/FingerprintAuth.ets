@@ -25,14 +25,12 @@ import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
 import Constants, { CmdType, FingerPosition } from '../../common/vm/Constants';
 
-
 const TAG = 'FingerprintAuth';
 const INTERVAL = 1000;
 let pinAuthManager;
 let pinData = '';
 const THOUSANDTH = 1000;
 const NORMAL_POSITION = -260;
-
 
 @Component
 export default struct FingerprintAuth {
@@ -46,14 +44,13 @@ export default struct FingerprintAuth {
   @State isEdit: boolean = true;
   @State inputValue: string = '';
   @State flag: boolean = true;
-  @State state: number = this.dialogType === DialogType.PIN_FINGER ? (this.flag ? 2 : 3) : (this.flag ? 1 : 3);
+  @State state: number = this.dialogType === DialogType.PIN_FINGER ? 2 : 1;
   @State screenClass: object = {};
   @State fingerPosition: FingerPosition = {
     sensorType: ''
   }
   @State screen: number[] = [];
   @Consume isLandscape: boolean;
-  @Consume underFingerPrint: boolean;
 
   queryScreenInfo(): void {
     try {
@@ -70,6 +67,7 @@ export default struct FingerprintAuth {
   }
 
   aboutToAppear(): void {
+    AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
     if (this.cmdData && this.cmdData.length > 0) {
       this.onCmdDataChange('first');
     }
@@ -136,7 +134,7 @@ export default struct FingerprintAuth {
             this.fingerPosition = JSON.parse(sensorInfo);
             switch (this.fingerPosition.sensorType) {
               case 'OUT_OF_SCREEN_SENSOR': {
-                this.flag = false;
+                this.state = 3;
                 break;
               }
             }
@@ -154,6 +152,13 @@ export default struct FingerprintAuth {
           if (remainAttempts === 0) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
+            if (this.dialogType === DialogType.PIN_FINGER) {
+              if (this.pinSubType !== Constants.pinSix) {
+                this.state = 5;
+              } else {
+                this.state = 6;
+              }
+            }
           }
         default:
           break;
@@ -177,6 +182,21 @@ export default struct FingerprintAuth {
     this.inputValue = promptText;
   }
 
+  onFingerPrintFontColor(prompt: string, context: Context): Resource {
+    switch (prompt) {
+      case context?.resourceManager
+      ?.getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2')):
+      case context?.resourceManager
+      ?.getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden')):
+        return $r('sys.color.ohos_id_color_warning');
+      case context?.resourceManager
+      ?.getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success')):
+      case context?.resourceManager
+      ?.getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp')):
+        return $r('sys.color.ohos_id_color_text_secondary');
+    }
+  }
+
   build() {
     Column() {
       GridRow({
@@ -198,23 +218,24 @@ export default struct FingerprintAuth {
                 .fontSize($r('sys.float.ohos_id_text_size_body1'))
                 .fontColor($r('sys.color.ohos_id_color_text_primary'))
                 .fontWeight(FontWeight.Medium)
-              Swiper() {
+              if (this.fingerPosition.outOfScreenSensorType === 'BACK') {
                 Image($r('app.media.icon_applock_2'))
                   .width($r('app.float.image_big'))
                   .height($r('app.float.image_big'))
                   .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
+              }
+              if (this.fingerPosition.outOfScreenSensorType === 'FRONT') {
                 Image($r('app.media.icon_applock_3'))
                   .width($r('app.float.image_big'))
                   .height($r('app.float.image_big'))
                   .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
+              }
+              if (this.fingerPosition.outOfScreenSensorType === 'SIDE') {
                 Image($r('app.media.icon_applock_4'))
                   .width($r('app.float.image_big'))
                   .height($r('app.float.image_big'))
                   .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
               }
-              .loop(true)
-              .autoPlay(true)
-              .interval(2000)
 
               Text($r('app.string.unified_authwidget_hint_normal_fp_only'))
                 .fontColor($r('sys.color.ohos_id_color_primary'))
@@ -252,6 +273,7 @@ export default struct FingerprintAuth {
                     .fontWeight(FontWeight.Medium)
                     .backgroundColor(Color.Transparent)
                     .onClick(() => {
+                      this.inputValue = ' ';
                       this.state = 5;
                     })
                 }.width(Constants.halfContainerWidth)
@@ -261,57 +283,20 @@ export default struct FingerprintAuth {
               .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
             }
             else if (this.state === 2) {
-              Text(globalThis.wantParams?.title)
-                .margin({ top: $r('app.float.title_padding_top') })
-                .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                .fontWeight(FontWeight.Medium)
-              if (this.isLandscape) {
-                Image($r('app.media.finger_guide'))
-                  .id('blueFingerprint_state1_fingerprintAuth')
+              if (!this.isLandscape) {
+                Text(globalThis.wantParams?.title)
+                  .margin({ top: $r('app.float.title_padding_top') })
+                  .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                  .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                  .fontWeight(FontWeight.Medium)
+                Image(this.prompt === globalThis.context.resourceManager
+                  .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))
+                  ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
                   .margin({
                     top: $r('app.float.digitalpsd_passwdmask_height'),
                     bottom: $r('app.float.digitalpsd_passwdmask_height')
                   })
-                  .width($r('app.float.digitalpsd_passwdmask_height'))
-                  .height($r('app.float.digitalpsd_passwdmask_height'))
-                  .onClick(() => {
-                    this.underFingerPrint = true;
-                  })
-                Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  .fontColor($r('sys.color.ohos_id_color_secondary'))
-              } else if (this.prompt === globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))) {
-                Image($r('app.media.right_faceID'))
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-                  .colorBlend($r('sys.color.ohos_id_color_activated'))
-                Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  .fontColor($r('sys.color.ohos_id_color_secondary'))
-              } else if (this.prompt === globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
-                Image($r('app.media.ic_blue_fingerprint'))
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-                Text(this.prompt)
-                  .fontColor($r('sys.color.ohos_id_color_warning'))
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
-              } else if (this.prompt === globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp'))) {
-                Image($r('app.media.ic_blue_fingerprint'))
                   .id('blueFingerprintImgState2FingerprintAuth')
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
                   .width($r('app.float.image_size'))
                   .height($r('app.float.image_size'))
                   .onClick(() => {
@@ -321,180 +306,12 @@ export default struct FingerprintAuth {
                     }
                   })
                 Text(this.prompt)
-                  .fontColor($r('sys.color.ohos_id_color_primary'))
+                  .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                   .fontSize($r('sys.float.ohos_id_text_size_body2'))
-              } else if (this.prompt === globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'))) {
-                Image($r('app.media.ic_blue_fingerprint'))
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-                  .onClick(() => {
-                    if (this.prompt !== globalThis.context.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
-                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-                    }
-                  })
-                Text(this.prompt)
-                  .fontColor($r('sys.color.ohos_id_color_warning'))
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
-              }
-              Row() {
-                Column() {
-                  Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
-                    .id('cancelBtnState2FingerprintAuth')
-                    .margin({ left: $r('app.float.content_padding') })
-                    .width(Constants.ninetyPercentWidth)
-                    .height($r('app.float.btn_height'))
-                    .fontSize($r('sys.float.ohos_id_text_size_button1'))
-                    .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
-                    .fontWeight(FontWeight.Medium)
-                    .backgroundColor(Color.Transparent)
-                    .onClick(() => {
-                      globalThis.session?.terminateSelf?.();
-                      this.textValue = '';
-                    })
-                }.width(Constants.halfContainerWidth)
-
-                Divider()
-                  .vertical(true)
-                  .height($r('app.float.digitalpsd_passwdmask_height'))
-                  .color($r('sys.color.ohos_id_color_list_separator'))
-                  .width($r('app.float.divider_width'))
-                Column() {
-                  Button($r('app.string.unified_authwidget_usepwd'))
-                    .id('usePwdBtnState2FingerprintAuth')
-                    .margin({ right: $r('app.float.content_padding') })
-                    .width(Constants.ninetyPercentWidth)
-                    .height($r('app.float.btn_height'))
-                    .fontSize($r('sys.float.ohos_id_text_size_button1'))
-                    .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
-                    .fontWeight(FontWeight.Medium)
-                    .backgroundColor(Color.Transparent)
-                    .onClick(() => {
-                      this.inputValue = ' ';
-                      if (this.pinSubType !== Constants.pinSix) {
-                        this.state = 5;
-                      } else {
-                        this.state = 6;
-                      }
-                    })
-                }.width(Constants.halfContainerWidth)
-              }
-              .height($r('app.float.btn_height'))
-              .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
-            }
-            else if (this.state === 1) {
-
-              Text(globalThis.wantParams?.title)
-                .margin({ top: $r('app.float.title_padding_top') })
-                .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                .fontWeight(FontWeight.Medium)
-              if (this.isLandscape) {
-                Image($r('app.media.finger_guide'))
-                  .id('blueFingerprint_state1_fingerprintAuth')
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
-                  .width($r('app.float.image_medium'))
-                  .height($r('app.float.image_medium'))
-                  .onClick(() => {
-                    this.underFingerPrint = true;
-                  })
-                Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  .fontColor($r('sys.color.ohos_id_color_secondary'))
-              } else if (this.prompt === globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))) {
-                Image($r('app.media.right_faceID'))
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-                  .colorBlend($r('sys.color.ohos_id_color_activated'))
-                Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  .fontColor($r('sys.color.ohos_id_color_secondary'))
-              } else if (this.prompt === globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
-                Image($r('app.media.ic_blue_fingerprint'))
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-
-                Text(this.prompt)
-                  .fontColor($r('sys.color.ohos_id_color_warning'))
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
-              } else if (this.prompt === globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp'))) {
-                Image($r('app.media.ic_blue_fingerprint'))
-                  .id('blueFingerprintState1FingerprintAuth')
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-                  .onClick(() => {
-                    if (this.prompt !== globalThis.context.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
-                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-                    }
-                  })
-                Text(this.prompt)
-                  .fontColor($r('sys.color.ohos_id_color_primary'))
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
-              } else if (this.prompt === globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'))) {
-                Image($r('app.media.ic_blue_fingerprint'))
-                  .margin({
-                    top: $r('app.float.digitalpsd_passwdmask_height'),
-                    bottom: $r('app.float.digitalpsd_passwdmask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-                  .onClick(() => {
-                    if (this.prompt !== globalThis.context.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
-                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-                    }
-                  })
-                Text(this.prompt)
-                  .fontColor($r('sys.color.ohos_id_color_warning'))
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
-              }
-              if (!globalThis.wantParams?.navigationButtonText) {
                 Row() {
                   Column() {
                     Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
-                      .id('usePwdBtnState1FingerprintAuth')
-                      .onClick(() => {
-                        globalThis.session?.terminateSelf?.();
-                      })
-                      .backgroundColor(Color.Transparent)
-                      .height($r('app.float.btn_height'))
-                      .width(Constants.fullContainerHeight)
-                      .fontSize($r('sys.float.ohos_id_text_size_button1'))
-                      .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
-                      .fontWeight(FontWeight.Medium)
-                  }
-                }
-                .height($r('app.float.btn_height'))
-                .padding({ left: $r('app.float.content_padding'), right: $r('app.float.content_padding') })
-                .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
-              } else {
-                Row() {
-                  Column() {
-                    Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
-                      .id('cancelBtnState1FingerprintAuth')
+                      .id('cancelBtnState2FingerprintAuth')
                       .margin({ left: $r('app.float.content_padding') })
                       .width(Constants.ninetyPercentWidth)
                       .height($r('app.float.btn_height'))
@@ -504,6 +321,7 @@ export default struct FingerprintAuth {
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
                         globalThis.session?.terminateSelf?.();
+                        this.textValue = '';
                       })
                   }.width(Constants.halfContainerWidth)
 
@@ -513,10 +331,8 @@ export default struct FingerprintAuth {
                     .color($r('sys.color.ohos_id_color_list_separator'))
                     .width($r('app.float.divider_width'))
                   Column() {
-                    Button(globalThis.wantParams?.navigationButtonText)
-                      .onClick(() => {
-                        globalThis.session?.terminateSelf?.();
-                      })
+                    Button($r('app.string.unified_authwidget_usepwd'))
+                      .id('usePwdBtnState2FingerprintAuth')
                       .margin({ right: $r('app.float.content_padding') })
                       .width(Constants.ninetyPercentWidth)
                       .height($r('app.float.btn_height'))
@@ -524,12 +340,105 @@ export default struct FingerprintAuth {
                       .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
+                      .onClick(() => {
+                        this.inputValue = ' ';
+                        if (this.pinSubType !== Constants.pinSix) {
+                          this.state = 5;
+                        } else {
+                          this.state = 6;
+                        }
+                      })
                   }.width(Constants.halfContainerWidth)
                 }
                 .height($r('app.float.btn_height'))
                 .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
               }
+            }
+            else if (this.state === 1) {
+              if (!this.isLandscape) {
+                Text(globalThis.wantParams?.title)
+                  .margin({ top: $r('app.float.title_padding_top') })
+                  .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                  .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                  .fontWeight(FontWeight.Medium)
+                Image(this.prompt === globalThis.context.resourceManager
+                  .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))
+                  ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
+                  .margin({
+                    top: $r('app.float.digitalpsd_passwdmask_height'),
+                    bottom: $r('app.float.digitalpsd_passwdmask_height')
+                  })
+                  .id('blueFingerprintState1FingerprintAuth')
+                  .width($r('app.float.image_size'))
+                  .height($r('app.float.image_size'))
+                  .onClick(() => {
+                    if (this.prompt !== globalThis.context.resourceManager
+                      .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
+                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+                    }
+                  })
+                Text(this.prompt)
+                  .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
+                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                if (!globalThis.wantParams?.navigationButtonText) {
+                  Row() {
+                    Column() {
+                      Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
+                        .id('usePwdBtnState1FingerprintAuth')
+                        .onClick(() => {
+                          globalThis.session?.terminateSelf?.();
+                        })
+                        .backgroundColor(Color.Transparent)
+                        .height($r('app.float.btn_height'))
+                        .width(Constants.fullContainerHeight)
+                        .fontSize($r('sys.float.ohos_id_text_size_button1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
+                        .fontWeight(FontWeight.Medium)
+                    }
+                  }
+                  .height($r('app.float.btn_height'))
+                  .padding({ left: $r('app.float.content_padding'), right: $r('app.float.content_padding') })
+                  .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
+                } else {
+                  Row() {
+                    Column() {
+                      Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
+                        .id('cancelBtnState1FingerprintAuth')
+                        .margin({ left: $r('app.float.content_padding') })
+                        .width(Constants.ninetyPercentWidth)
+                        .height($r('app.float.btn_height'))
+                        .fontSize($r('sys.float.ohos_id_text_size_button1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
+                        .fontWeight(FontWeight.Medium)
+                        .backgroundColor(Color.Transparent)
+                        .onClick(() => {
+                          globalThis.session?.terminateSelf?.();
+                        })
+                    }.width(Constants.halfContainerWidth)
 
+                    Divider()
+                      .vertical(true)
+                      .height($r('app.float.digitalpsd_passwdmask_height'))
+                      .color($r('sys.color.ohos_id_color_list_separator'))
+                      .width($r('app.float.divider_width'))
+                    Column() {
+                      Button(globalThis.wantParams?.navigationButtonText)
+                        .onClick(() => {
+                          globalThis.session?.terminateSelf?.();
+                        })
+                        .margin({ right: $r('app.float.content_padding') })
+                        .width(Constants.ninetyPercentWidth)
+                        .height($r('app.float.btn_height'))
+                        .fontSize($r('sys.float.ohos_id_text_size_button1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
+                        .fontWeight(FontWeight.Medium)
+                        .backgroundColor(Color.Transparent)
+                    }.width(Constants.halfContainerWidth)
+                  }
+                  .height($r('app.float.btn_height'))
+                  .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
+                }
+              }
             }
             else if (this.state === 4) {
               Flex({ justifyContent: FlexAlign.SpaceBetween }) {
@@ -651,10 +560,11 @@ export default struct FingerprintAuth {
               }
             }
 
-          }.backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
+          }
+          .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
           .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))
           .position({
-            y: this.isLandscape ? NORMAL_POSITION : (this.fingerPosition.udSensorCenterYInThousandth - THOUSANDTH)
+            y: (this.isLandscape || !this.fingerPosition.udSensorCenterYInThousandth) ? NORMAL_POSITION : (this.fingerPosition.udSensorCenterYInThousandth - THOUSANDTH)
           })
           .margin({
             left: ($r('sys.float.ohos_id_dialog_margin_start')),
@@ -667,6 +577,7 @@ export default struct FingerprintAuth {
     .height(Constants.fullContainerHeight)
     .justifyContent(FlexAlign.End)
     .backgroundColor(Color.Transparent)
+    .id('fingerprintAuth')
   }
 }
 

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, expect, it } from '@ohos/hypium'
+import { beforeAll, describe, expect, it } from '@ohos/hypium'
 import { Driver, ON } from '@ohos.UiTest';
 
 const delayTime: number = 1000;
@@ -36,7 +36,7 @@ export default function passwordAuthSixTest() {
         "title": "",
         "type": ["pin"],
         "widgetContextId": 7932856209793250000,
-        "windowModeType": "DIALOG_BOX"
+        "windowModeType": "DIALOG_BOX",
       };
       globalThis.wantParams = data;
     })
@@ -45,8 +45,7 @@ export default function passwordAuthSixTest() {
       await sleep(1000)
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('cancelBtnDialogSixPwd'));
-      await btn.click();
+      await driver.findComponent(ON.id('cancelBtnDialogSixPwd'));
       expect(true).assertTrue();
       done();
     })

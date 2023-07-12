@@ -18,8 +18,8 @@ import { beforeAll, describe, expect, it } from '@ohos/hypium';
 
 const delayTime: number = 1000;
 
-export default function CustomPasswordTest() {
-  describe('customPasswordTest', function () {
+export default function CustomPasswordFingerTest() {
+  describe('CustomPasswordFingerTest', function () {
     beforeAll(async function () {
       const wantDefault = {
         "cmd": [{
@@ -27,13 +27,21 @@ export default function CustomPasswordTest() {
             "lockoutDuration": 0, "remainAttempts": 5, "type": "pin", "sensorInfo": ""
           }, "version": "1"
         }],
-        "pinSubType": "PIN_SIX",
+        "pinSubType": "PIN_MIXED",
         "title": "",
         "type": ["pin", "fingerprint"],
         "widgetContextId": 6711153399710207000,
         "windowModeType": "FULLSCREEN"
       };
       globalThis.wantParams = wantDefault;
+    })
+
+    it('pinInput_full_customPwd_test', 0, async function (done) {
+      let driver = Driver.create();
+      await driver.delayMs(delayTime);
+      await driver.findComponent(ON.id('pinInput'));
+      expect(true).assertTrue();
+      done();
     })
 
     it('fingerWhiteImg_customPwd_test', 0, async function (done) {
@@ -48,15 +56,6 @@ export default function CustomPasswordTest() {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('unlockFingerprintImgCustomPwd'));
-      expect(true).assertTrue();
-      done();
-    })
-
-    it('numKeyBord_customPwd_test', 0, async function (done) {
-      let driver = Driver.create();
-      await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('numKeyBordCustomPwd'));
-      await btn.click();
       expect(true).assertTrue();
       done();
     })

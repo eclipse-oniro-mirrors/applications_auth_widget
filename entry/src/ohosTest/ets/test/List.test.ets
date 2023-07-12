@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-import IndexTest from './Index.test';
 import funcUtilsTest from './jsunit/commonUtilsTest/FuncUtils.test';
 import constantsTest from './jsunit/constantsTest/Constants.test';
 import customPasswordTest from './jsunit/widgetTest/CustomPassword.test';
 import CustomPasswordFaceTest from './jsunit/widgetTest/CustomPasswordFace.test';
 import CustomPasswordFingerTest from './jsunit/widgetTest/CustomPasswordFinger.test';
-import FaceAuth from './jsunit/widgetTest/FaceAuth.test';
+import faceAuthJsTest from './jsunit/widgetTest/FaceAuth.test';
 import FingerprintAuth from './jsunit/widgetTest/FingerprintAuth.test';
 import pageComTest from './jsunit/widgetTest/PageCom.test';
 import passwordAuthTest from './jsunit/widgetTest/PasswordAuth.test';
@@ -28,6 +27,11 @@ import CustomPasswordTest from './uitest/CustomPassword.test';
 import FaceAuthTest from './uitest/FaceAuth.test';
 import FingerprintAuthTest from './uitest/FingerprintAuth.test';
 import PasswordAuthTest from './uitest/PasswordAuth.test';
+import PinFingerPrintTest from './uitest/PinFingerPrint.test';
+import PinFaceTest from './uitest/PinFace.test';
+import CustomPasswordNumber from './uitest/CustomPasswordNumber.test';
+import CustomPasswordAttrTest from './uitest/CustomPasswordAttr.test';
+import IndexTest from './Index.test';
 
 export default function testsuite() {
   IndexTest();
@@ -40,9 +44,13 @@ export default function testsuite() {
   constantsTest();
   passwordAuthTest();
   PasswordAuthTestSix();
-  FaceAuth();
+  faceAuthJsTest();
   FingerprintAuth();
   customPasswordTest();
   CustomPasswordFaceTest();
   CustomPasswordFingerTest();
+  PinFingerPrintTest();
+  PinFaceTest();
+  CustomPasswordNumber();
+  CustomPasswordAttrTest();
 }

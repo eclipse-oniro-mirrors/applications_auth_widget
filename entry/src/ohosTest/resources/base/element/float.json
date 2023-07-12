@@ -313,6 +313,10 @@
       "value": "3vp"
     },
     {
+      "name": "image_back_size",
+      "value": "24vp"
+    },
+    {
       "name": "image_size",
       "value": "66vp"
     },

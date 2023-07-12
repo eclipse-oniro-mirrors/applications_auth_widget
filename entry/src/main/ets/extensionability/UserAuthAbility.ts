@@ -15,6 +15,7 @@
 
 import LogUtils from '../common/utils/LogUtils';
 import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
+import WindowPrivacyUtils from '../common/utils/WindowPrivacyUtils';
 
 const TAG = 'UserAuthAbility';
 
@@ -40,10 +41,17 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
     LogUtils.i(TAG, 'UserAuthExtensionAbility onSessionCreate want: ' + JSON.stringify(want));
     globalThis.wantParams = want?.parameters?.useriamCmdData;
     globalThis.session = session;
-    session.loadContent('pages/Index');
+    session?.loadContent('pages/Index');
+    try {
+      session.setWindowBackgroundColor('#00000000');
+    } catch (error) {
+      LogUtils.e(TAG, 'UserAuthExtensionAbility onSessionCreate error: ' + JSON.stringify(error));
+    }
+    WindowPrivacyUtils.setWindowPrivacyMode(session, true);
   }
 
   onSessionDestroy(session): void {
     LogUtils.i(TAG, 'UserAuthExtensionAbility onSessionDestroy');
+    WindowPrivacyUtils.setWindowPrivacyMode(session, false);
   }
 }

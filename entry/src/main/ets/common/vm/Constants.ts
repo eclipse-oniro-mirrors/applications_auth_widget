@@ -132,7 +132,8 @@ export interface FingerPosition {
   sensorType: string,
   udSensorCenterXInThousandth?: number,
   udSensorCenterYInThousandth?: number,
-  udSensorRadiusInPx?: number
+  udSensorRadiusInPx?: number,
+  outOfScreenSensorType?: string
 }
 
 export interface CmdData {
