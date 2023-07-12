@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import userAuth from '@ohos.userIAM.userAuth';
 import Constants from '../vm/Constants';
 import LogUtils from './LogUtils';

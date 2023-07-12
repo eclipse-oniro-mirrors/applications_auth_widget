@@ -15,14 +15,14 @@
 
 import account_osAccount from '@ohos.account.osAccount';
 import userAuth from '@ohos.userIAM.userAuth';
-import CustomPSD from '../../common/components/CustomPSD'
+import CustomPSD from '../../common/components/CustomPSD';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import Constants from '../../common/vm/Constants';
 
 const TAG = 'CustomPassword';
 const WHITE_OPACITY = 1;
-const BLUR_OPACITY = 0.2;
+const BLUR_OPACITY = 0.5;
 const BTN_BORDER_RADIUS = 25;
 const THEME_WHITE = 1;
 let pinAuthManager;
@@ -65,11 +65,14 @@ export default struct CustomPassword {
   }
 
   build() {
-    Stack() {
-      Text().width(Constants.fullContainerWidth)
+    Column() {
+      Image('')
+        .width(Constants.fullContainerWidth)
         .height(Constants.fullContainerWidth)
-        .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
+        .backgroundColor('#0d0d0d')
+        .position({ x: 0, y: 0 })
         .opacity(this.themeType === THEME_WHITE ? WHITE_OPACITY : BLUR_OPACITY)
+        .blur(1.3)
       Column() {
         Flex({ direction: FlexDirection.Row }) {
           if (this.themeType === THEME_WHITE) {
@@ -108,9 +111,9 @@ export default struct CustomPassword {
           } else {
             Image($r('app.media.ic_white_cancel'))
               .id('cancelImgCustomPwd')
-              .width($r('app.float.image_small'))
-              .height($r('app.float.image_small'))
-              .margin({ left: $r('app.float.element_margin'), top: $r('app.float.element_margin') })
+              .width($r('app.float.image_back_size'))
+              .height($r('app.float.image_back_size'))
+              .margin({ left: $r('sys.float.ohos_id_max_padding_start'), top: $r('app.float.content_padding') })
               .backgroundColor(this.isBackTouched ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
               .onClick(() => {
                 globalThis.session?.terminateSelf?.();

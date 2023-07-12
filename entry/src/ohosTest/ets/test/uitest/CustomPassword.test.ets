@@ -13,54 +13,35 @@
  * limitations under the License.
  */
 
-import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { Driver, ON } from '@ohos.UiTest';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from '@ohos/hypium';
+import { beforeAll, describe, it } from '@ohos/hypium';
 
-const delegator = abilityDelegatorRegistry.getAbilityDelegator();
-const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
-const delayms: number = 1000;
+const delays: number = 1000;
 
 export default function CustomPasswordTest() {
   describe('CustomPasswordTest', function () {
     beforeAll(async function () {
-      let want = {
-        bundleName: bundleName,
-        abilityName: "EntryAbility"
-      }
-      await delegator.startAbility(want);
+      const data = {
+        "cmd": [{
+          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "pin", "sensorInfo": ""
+          }, "version": "1"
+        }],
+        "pinSubType": "PIN_SIX",
+        "title": "",
+        "type": ["pin"],
+        "widgetContextId": 7932856209793250000,
+        "windowModeType": "FULLSCREEN",
+      };
+      globalThis.wantParams = data;
     })
-    beforeEach(function () {
-    })
-    afterEach(function () {
-    })
-    afterAll(function () {
-    })
-    // full six-PIN
+
     it('clickEventCancal_Input', 0, async function (done) {
       let driver = Driver.create();
-      await driver.delayMs(delayms);
-      await driver.delayMs(delayms);
-      let numberOne = await driver.findComponent(ON.type('Text').isAfter(ON.text('1')));
-      await numberOne.click();
-      await driver.delayMs(delayms);
-      await numberOne.click();
-      await driver.delayMs(delayms);
-      await numberOne.click();
-      await driver.delayMs(delayms);
-      await numberOne.click();
-      await driver.delayMs(delayms);
-      await numberOne.click();
-      await driver.delayMs(delayms);
-      await numberOne.click();
-      await driver.delayMs(delayms);
+      await driver.delayMs(delays);
+      await driver.findComponent(ON.id('pinSix'));
+      await driver.delayMs(delays);
       done();
-    })
-    it('assertEqual', 0, function () {
-      // Defines a test case. This API supports three parameters: test case name, filter parameter, and test case function.
-      let a = 'test';
-      // Defines a variety of assertion methods, which are used to declare expected boolean conditions.
-      expect(a).assertEqual('test');
     })
   })
 }

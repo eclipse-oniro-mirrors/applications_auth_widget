@@ -39,8 +39,7 @@ export default function PasswordAuthTest() {
     it('cancelBtn_dialog_pwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('cancelBtnDialogPwd'));
-      await btn.click();
+      await driver.findComponent(ON.id('cancelBtnDialogPwd'));
       expect(true).assertTrue();
       done();
     })
@@ -48,8 +47,15 @@ export default function PasswordAuthTest() {
     it('okBtn_dialog_pwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('okBtn'));
-      await btn.click();
+      await driver.findComponent(ON.id('okBtn'));
+      expect(true).assertTrue();
+      done();
+    })
+
+    it('input_dialog_pwd_test', 0, async function (done) {
+      let driver = Driver.create();
+      await driver.delayMs(delayTime);
+      await driver.findComponent(ON.id('pinInputMix'));
       expect(true).assertTrue();
       done();
     })

@@ -38,7 +38,7 @@ export default function FuncUtilsTest() {
       userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
       userAuthInstance.on('result', {
         callback: function (result) {
-          LogUtils.i(TAG, 'callback result = ' + JSON.stringify(result));
+          LogUtils.i(TAG, 'userAuthInstance callback result = ' + JSON.stringify(result));
         }
       });
       userAuthInstance.start();
@@ -68,6 +68,15 @@ export default function FuncUtilsTest() {
 
     it('sendNotice_test', 0, async function (done) {
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', ['pin']);
+      done();
+    })
+
+    it('log_test', 0, async function (done) {
+      LogUtils.d(TAG, 'debug log test');
+      LogUtils.i(TAG, 'info log test');
+      LogUtils.w(TAG, 'warning log test');
+      LogUtils.e(TAG, 'error log test');
+      LogUtils.f(TAG, 'fatal log test');
       done();
     })
   })

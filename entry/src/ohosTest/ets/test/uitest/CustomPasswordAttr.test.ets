@@ -18,37 +18,28 @@ import { beforeAll, describe, expect, it } from '@ohos/hypium';
 
 const delays: number = 1000;
 
-export default function FaceAuthTest() {
-  describe('FaceAuthTest', function () {
+export default function CustomPasswordAttrTest() {
+  describe('CustomPasswordAttrTest', function () {
     beforeAll(async function () {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 4, "type": "face"
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "pin", "sensorInfo": ""
           }, "version": "1"
         }],
-        "navigationButtonText": "确认",
+        "pinSubType": "PIN_SIX",
         "title": "",
-        "type": ["face"],
-        "widgetContextId": 1590859524489244200,
-        "windowModeType": "DIALOG_BOX",
-      }
+        "type": ["pin"],
+        "widgetContextId": 7932856209793250000,
+        "windowModeType": "FULLSCREEN",
+      };
       globalThis.wantParams = data;
     })
 
-    it('clickEventCancal_face', 0, async function (done) {
+    it('clickEventCancal_Input', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delays);
-      await driver.findComponent(ON.clickable(true));
-      expect(true).assertTrue();
-      done();
-    })
-
-
-    it('clickEventError_face', 0, async function (done) {
-      let driver = Driver.create();
-      await driver.delayMs(delays);
-      await driver.findComponent(ON.id('okBtnFaceAuth'));
+      await driver.findComponent(ON.type('Text'));
       expect(true).assertTrue();
       done();
     })

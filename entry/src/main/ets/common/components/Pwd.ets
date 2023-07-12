@@ -57,8 +57,8 @@ export default struct Pwd {
         .type(InputType.Password)
         .margin({
           top: $r('app.float.content_padding'),
-          left: $r('app.float.content_padding'),
-          right: $r('app.float.content_padding')
+          left: $r('app.float.digitalpsd_passwdmask_height'),
+          right: $r('app.float.digitalpsd_passwdmask_height')
         })
         .textAlign(TextAlign.Center)
         .fontColor($r('sys.color.ohos_id_color_text_primary'))

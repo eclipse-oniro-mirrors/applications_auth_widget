@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-import { Driver, ON } from '@ohos.UiTest';
+import { BY, Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 
-const delays: number = 1000;
+const delays: number = 1000
 
-export default function FaceAuthTest() {
-  describe('FaceAuthTest', function () {
+export default function PinFaceTest() {
+  describe('PinFaceTest', function () {
     beforeAll(async function () {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 4, "type": "face"
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "pin", "sensorInfo": ""
           }, "version": "1"
         }],
-        "navigationButtonText": "确认",
+        "pinSubType": "PIN_MIXED",
         "title": "",
-        "type": ["face"],
-        "widgetContextId": 1590859524489244200,
-        "windowModeType": "DIALOG_BOX",
-      }
+        "type": ["pin"],
+        "widgetContextId": 7932856209793250000,
+        "windowModeType": "DIALOG_BOX"
+      };
       globalThis.wantParams = data;
     })
 
@@ -48,7 +48,7 @@ export default function FaceAuthTest() {
     it('clickEventError_face', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delays);
-      await driver.findComponent(ON.id('okBtnFaceAuth'));
+      await driver.findComponent(ON.id('cancelBtnDialogSixPwd'));
       expect(true).assertTrue();
       done();
     })

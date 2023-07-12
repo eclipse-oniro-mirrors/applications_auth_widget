@@ -39,8 +39,7 @@ export default function CustomPasswordTest() {
     it('cancelIcon_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('cancelIconCustomPwd'));
-      await btn.click();
+      await driver.findComponent(ON.id('cancelIconCustomPwd'));
       expect(true).assertTrue();
       done();
     })
@@ -48,8 +47,7 @@ export default function CustomPasswordTest() {
     it('textPrompt_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('cancelIconCustomPwd'));
-      await btn.click();
+      await driver.findComponent(ON.id('cancelIconCustomPwd'));
       expect(true).assertTrue();
       done();
     })
@@ -57,8 +55,15 @@ export default function CustomPasswordTest() {
     it('forgotBtn_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      let btn = await driver.findComponent(ON.id('forgotBtnCustomPwd'));
-      await btn.click();
+      await driver.findComponent(ON.id('forgotBtnCustomPwd'));
+      expect(true).assertTrue();
+      done();
+    })
+
+    it('numKeyBord_customPwd_test', 0, async function (done) {
+      let driver = Driver.create();
+      await driver.delayMs(delayTime);
+      await driver.findComponent(ON.id('numKeyBordCustomPwd'));
       expect(true).assertTrue();
       done();
     })

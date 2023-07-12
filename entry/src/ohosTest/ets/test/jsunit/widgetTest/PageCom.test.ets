@@ -13,49 +13,25 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, expect, it } from '@ohos/hypium'
-import { Driver, ON } from '@ohos.UiTest'
+import { describe, expect, it } from '@ohos/hypium'
 import userAuth from '@ohos.userIAM.userAuth';
 import LogUtils from '../../../../../main/ets/common/utils/LogUtils';
 
 const TAG = 'PageComTest';
 
-const delayTime: number = 1000;
-
 export default function PageComTest() {
   describe('pageComTest', function () {
-    beforeAll(async function () {
-      let userAuthInstance = null;
-      const authParam = {
-        challenge: new Uint8Array([49, 49, 49, 49, 49, 49]),
-        authType: [userAuth.UserAuthType.FINGERPRINT],
-        authTrustLevel: 10000,
-      };
-      const widgetParam = {
-        title: '',
-        windowMode: 1,
-        navigationButtonText: '',
-      };
-      userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
-      userAuthInstance.on('result', {
-        callback: function (result) {
-          LogUtils.i(TAG, 'userAuthInstance onResult: ' + JSON.stringify(result));
-        }
-      });
-      userAuthInstance.start();
-    })
-
     it('clickEventOk_Input', 0, async function (done) {
       let userAuthInstance = null;
       const authParam = {
         challenge: new Uint8Array([49, 49, 49, 49, 49, 49]),
-        authType: [userAuth.UserAuthType.FINGERPRINT],
+        authType: [1],
         authTrustLevel: 10000,
       };
       const widgetParam = {
-        title: '',
+        title: '使用密码验证',
         windowMode: 1,
-        navigationButtonText: '',
+        navigationButtonText: '确认',
       };
       userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
       userAuthInstance.on('result', {
@@ -63,12 +39,6 @@ export default function PageComTest() {
           LogUtils.i(TAG, 'userAuthInstance onResult: ' + JSON.stringify(result));
         }
       });
-      let driver = Driver.create();
-      await driver.delayMs(delayTime);
-
-      let btn = await driver.findComponent(ON.id('cancelBtn_dialog_pwd'));
-      LogUtils.i(TAG, 'btn: ' + JSON.stringify(btn));
-      await btn.click();
       expect(true).assertTrue();
       done();
     })

@@ -82,6 +82,7 @@ export default struct CustomPSD {
     sensorType: ''
   }
   @State screen: number[] = [];
+  @State lockArr: boolean[] = [false, false];
   @Consume isLandscape: boolean;
   @Consume underFingerPrint: boolean;
 
@@ -132,6 +133,7 @@ export default struct CustomPSD {
           if (remainAttempts) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'));
+            this.lockArr[0] = false;
           }
           if (num === 'first') {
             this.prompt = globalThis.context.resourceManager
@@ -140,6 +142,7 @@ export default struct CustomPSD {
           if (remainAttempts === 0) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden'));
+            this.lockArr[0] = true;
           }
           break;
         case Constants.noticeTypeFinger:
@@ -153,6 +156,9 @@ export default struct CustomPSD {
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
             this.fingerText = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
+            if (remainAttempts < 5) {
+              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+            }
           }
           if (num === 'first') {
             this.prompt = globalThis.context.resourceManager
@@ -163,6 +169,7 @@ export default struct CustomPSD {
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
             this.fingerText = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
+            this.lockArr[1] = true;
           }
         default:
           break;
@@ -173,12 +180,20 @@ export default struct CustomPSD {
   aboutToAppear(): void {
     AppStorage.SetOrCreate('passwordArr', ['', '', '', '', '', '']);
     this.queryScreenInfo();
-    AuthUtils.getInstance().sendNotice('CMD_NOTIFY_AUTH_START', [Constants.noticeTypePin]);
     if (this.cmdData && this.cmdData.length > 0) {
       this.onCmdDataChange('first');
     }
+    if (this.controlType.isShowFace && this.controlType.isShowFinger) {
+      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace, Constants.noticeTypeFace]);
+      return;
+    }
     if (this.controlType.isShowFace) {
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+      return;
+    }
+    if (this.controlType.isShowFinger) {
+      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+      return;
     }
   }
 
@@ -238,10 +253,7 @@ export default struct CustomPSD {
                 .height('30vp')
                 .margin({ bottom: '16vp' })
                 .onClick(() => {
-                  if (this.prompt !== globalThis.context.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden')) &&
-                  this.prompt !== globalThis.context.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
+                  if (!this.lockArr[0]) {
                     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                   }
                 })
@@ -253,6 +265,11 @@ export default struct CustomPSD {
                 .margin({ bottom: '16vp' })
                 .visibility(Visibility.Visible)
                 .colorBlend($r('sys.color.ohos_id_color_activated'))
+                .onClick(() => {
+                  if (!this.lockArr[0]) {
+                    AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+                  }
+                })
             }
           }
           Text(this.prompt)
@@ -264,7 +281,7 @@ export default struct CustomPSD {
             .fontWeight(FontWeight.Medium)
             .fontColor(this.themeType === THEME_WHITE
               ? $r('sys.color.ohos_id_color_text_primary')
-              : $r('sys.color.ohos_id_color_text_secondary_contrary'))
+              : $r('sys.color.ohos_id_color_text_primary_contrary'))
             .margin({ bottom: '8vp' })
             .textAlign(TextAlign.Center)
             .textOverflow({ overflow: TextOverflow.None })
@@ -363,12 +380,10 @@ export default struct CustomPSD {
               }
             }
           }
-          .width(this.screenLockDirection === 1 ? $r('app.float.custompsd_input_width')
-                                                : $r('app.float.custompsd_input_width_portrait'))
           .height('40vp')
 
           Button(($r('app.string.unified_authwidget_forgotpwd')), {
-            stateEffect: true
+            stateEffect: false
           })
             .id('forgotBtnCustomPwd')
             .height('40vp')
@@ -382,10 +397,11 @@ export default struct CustomPSD {
               let str = this.passwordArrNumber.toString()
               this.textValue = str.replace(/,/g, '');
             })
+            .visibility(Visibility.Hidden)
         }
 
         Column() {
-          if (this.lock === 0 && this.pinSubType === Constants.pinSix) {
+          if (!this.isLandscape && this.lock === 0 && this.pinSubType === Constants.pinSix) {
             NumKeyBoard({
               themeType: $themeType,
               onKeyPress: (index, callback) => {
@@ -444,77 +460,78 @@ export default struct CustomPSD {
 
         Column() {
           if (this.controlType.isShowFinger && this.lock !== 1) {
+            if (this.fingerPosition.sensorType !== 'OUT_OF_SCREEN_SENSOR'
+            && this.fingerPosition.sensorType !== 'NON_SENSOR') {
+              if (this.themeType === THEME_WHITE) {
+                if (this.fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR'
+                || this.fingerPosition.sensorType === 'BOTH_SENSOR'
+                || this.fingerPosition.sensorType === 'SensorType1') {
+                  if (this.fingerPosition.udSensorCenterYInThousandth / this.screen[1] > 0.75 && !this.isLandscape) {
+                    Image($r('app.media.ic_blue_fingerprint'))
+                      .id('fingerprintImgCustomPwd')
+                      .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
+                      .height(px2vp(this.fingerPosition.udSensorRadiusInPx))
+                      .position({
+                        x: px2vp(this.fingerPosition.udSensorCenterXInThousandth),
+                        y: px2vp(this.fingerPosition.udSensorCenterYInThousandth)
+                      })
+                      .onClick(() => {
+                        AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+                      })
+                  } else {
+                    Image($r('app.media.finger_guide'))
+                      .id('fingerWhiteImgCustomPwd')
+                      .width('24vp')
+                      .height('24vp')
+                      .margin({ top: '12vp' })
+                      .onClick(() => {
+                        if (this.isLandscape) {
+                          this.underFingerPrint = true;
+                        } else {
+                          this.controlType.jumpFinger = true;
+                          AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+                        }
 
-            if (this.themeType === THEME_WHITE) {
-              if (this.fingerPosition.sensorType === 'OUT_OF_SCREEN_SENSOR'
-              || this.fingerPosition.sensorType === 'BOTH_SENSOR'
-              || this.fingerPosition.sensorType === 'SensorType1') {
-                if (this.fingerPosition.udSensorCenterYInThousandth / this.screen[1] > 0.75 && !this.isLandscape) {
-                  Image($r('app.media.ic_blue_fingerprint'))
-                    .id('fingerprintImgCustomPwd')
-                    .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
-                    .height(px2vp(this.fingerPosition.udSensorRadiusInPx))
-                    .position({
-                      x: px2vp(this.fingerPosition.udSensorCenterXInThousandth),
-                      y: px2vp(this.fingerPosition.udSensorCenterYInThousandth)
-                    })
-                    .onClick(() => {
-                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-                    })
-                } else {
-                  Image($r('app.media.finger_guide'))
-                    .id('fingerWhiteImgCustomPwd')
-                    .width('24vp')
-                    .height('24vp')
-                    .margin({ top: '12vp' })
-                    .onClick(() => {
-                      if (this.isLandscape) {
-                        this.underFingerPrint = true;
-                      }
-                      if (!this.isLandscape) {
-                        this.controlType.jumpFinger = true;
-                      }
-
-                    })
+                      })
+                  }
                 }
               }
-            }
-            if (this.themeType === THEME_BLUR) {
-              if (this.fingerPosition.sensorType === 'OUT_OF_SCREEN_SENSOR'
-              || this.fingerPosition.sensorType === 'BOTH_SENSOR'
-              || this.fingerPosition.sensorType === 'SensorType1') {
-                if (this.fingerPosition.udSensorCenterYInThousandth / this.screen[1] > 0.75 && !this.isLandscape) {
-                  Image($r('app.media.ic_unlock_fingerprint'))
-                    .id('fingerprintImgCustomPSD')
-                    .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
-                    .height(px2vp(this.fingerPosition.udSensorRadiusInPx))
-                    .position({
-                      x: px2vp(this.fingerPosition.udSensorCenterXInThousandth),
-                      y: px2vp(this.fingerPosition.udSensorCenterYInThousandth)
-                    })
-                    .onClick(() => {
-                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-                    })
-                } else {
-                  Image($r('app.media.finger_white'))
-                    .id('fingerWhiteImgCustomPSD')
-                    .width('24vp')
-                    .height('24vp')
-                    .margin({ top: '12vp' })
-                    .onClick(() => {
-                      if (this.isLandscape) {
-                        this.underFingerPrint = true;
-                      }
-                      if (!this.isLandscape) {
-                        this.controlType.jumpFinger = true;
-                      }
-                    })
-                }
+              if (this.themeType === THEME_BLUR) {
+                if (this.fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR'
+                || this.fingerPosition.sensorType === 'BOTH_SENSOR'
+                || this.fingerPosition.sensorType === 'SensorType1') {
+                  if (this.fingerPosition.udSensorCenterYInThousandth / this.screen[1] > 0.75 && !this.isLandscape) {
+                    Image($r('app.media.ic_unlock_fingerprint'))
+                      .id('fingerprintImgCustomPSD')
+                      .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
+                      .height(px2vp(this.fingerPosition.udSensorRadiusInPx))
+                      .position({
+                        x: px2vp(this.fingerPosition.udSensorCenterXInThousandth),
+                        y: px2vp(this.fingerPosition.udSensorCenterYInThousandth)
+                      })
+                      .onClick(() => {
+                        AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+                      })
+                  } else {
+                    Image($r('app.media.finger_white'))
+                      .id('fingerWhiteImgCustomPSD')
+                      .width('24vp')
+                      .height('24vp')
+                      .margin({ top: '12vp' })
+                      .onClick(() => {
+                        if (this.isLandscape) {
+                          this.underFingerPrint = true;
+                        } else {
+                          this.controlType.jumpFinger = true;
+                          AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+                        }
+                      })
+                  }
 
+                }
               }
             }
           }
-
         }.width('24vp')
         .height(this.controlType.isShowFinger ? '72vp' : '9%')
         .justifyContent(FlexAlign.Start)

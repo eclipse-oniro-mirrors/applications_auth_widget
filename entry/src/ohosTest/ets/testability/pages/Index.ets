@@ -16,7 +16,6 @@
 import userAuth from '@ohos.userIAM.userAuth';
 import window from '@ohos.window';
 import { DialogType } from '../../../../main/ets/common/module/DialogType';
-import AuthUtils from '../../../../main/ets/common/utils/AuthUtils';
 import FuncUtils from '../../../../main/ets/common/utils/FuncUtils';
 import LogUtils from '../../../../main/ets/common/utils/LogUtils';
 import Constants, { CmdType } from '../../../../main/ets/common/vm/Constants';
@@ -40,8 +39,10 @@ struct Index {
   @State dialogType: DialogType = DialogType.ALL;
   @State windowModeType: string = 'DIALOG_BOX';
   // background 1:white 2:Gaussian Blur
-  @State themeType: number = Constants.themeTypeWhite;
+  @State themeType: number = 1;
   @State cmdData: Array<CmdType> = [];
+  @Provide isLandscape: boolean = false;
+  @Provide underFingerPrint: boolean = false;
 
   onCancel(): void {
     LogUtils.d(TAG, 'Callback when the first button is clicked');
@@ -77,7 +78,6 @@ struct Index {
     } catch (error) {
       LogUtils.e(TAG, 'getUserAuthWidgetMgr catch error: ' + JSON.stringify(error));
     }
-    AuthUtils.getInstance().sendNotice('CMD_NOTIFY_AUTH_START', [Constants.noticeTypePin]);
   }
 
   aboutToAppear(): void {
@@ -86,7 +86,6 @@ struct Index {
       this.getParams(globalThis.wantParams);
       this.handleAuthStart();
       this.cmdData = globalThis.wantParams?.cmd;
-      AuthUtils.getInstance().sendNotice('CMD_NOTIFY_AUTH_START', this.type);
       LogUtils.d(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
     } else {
       LogUtils.e(TAG, 'aboutToAppear wantParams null');

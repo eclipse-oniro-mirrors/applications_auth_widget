@@ -17,7 +17,6 @@ import screen from '@ohos.screen';
 import userAuth from '@ohos.userIAM.userAuth';
 import window from '@ohos.window';
 import { DialogType } from '../common/module/DialogType';
-import AuthUtils from '../common/utils/AuthUtils';
 import FuncUtils from '../common/utils/FuncUtils';
 import LogUtils from '../common/utils/LogUtils';
 import Constants, { CmdType } from '../common/vm/Constants';
@@ -26,9 +25,13 @@ import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
 import PasswordAuth from './components/PasswordAuth';
 
+const AUTH_TYPE_LENGTH = 2;
+const DEFAULT_SIZE = 72;
+const FIVE_SECOND = 5000;
+const LAND_SCAPE = 2;
 const TAG = 'Index';
-const defaultSize = 72;
 const THEME_WHITE = 1;
+const THEME_BLUR = 2;
 let userAuthWidgetMgr;
 
 @Entry
@@ -36,16 +39,18 @@ let userAuthWidgetMgr;
 struct Index {
   @State authType: Array<userAuth.UserAuthType> = [userAuth.UserAuthType.PIN];
   @State type: string[] = [];
-  @State topHeight: number = defaultSize;
-  @State bottomHeight: number = defaultSize;
+  @State topHeight: number = DEFAULT_SIZE;
+  @State bottomHeight: number = DEFAULT_SIZE;
   @State pinSubType: string = Constants.pinNumber;
   @State dialogType: DialogType = DialogType.ALL;
   @State windowModeType: string = 'DIALOG_BOX';
   // background 1:white 2:Gaussian Blur
-  @State themeType: number = THEME_WHITE;
+  @State themeType: number = THEME_BLUR;
   @State cmdData: Array<CmdType> = [];
   @Provide isLandscape: boolean = false;
   @Provide underFingerPrint: boolean = false;
+  @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
+  @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
 
   onScreenChange(): void {
     try {
@@ -54,32 +59,17 @@ struct Index {
           LogUtils.e(TAG, 'Failed to get all screens. Cause: ' + JSON.stringify(err));
           return;
         }
-        this.isLandscape = data[0].orientation === 2;
-        LogUtils.d(TAG, ' get all screens. result: ' + JSON.stringify(this.isLandscape));
         LogUtils.d(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
+        this.isLandscape = data[0].orientation === LAND_SCAPE;
+        if (this.isLandscape && this.underFingerPrint) {
+          setTimeout(() => {
+            globalThis.session?.terminateSelf();
+          }, FIVE_SECOND)
+        }
       });
     } catch (exception) {
       LogUtils.e(TAG, 'getAllScreens catch exception: ' + exception);
     }
-
-  }
-
-  handleIsUnder(cmd: []): void {
-    cmd?.length > 0 && this.cmdData.map((item) => {
-      const { type,sensorInfo} = item.payload;
-      if (type === Constants.noticeTypeFinger) {
-        if (sensorInfo && JSON.stringify(sensorInfo) !== '{}') {
-          const fingerPosition = JSON.parse(sensorInfo);
-          if (fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR'
-          || fingerPosition.sensorType === 'BOTH_SENSOR'
-          || fingerPosition.sensorType === 'SensorType1') {
-            if (this.authType.includes(userAuth.UserAuthType.FINGERPRINT) && this.authType.length < 2) {
-              this.underFingerPrint = true;
-            }
-          }
-        }
-      }
-    })
   }
 
   handleAuthStart(): void {
@@ -103,7 +93,24 @@ struct Index {
     } catch (error) {
       LogUtils.e(TAG, 'getUserAuthWidgetMgr catch error: ' + JSON.stringify(error));
     }
-    AuthUtils.getInstance().sendNotice('CMD_NOTIFY_AUTH_START', [Constants.noticeTypePin]);
+  }
+
+  handleIsUnder(cmd: []): void {
+    cmd?.length > 0 && this.cmdData.map((item) => {
+      const { type, sensorInfo } = item.payload;
+      if (type === Constants.noticeTypeFinger) {
+        if (sensorInfo && JSON.stringify(sensorInfo) !== '{}') {
+          const fingerPosition = JSON.parse(sensorInfo);
+          if (fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR' ||
+          fingerPosition.sensorType === 'BOTH_SENSOR' ||
+          fingerPosition.sensorType === 'SensorType1') {
+            if (this.authType.includes(userAuth.UserAuthType.FINGERPRINT) && this.authType.length < AUTH_TYPE_LENGTH) {
+              this.underFingerPrint = true;
+            }
+          }
+        }
+      }
+    });
   }
 
   aboutToAppear(): void {
@@ -112,12 +119,10 @@ struct Index {
       this.getParams(globalThis.wantParams);
       this.handleAuthStart();
       this.cmdData = globalThis.wantParams?.cmd;
-      AuthUtils.getInstance().sendNotice('CMD_NOTIFY_AUTH_START', this.type);
       LogUtils.d(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
     } else {
       LogUtils.e(TAG, 'aboutToAppear wantParams null');
     }
-    this.getWindowHeight();
   }
 
   aboutToDisappear(): void {
@@ -175,11 +180,11 @@ struct Index {
         for (let i = 0; i < data.regionTint.length; i++) {
           let regionData = data.regionTint[i];
           if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
-            this.topHeight = px2vp(regionData.region.height);
+            this.SYSTEM_STATUS_BAR_HEIGHT = px2vp(regionData.region.height);
             continue;
           }
           if (regionData.type === window.WindowType.TYPE_NAVIGATION_BAR) {
-            this.bottomHeight = px2vp(regionData.region.top);
+            this.SYSTEM_NAVIGATION_BAR_HEIGHT = px2vp(regionData.region.height);
             continue;
           }
         }
@@ -194,7 +199,8 @@ struct Index {
     Flex({ direction: FlexDirection.Column, justifyContent: FlexAlign.SpaceAround, alignItems: ItemAlign.Center }) {
       if (this.isLandscape && this.underFingerPrint) {
         Column() {
-          Text(globalThis.context.resourceManager.getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode')))
+          Text(globalThis.context.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode')))
             .height('40vp')
             .fontColor(this.themeType === THEME_WHITE
               ? $r('sys.color.ohos_id_color_text_primary')
@@ -240,8 +246,8 @@ struct Index {
     }
     .onAreaChange(() => {
       this.onScreenChange();
+      this.getWindowHeight();
     })
-    .backgroundColor(Color.Transparent)
-    .padding(this.isLandscape ? 0 : { top: this.topHeight, bottom: this.topHeight })
+    .padding(this.isLandscape ? 0 : { top: this.SYSTEM_STATUS_BAR_HEIGHT, bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
   }
 }
