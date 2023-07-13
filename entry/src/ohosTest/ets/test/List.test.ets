@@ -27,16 +27,18 @@ import CustomPasswordTest from './uitest/CustomPassword.test';
 import FaceAuthTest from './uitest/FaceAuth.test';
 import FingerprintAuthTest from './uitest/FingerprintAuth.test';
 import PasswordAuthTest from './uitest/PasswordAuth.test';
+import passwordAuthSixUiTest from './uitest/PasswordAuthSix.test';
 import PinFingerPrintTest from './uitest/PinFingerPrint.test';
 import PinFaceTest from './uitest/PinFace.test';
 import CustomPasswordNumber from './uitest/CustomPasswordNumber.test';
 import CustomPasswordAttrTest from './uitest/CustomPasswordAttr.test';
+import findWindowExampleTest from './uitest/FindWindowExample.test'
 import IndexTest from './Index.test';
 
 export default function testsuite() {
-  IndexTest();
   CustomPasswordTest();
   PasswordAuthTest();
+  passwordAuthSixUiTest();
   FaceAuthTest();
   FingerprintAuthTest();
   funcUtilsTest();
@@ -53,4 +55,6 @@ export default function testsuite() {
   PinFaceTest();
   CustomPasswordNumber();
   CustomPasswordAttrTest();
+  findWindowExampleTest();
+  IndexTest();
 }

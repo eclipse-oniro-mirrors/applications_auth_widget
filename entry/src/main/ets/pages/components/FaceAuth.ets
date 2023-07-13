@@ -53,6 +53,7 @@ export default struct FaceAuth {
   @State screen: number[] = [];
   @State faceLock: boolean = false;
   @Consume isLandscape: boolean;
+  @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
 
   countTime(freezingTime): void {
     const TRY_AGAIN = globalThis.context.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
@@ -365,6 +366,8 @@ export default struct FaceAuth {
                   .colorBlend($r('sys.color.ohos_id_color_activated'))
                   .onClick(() => {
                     if (!this.faceLock) {
+                      this.prompt = globalThis.context.resourceManager
+                        .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
                       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                     }
                   })
@@ -634,6 +637,7 @@ export default struct FaceAuth {
         }
       }
     }
+    .margin({ bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
     .height(Constants.fullContainerHeight)
     .justifyContent(FlexAlign.End)
     .backgroundColor(Color.Transparent)

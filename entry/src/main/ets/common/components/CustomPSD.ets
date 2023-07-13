@@ -254,6 +254,8 @@ export default struct CustomPSD {
                 .margin({ bottom: '16vp' })
                 .onClick(() => {
                   if (!this.lockArr[0]) {
+                    this.prompt = globalThis.context.resourceManager
+                      .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
                     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                   }
                 })

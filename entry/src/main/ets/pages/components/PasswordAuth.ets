@@ -36,6 +36,7 @@ export default struct PasswordAuth {
   @State isEdit: boolean = true;
   // tip
   @State inputValue: string = ' ';
+  @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
 
   onTextValueChange(): void {
     pinData = this.textValue;
@@ -213,6 +214,7 @@ export default struct PasswordAuth {
         }
       }
     }
+    .margin({ bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
     .height('100%')
     .justifyContent(FlexAlign.End)
     .backgroundColor(Color.Transparent)

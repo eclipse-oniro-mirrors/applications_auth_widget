@@ -15,11 +15,20 @@
 
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
+import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+
+const delegator = abilityDelegatorRegistry.getAbilityDelegator();
+const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delayTime: number = 1000;
 
-export default function CustomPasswordTest() {
-  describe('CustomPasswordTest', function () {
+export default function passwordAuthSixUiTest() {
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  describe('passwordAuthSixUiTest', function () {
     beforeAll(async function () {
       const data = {
         "cmd": [{
@@ -31,40 +40,32 @@ export default function CustomPasswordTest() {
         "title": "",
         "type": ["pin"],
         "widgetContextId": 7932856209793250000,
-        "windowModeType": "FULLSCREEN",
+        "windowModeType": "DIALOG_BOX",
       };
       globalThis.wantParams = data;
+      sleep(1000);
+
+      let want = {
+        bundleName: bundleName,
+        abilityName: "EntryAbility"
+      }
+      await delegator.startAbility(want);
+      sleep(1000);
     })
 
-    it('cancelIcon_customPwd_test', 0, async function (done) {
+    it('pinSix_ui_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('cancelIconCustomPwd'));
-      expect(driver).not().assertNull();
+      await driver.findComponent(ON.id('pinSix'));
+      expect(true).assertTrue();
       done();
     })
 
-    it('textPrompt_customPwd_test', 0, async function (done) {
+    it('cancelBtn_dialog_sixPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('cancelIconCustomPwd'));
-      expect(driver).not().assertNull();
-      done();
-    })
-
-    it('forgotBtn_customPwd_test', 0, async function (done) {
-      let driver = Driver.create();
-      await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('forgotBtnCustomPwd'));
-      expect(driver).not().assertNull();
-      done();
-    })
-
-    it('numKeyBord_customPwd_test', 0, async function (done) {
-      let driver = Driver.create();
-      await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('numKeyBordCustomPwd'));
-      expect(driver).not().assertNull();
+      await driver.findComponent(ON.id('cancelBtnDialogSixPwd'));
+      expect(true).assertTrue();
       done();
     })
   })

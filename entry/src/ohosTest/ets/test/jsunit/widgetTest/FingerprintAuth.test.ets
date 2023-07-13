@@ -15,10 +15,19 @@
 
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
+import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+
+const delegator = abilityDelegatorRegistry.getAbilityDelegator();
+const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delayTime: number = 1000;
 
 export default function fingerprintAuthTest() {
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   describe('fingerprintAuthTest', function () {
     beforeAll(async function () {
       const data = {
@@ -37,6 +46,16 @@ export default function fingerprintAuthTest() {
         "windowModeType": "DIALOG_BOX"
       }
       globalThis.wantParams = data;
+
+      sleep(1000);
+
+      let want = {
+        bundleName: bundleName,
+        abilityName: "EntryAbility"
+      }
+      await delegator.startAbility(want);
+      sleep(1000);
+
     })
 
     it('cancelBth_state3_fingerprintAuth_test', 0, async function (done) {

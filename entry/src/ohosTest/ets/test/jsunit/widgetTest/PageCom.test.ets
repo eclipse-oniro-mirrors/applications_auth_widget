@@ -25,7 +25,7 @@ export default function PageComTest() {
       let userAuthInstance = null;
       const authParam = {
         challenge: new Uint8Array([49, 49, 49, 49, 49, 49]),
-        authType: [1],
+        authType: [4],
         authTrustLevel: 10000,
       };
       const widgetParam = {
@@ -39,7 +39,7 @@ export default function PageComTest() {
           LogUtils.i(TAG, 'userAuthInstance onResult: ' + JSON.stringify(result));
         }
       });
-      expect(true).assertTrue();
+      expect(userAuthInstance).not().assertNull();
       done();
     })
   })

@@ -144,6 +144,9 @@ export default struct FingerprintAuth {
           if (remainAttempts) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
+            if (remainAttempts < 5) {
+              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+            }
           }
           if (num === 'first') {
             this.prompt = globalThis.context.resourceManager

@@ -15,11 +15,20 @@
 
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
+import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+
+const delegator = abilityDelegatorRegistry.getAbilityDelegator();
+const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delayTime: number = 1000;
 
 export default function CustomPasswordTest() {
   describe('customPasswordTest', function () {
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     beforeAll(async function () {
       const wantDefault = {
         "cmd": [{
@@ -34,12 +43,28 @@ export default function CustomPasswordTest() {
         "windowModeType": "FULLSCREEN"
       };
       globalThis.wantParams = wantDefault;
+      sleep(1000);
+
+      let want = {
+        bundleName: bundleName,
+        abilityName: "EntryAbility"
+      }
+      await delegator.startAbility(want);
+      sleep(1000);
     })
 
     it('cancelIcon_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('cancelIconCustomPwd'));
+      await driver.findComponent(ON.id('mainIndex'));
+      expect(true).assertTrue();
+      done();
+    })
+
+    it('cancelImgCustomPwd_test', 0, async function (done) {
+      let driver = Driver.create();
+      await driver.delayMs(delayTime);
+      await driver.findComponent(ON.id('cancelImgCustomPwd'));
       expect(true).assertTrue();
       done();
     })

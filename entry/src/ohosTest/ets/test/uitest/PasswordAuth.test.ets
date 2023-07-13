@@ -15,11 +15,20 @@
 
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
+import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 
-const delays: number = 1000;
+const delegator = abilityDelegatorRegistry.getAbilityDelegator();
+const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
+
+const delayTime: number = 1000;
 
 export default function PasswordAuthTest() {
   describe('PasswordAuthTest', function () {
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     beforeAll(async function () {
       const data = {
         "cmd": [{
@@ -28,18 +37,51 @@ export default function PasswordAuthTest() {
           }, "version": "1"
         }],
         "pinSubType": "PIN_MIXED",
-        "title": "",
+        "title": "please input",
         "type": ["pin"],
         "widgetContextId": 7932856209793250000,
         "windowModeType": "DIALOG_BOX"
       };
       globalThis.wantParams = data;
+      sleep(1000);
+
+      let want = {
+        bundleName: bundleName,
+        abilityName: "EntryAbility"
+      }
+      await delegator.startAbility(want);
+      sleep(1000);
     })
 
-    it('clickEventOk_Input', 0, async function (done) {
+    it('pinInputMix_ui_test', 0, async function (done) {
       let driver = Driver.create();
-      await driver.delayMs(delays);
+      await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('pinInputMix'));
+      expect(true).assertTrue();
+      done();
+    })
+
+    it('cancelBtn_dialog_pwd_ui_test', 0, async function (done) {
+      let driver = Driver.create();
+      await driver.delayMs(delayTime);
+      await driver.findComponent(ON.id('cancelBtnDialogPwd'));
+      expect(true).assertTrue();
+      done();
+    })
+
+    it('okBtn_dialog_pwd_ui_test', 0, async function (done) {
+      let driver = Driver.create();
+      await driver.delayMs(delayTime);
+      await driver.findComponent(ON.id('okBtn'));
+      expect(true).assertTrue();
+      done();
+    })
+
+    it('titlePwdAuth_ui_test', 0, async function (done) {
+      let driver = Driver.create();
+      await driver.delayMs(delayTime);
+      await driver.findComponent(ON.id('titlePwdAuth'));
+      await driver.delayMs(delayTime);
       expect(true).assertTrue();
       done();
     })
