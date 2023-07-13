@@ -105,6 +105,23 @@ export default struct FaceAuth {
     pinAuthManager?.unregisterInputer?.();
   }
 
+  toPin() {
+    if (this.pinSubType !== Constants.pinSix) {
+      this.flagN = 4;
+    } else {
+      this.flagN = 5;
+    }
+  };
+
+  send() {
+    if (this.prompt === globalThis.context.resourceManager
+      .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'))) {
+      this.prompt = globalThis.context.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+    }
+  }
+
   onTextValueChange(): void {
     pinData = this.textValue;
   }
@@ -129,8 +146,11 @@ export default struct FaceAuth {
   }
 
   onCmdDataChange(num?: string): void {
-    this.cmdData.length > 0 && this.cmdData.map((item) => {
-      const { type,remainAttempts, lockoutDuration,sensorInfo} = item.payload;
+    LogUtils.i(TAG, 'onCmdDataChanger ' + JSON.stringify(this.cmdData))
+    let isToPin = false;
+    this.cmdData.length > 0 && this.cmdData.map(async (item) => {
+      LogUtils.i(TAG, 'itemData ' + JSON.stringify(item))
+      const { type, remainAttempts, lockoutDuration,sensorInfo} = item.payload;
       switch (type) {
         case Constants.noticeTypePin:
           if (remainAttempts) {
@@ -167,11 +187,7 @@ export default struct FaceAuth {
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden'));
             this.faceLock = true
             if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.ALL) {
-              if (this.pinSubType !== Constants.pinSix) {
-                this.flagN = 4;
-              } else {
-                this.flagN = 5;
-              }
+              isToPin = true;
             }
           }
           break;
@@ -189,12 +205,12 @@ export default struct FaceAuth {
               default:
                 if ((JSON.parse(sensorInfo).udSensorCenterYInThousandth / displayClass.height < 0.75)) {
                   try {
-                    screen.getAllScreens((err, data) => {
+                    await screen.getAllScreens((err, data) => {
                       if (err.code) {
                         LogUtils.e(TAG, 'Failed to get all screens. Cause: ' + JSON.stringify(err));
                         return;
                       }
-                      if (data[0].orientation !== 2) {
+                      if (data[0].orientation !== 2 && !isToPin) {
                         this.flagN = 3;
                       }
                     });
@@ -220,17 +236,17 @@ export default struct FaceAuth {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
             if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.ALL) {
-              if (this.pinSubType !== Constants.pinSix) {
-                this.flagN = 4;
-              } else {
-                this.flagN = 5;
-              }
+              isToPin = true;
             }
           }
         default:
           break;
       }
     })
+
+    if (isToPin) {
+      this.toPin();
+    }
   }
 
   build() {
@@ -265,15 +281,13 @@ export default struct FaceAuth {
                 .width($r('app.float.image_size'))
                 .height($r('app.float.image_size'))
                 .colorBlend($r('sys.color.ohos_id_color_activated'))
+                .onClick(() => {
+                  this.send();
+                })
               Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
                 .fontColor(this.onFontColor(this.prompt, globalThis.context))
                 .onClick(() => {
-                  if (this.prompt === globalThis.context.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'))) {
-                    this.prompt = globalThis.context.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
-                    AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
-                  }
+                  this.send();
                 })
               Row() {
                 Column() {
@@ -308,12 +322,7 @@ export default struct FaceAuth {
                     .backgroundColor(Color.Transparent)
                     .onClick(() => {
                       this.inputValue = ' ';
-                      if (this.pinSubType !== Constants.pinSix) {
-                        this.flagN = 4;
-                      } else {
-                        this.flagN = 5;
-                      }
-                      LogUtils.i(TAG, 'flagN: ' + this.flagN);
+                      this.toPin();
                     })
                 }.width(Constants.halfContainerWidth)
 
@@ -351,11 +360,7 @@ export default struct FaceAuth {
                     .fontWeight(FontWeight.Medium)
                     .onClick(() => {
                       this.inputValue = ' ';
-                      if (this.pinSubType !== Constants.pinSix) {
-                        this.flagN = 4;
-                      } else {
-                        this.flagN = 5;
-                      }
+                      this.toPin();
                     })
                 }
 
@@ -455,7 +460,7 @@ export default struct FaceAuth {
                     .fontWeight(FontWeight.Medium)
                     .backgroundColor(Color.Transparent)
                     .onClick(() => {
-                      globalThis.session?.terminateSelf?.();
+                      this.toPin();
                     })
 
                 }.width(Constants.halfContainerWidth)
@@ -555,15 +560,13 @@ export default struct FaceAuth {
                 .width($r('app.float.image_size'))
                 .height($r('app.float.image_size'))
                 .colorBlend($r('sys.color.ohos_id_color_activated'))
+                .onClick(() => {
+                  this.send();
+                })
               Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
                 .fontColor(this.onFontColor(this.prompt, globalThis.context))
                 .onClick(() => {
-                  if (this.prompt === globalThis.context.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'))) {
-                    this.prompt = globalThis.context.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
-                    AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
-                  }
+                  this.send();
                 })
               if (!globalThis.wantParams?.navigationButtonText) {
                 Row() {
@@ -625,7 +628,8 @@ export default struct FaceAuth {
             }
           }
           .position({ y: this.fingerPosition.udSensorCenterYInThousandth / this.screen[1] < 0.75 && !this.isLandscape
-            ? (this.fingerPosition.udSensorCenterYInThousandth - THOUSANDTH)
+            ? (px2vp(this.screen[1]) * this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH)
+              - px2vp(this.screen[1]) - 100 - px2vp(this.fingerPosition.udSensorRadiusInPx)
             : NORMAL_POSITION })
           .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
           .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))

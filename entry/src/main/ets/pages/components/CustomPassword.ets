@@ -24,8 +24,8 @@ const TAG = 'CustomPassword';
 const BLUR_OPACITY = 0.5;
 const BTN_BORDER_RADIUS = 25;
 const THEME_WHITE = 1;
-const  SATURATE = 1.3;
-const  BLUR_RADIUS = 242;
+const SATURATE = 1.3;
+const BLUR_RADIUS = 242;
 let pinAuthManager;
 let pinData = '';
 
@@ -70,14 +70,15 @@ export default struct CustomPassword {
 
   build() {
     Column() {
-      Column(){}
-        .width(Constants.fullContainerWidth)
-        .height(Constants.fullContainerWidth)
-        .position({ x: 0, y: 0 })
-        .opacity(BLUR_OPACITY)
-        .backgroundColor('#0d0d0d')
-        .blur(BLUR_RADIUS)
-        .saturate(SATURATE)
+      Column() {
+      }
+      .width(Constants.fullContainerWidth)
+      .height(Constants.fullContainerWidth)
+      .position({ x: 0, y: 0 })
+      .opacity(BLUR_OPACITY)
+      .backgroundColor('#0d0d0d')
+      .blur(BLUR_RADIUS)
+      .saturate(SATURATE)
 
       Column() {
         Flex({ direction: FlexDirection.Row }) {
@@ -155,7 +156,7 @@ export default struct CustomPassword {
               pinSubType: $pinSubType,
               cmdData: $cmdData
             })
-          }.margin({ left: 'auto', right: 'auto' })
+          }
         }
       }
       .padding(this.isLandscape ? 0 : { top: this.SYSTEM_STATUS_BAR_HEIGHT, bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })

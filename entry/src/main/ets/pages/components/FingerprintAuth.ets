@@ -44,7 +44,7 @@ export default struct FingerprintAuth {
   @State isEdit: boolean = true;
   @State inputValue: string = '';
   @State flag: boolean = true;
-  @State state: number = this.dialogType === DialogType.PIN_FINGER ? 2 : 1;
+  @State state: number = 0;
   @State screenClass: object = {};
   @State fingerPosition: FingerPosition = {
     sensorType: ''
@@ -97,6 +97,7 @@ export default struct FingerprintAuth {
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
+      let stateNew = this.dialogType === DialogType.PIN_FINGER ? 2 : 1;
       const { type,remainAttempts, lockoutDuration,sensorInfo } = item.payload;
       switch (type) {
         case Constants.noticeTypePin:
@@ -134,7 +135,7 @@ export default struct FingerprintAuth {
             this.fingerPosition = JSON.parse(sensorInfo);
             switch (this.fingerPosition.sensorType) {
               case 'OUT_OF_SCREEN_SENSOR': {
-                this.state = 3;
+                stateNew = 3;
                 break;
               }
             }
@@ -157,15 +158,16 @@ export default struct FingerprintAuth {
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
             if (this.dialogType === DialogType.PIN_FINGER) {
               if (this.pinSubType !== Constants.pinSix) {
-                this.state = 5;
+                stateNew = 5;
               } else {
-                this.state = 6;
+                stateNew = 6;
               }
             }
           }
         default:
           break;
       }
+      this.state = stateNew;
     })
   }
 
@@ -200,6 +202,17 @@ export default struct FingerprintAuth {
     }
   }
 
+  getFingerPosition(type: string): Resource {
+    switch (type) {
+      case 'BACK':
+        return $r('app.media.icon_applock_2');
+      case 'FRONT':
+        return $r('app.media.icon_applock_3');
+      case 'SIDE':
+        return $r('app.media.icon_applock_4');
+    }
+  }
+
   build() {
     Column() {
       GridRow({
@@ -221,24 +234,10 @@ export default struct FingerprintAuth {
                 .fontSize($r('sys.float.ohos_id_text_size_body1'))
                 .fontColor($r('sys.color.ohos_id_color_text_primary'))
                 .fontWeight(FontWeight.Medium)
-              if (this.fingerPosition.outOfScreenSensorType === 'BACK') {
-                Image($r('app.media.icon_applock_2'))
-                  .width($r('app.float.image_big'))
-                  .height($r('app.float.image_big'))
-                  .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
-              }
-              if (this.fingerPosition.outOfScreenSensorType === 'FRONT') {
-                Image($r('app.media.icon_applock_3'))
-                  .width($r('app.float.image_big'))
-                  .height($r('app.float.image_big'))
-                  .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
-              }
-              if (this.fingerPosition.outOfScreenSensorType === 'SIDE') {
-                Image($r('app.media.icon_applock_4'))
-                  .width($r('app.float.image_big'))
-                  .height($r('app.float.image_big'))
-                  .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
-              }
+              Image(this.getFingerPosition(this.fingerPosition?.outOfScreenSensorType))
+                .width($r('app.float.image_big'))
+                .height($r('app.float.image_big'))
+                .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
 
               Text($r('app.string.unified_authwidget_hint_normal_fp_only'))
                 .fontColor($r('sys.color.ohos_id_color_primary'))
@@ -357,10 +356,12 @@ export default struct FingerprintAuth {
                 .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
               }
             }
+
             else if (this.state === 1) {
               if (!this.isLandscape) {
                 Text(globalThis.wantParams?.title)
                   .margin({ top: $r('app.float.title_padding_top') })
+
                   .fontSize($r('sys.float.ohos_id_text_size_body1'))
                   .fontColor($r('sys.color.ohos_id_color_text_primary'))
                   .fontWeight(FontWeight.Medium)
@@ -372,8 +373,8 @@ export default struct FingerprintAuth {
                     bottom: $r('app.float.digitalpsd_passwdmask_height')
                   })
                   .id('blueFingerprintState1FingerprintAuth')
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
+                  .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+                  .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                   .onClick(() => {
                     if (this.prompt !== globalThis.context.resourceManager
                       .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
@@ -567,7 +568,10 @@ export default struct FingerprintAuth {
           .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
           .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))
           .position({
-            y: (this.isLandscape || !this.fingerPosition.udSensorCenterYInThousandth) ? NORMAL_POSITION : (this.fingerPosition.udSensorCenterYInThousandth - THOUSANDTH)
+            y: (this.isLandscape || !this.fingerPosition.udSensorCenterYInThousandth)
+              ? NORMAL_POSITION
+              : (px2vp(this.screen[1]) * this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH)
+                - px2vp(this.screen[1]) - 66 - px2vp(this.fingerPosition.udSensorRadiusInPx)
           })
           .margin({
             left: ($r('sys.float.ohos_id_dialog_margin_start')),
