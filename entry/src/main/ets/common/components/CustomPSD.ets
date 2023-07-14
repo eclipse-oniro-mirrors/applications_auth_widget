@@ -27,13 +27,15 @@ const INTERVAL = 1000;
 const DIGITALPSD_IC_DIAMETER = 12;
 const THOUSANDTH = 1000;
 const TITLE_POSITION = 200;
-const FINGER_TEXT_POSITION = 260;
-const FINGER_IMG_POSITION = 150;
 const THEME_WHITE = 1;
 const THEME_BLUR = 2;
 const DEL_PWD = -2;
 const CALL_PHONE = -1;
 const GO_BACK = -3;
+const DEFAULT_SIZE = 72;
+const FINGER_TEXT_POSITION = 120;
+const FINGER_X_POSITION = 86;
+const FINGER_Y_POSITION = 40;
 
 interface ControlType {
   isSixPassword?: boolean,
@@ -254,6 +256,8 @@ export default struct CustomPSD {
                 .margin({ bottom: '16vp' })
                 .onClick(() => {
                   if (!this.lockArr[0]) {
+                    this.prompt = globalThis.context.resourceManager
+                      .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
                     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                   }
                 })
@@ -556,17 +560,27 @@ export default struct CustomPSD {
             ? $r('sys.color.ohos_id_color_text_secondary')
             : $r('sys.color.ohos_id_color_text_primary_contrary'))
           .fontSize($r('sys.float.ohos_id_text_size_body2'))
-          .position({ y: FINGER_TEXT_POSITION })
+          .position({
+            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH * this.screen[1]) - 120 - px2vp(72 + this.fingerPosition.udSensorRadiusInPx))
+          })
+          .position({
+            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH * this.screen[1])
+            - FINGER_TEXT_POSITION - px2vp(DEFAULT_SIZE + this.fingerPosition.udSensorRadiusInPx))
+          })
           .width('100%')
           .textAlign(TextAlign.Center)
         Image(this.themeType === THEME_WHITE
           ? $r('app.media.ic_blue_fingerprint')
           : $r('app.media.ic_unlock_fingerprint'))
           .id('unlockFingerprintImgCustomPwd')
-          .width((this.fingerPosition.udSensorRadiusInPx * 2))
-          .height((this.fingerPosition.udSensorRadiusInPx * 2))
-          .position({ x: FINGER_IMG_POSITION
-          , y: (this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH * this.screen[1] / 2) })
+          .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+          .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+          .position({
+            x: (px2vp(this.fingerPosition.udSensorCenterXInThousandth / THOUSANDTH * this.screen[0])
+            - px2vp(FINGER_X_POSITION + this.fingerPosition.udSensorRadiusInPx)),
+            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH * this.screen[1])
+            - FINGER_Y_POSITION - px2vp(DEFAULT_SIZE + this.fingerPosition.udSensorRadiusInPx))
+          })
           .onClick(() => {
             if (this.prompt !== globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {

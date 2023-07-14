@@ -47,6 +47,7 @@ export default struct Pwd {
         .fontSize($r('sys.float.ohos_id_text_size_body1'))
         .fontColor($r('sys.color.ohos_id_color_text_primary'))
         .fontWeight(FontWeight.Medium)
+        .id('titlePwdAuth')
       TextInput({
         placeholder: '',
         text: this.pinSubType === Constants.pinNumber ? this.passwordArrNumber.join('') : this.textValue

@@ -21,10 +21,11 @@ import LogUtils from '../../common/utils/LogUtils';
 import Constants from '../../common/vm/Constants';
 
 const TAG = 'CustomPassword';
-const WHITE_OPACITY = 1;
 const BLUR_OPACITY = 0.5;
 const BTN_BORDER_RADIUS = 25;
 const THEME_WHITE = 1;
+const SATURATE = 1.3;
+const BLUR_RADIUS = 242;
 let pinAuthManager;
 let pinData = '';
 
@@ -36,6 +37,9 @@ export default struct CustomPassword {
   @Link cmdData: [];
   @State isBackTouched: boolean = false
   @State @Watch('onTextValueChange') textValue: string = '';
+  @Consume isLandscape: boolean;
+  @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
+  @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
 
   onTextValueChange(): void {
     pinData = this.textValue;
@@ -66,13 +70,16 @@ export default struct CustomPassword {
 
   build() {
     Column() {
-      Image('')
-        .width(Constants.fullContainerWidth)
-        .height(Constants.fullContainerWidth)
-        .backgroundColor('#0d0d0d')
-        .position({ x: 0, y: 0 })
-        .opacity(this.themeType === THEME_WHITE ? WHITE_OPACITY : BLUR_OPACITY)
-        .blur(1.3)
+      Column() {
+      }
+      .width(Constants.fullContainerWidth)
+      .height(Constants.fullContainerWidth)
+      .position({ x: 0, y: 0 })
+      .opacity(BLUR_OPACITY)
+      .backgroundColor('#0d0d0d')
+      .blur(BLUR_RADIUS)
+      .saturate(SATURATE)
+
       Column() {
         Flex({ direction: FlexDirection.Row }) {
           if (this.themeType === THEME_WHITE) {
@@ -118,6 +125,7 @@ export default struct CustomPassword {
               .onClick(() => {
                 globalThis.session?.terminateSelf?.();
               })
+
               .onTouch((event: TouchEvent) => {
                 if (event.type === TouchType.Down) {
                   this.isBackTouched = true;
@@ -148,9 +156,10 @@ export default struct CustomPassword {
               pinSubType: $pinSubType,
               cmdData: $cmdData
             })
-          }.margin({ left: 'auto', right: 'auto' })
+          }
         }
       }
+      .padding(this.isLandscape ? 0 : { top: this.SYSTEM_STATUS_BAR_HEIGHT, bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
       .justifyContent(FlexAlign.SpaceBetween)
       .width(Constants.fullContainerWidth)
       .height(Constants.fullContainerWidth)

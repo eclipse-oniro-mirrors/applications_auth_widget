@@ -15,7 +15,6 @@
 
 import screen from '@ohos.screen';
 import userAuth from '@ohos.userIAM.userAuth';
-import window from '@ohos.window';
 import { DialogType } from '../common/module/DialogType';
 import FuncUtils from '../common/utils/FuncUtils';
 import LogUtils from '../common/utils/LogUtils';
@@ -25,12 +24,10 @@ import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
 import PasswordAuth from './components/PasswordAuth';
 
-const AUTH_TYPE_LENGTH = 2;
 const DEFAULT_SIZE = 72;
 const FIVE_SECOND = 5000;
 const LAND_SCAPE = 2;
 const TAG = 'Index';
-const THEME_WHITE = 1;
 const THEME_BLUR = 2;
 let userAuthWidgetMgr;
 
@@ -49,8 +46,7 @@ struct Index {
   @State cmdData: Array<CmdType> = [];
   @Provide isLandscape: boolean = false;
   @Provide underFingerPrint: boolean = false;
-  @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
-  @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
+  @State loadFlag: boolean = false;
 
   onScreenChange(): void {
     try {
@@ -61,10 +57,20 @@ struct Index {
         }
         LogUtils.d(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
         this.isLandscape = data[0].orientation === LAND_SCAPE;
+        if (globalThis.wantParams) {
+          this.getParams(globalThis.wantParams);
+          this.handleAuthStart();
+          this.cmdData = globalThis.wantParams?.cmd;
+          LogUtils.d(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
+        } else {
+          LogUtils.e(TAG, 'aboutToAppear wantParams null');
+        }
         if (this.isLandscape && this.underFingerPrint) {
           setTimeout(() => {
             globalThis.session?.terminateSelf();
           }, FIVE_SECOND)
+        } else {
+          this.loadFlag = true;
         }
       });
     } catch (exception) {
@@ -95,8 +101,8 @@ struct Index {
     }
   }
 
-  handleIsUnder(cmd: []): void {
-    cmd?.length > 0 && this.cmdData.map((item) => {
+  handleIsUnder(cmd: Array<CmdType>): void {
+    cmd?.length > 0 && cmd.map((item) => {
       const { type, sensorInfo } = item.payload;
       if (type === Constants.noticeTypeFinger) {
         if (sensorInfo && JSON.stringify(sensorInfo) !== '{}') {
@@ -104,9 +110,7 @@ struct Index {
           if (fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR' ||
           fingerPosition.sensorType === 'BOTH_SENSOR' ||
           fingerPosition.sensorType === 'SensorType1') {
-            if (this.authType.includes(userAuth.UserAuthType.FINGERPRINT) && this.authType.length < AUTH_TYPE_LENGTH) {
-              this.underFingerPrint = true;
-            }
+            this.underFingerPrint = true;
           }
         }
       }
@@ -114,15 +118,8 @@ struct Index {
   }
 
   aboutToAppear(): void {
+    this.onScreenChange();
     LogUtils.d(TAG, 'aboutToAppear');
-    if (globalThis.wantParams) {
-      this.getParams(globalThis.wantParams);
-      this.handleAuthStart();
-      this.cmdData = globalThis.wantParams?.cmd;
-      LogUtils.d(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
-    } else {
-      LogUtils.e(TAG, 'aboutToAppear wantParams null');
-    }
   }
 
   aboutToDisappear(): void {
@@ -138,14 +135,6 @@ struct Index {
 
   onPageShow(): void {
     LogUtils.i(TAG, 'onPageShow');
-  }
-
-  onPageHide(): void {
-    LogUtils.i(TAG, 'onPageHide');
-  }
-
-  onBackPress(): void {
-    LogUtils.i(TAG, 'onBackPress');
   }
 
   getParams(result): void {
@@ -171,30 +160,6 @@ struct Index {
     this.handleIsUnder(cmd || []);
   }
 
-  getWindowHeight(): void {
-    LogUtils.i(TAG, 'getWindowHeight');
-    try {
-      window.on('systemBarTintChange', (data) => {
-        LogUtils.d(TAG, 'Succeeded in enabling the listener for window stage event changes. Data: ' +
-        JSON.stringify(data));
-        for (let i = 0; i < data.regionTint.length; i++) {
-          let regionData = data.regionTint[i];
-          if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
-            this.SYSTEM_STATUS_BAR_HEIGHT = px2vp(regionData.region.height);
-            continue;
-          }
-          if (regionData.type === window.WindowType.TYPE_NAVIGATION_BAR) {
-            this.SYSTEM_NAVIGATION_BAR_HEIGHT = px2vp(regionData.region.height);
-            continue;
-          }
-        }
-      });
-    } catch (exception) {
-      LogUtils.e(TAG, 'Failed to enable the listener for window stage event changes. Cause:' +
-      JSON.stringify(exception));
-    }
-  }
-
   build() {
     Flex({ direction: FlexDirection.Column, justifyContent: FlexAlign.SpaceAround, alignItems: ItemAlign.Center }) {
       if (this.isLandscape && this.underFingerPrint) {
@@ -202,15 +167,14 @@ struct Index {
           Text(globalThis.context.resourceManager
             .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode')))
             .height('40vp')
-            .fontColor(this.themeType === THEME_WHITE
-              ? $r('sys.color.ohos_id_color_text_primary')
-              : $r('sys.color.ohos_id_color_text_primary_contrary'))
+            .fontColor(Color.Black)
             .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
             .fontWeight(FontWeight.Medium)
         }.justifyContent(FlexAlign.End)
+        .backgroundColor(Color.White)
         .width(Constants.fullContainerWidth)
         .height(Constants.fullContainerWidth)
-      } else {
+      } else if (this.loadFlag) {
         if ('DIALOG_BOX' === this.windowModeType) {
           if (this.authType.includes(userAuth.UserAuthType.FACE)) {
             FaceAuth({
@@ -245,9 +209,7 @@ struct Index {
       }
     }
     .onAreaChange(() => {
-      this.onScreenChange();
-      this.getWindowHeight();
+      FuncUtils.getWindowHeight();
     })
-    .padding(this.isLandscape ? 0 : { top: this.SYSTEM_STATUS_BAR_HEIGHT, bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
   }
 }
