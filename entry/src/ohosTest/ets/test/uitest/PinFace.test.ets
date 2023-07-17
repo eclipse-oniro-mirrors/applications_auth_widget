@@ -13,42 +13,54 @@
  * limitations under the License.
  */
 
-import { BY, Driver, ON } from '@ohos.UiTest';
+import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
+import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 
-const delays: number = 1000
+const delegator = abilityDelegatorRegistry.getAbilityDelegator();
+const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
+
+const delayTime: number = 1000;
 
 export default function PinFaceTest() {
   describe('PinFaceTest', function () {
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     beforeAll(async function () {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 5, "type": "pin", "sensorInfo": ""
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "pin"
+          }, "version": "1"
+        }, {
+          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "face"
           }, "version": "1"
         }],
-        "pinSubType": "PIN_MIXED",
-        "title": "",
-        "type": ["pin"],
-        "widgetContextId": 7932856209793250000,
+        "pinSubType": "PIN_NUMBER",
+        "title": "口令人脸",
+        "type": ["pin", "face"],
+        "widgetContextId": 13808827370146417000,
         "windowModeType": "DIALOG_BOX"
-      };
+      }
       globalThis.wantParams = data;
+      sleep(1000);
+
+      let want = {
+        bundleName: bundleName,
+        abilityName: 'FaceSingleAbility'
+      }
+      await delegator.startAbility(want);
+      sleep(1000);
     })
 
-    it('clickEventCancal_face', 0, async function (done) {
+    it('title_pinFace_test', 0, async function (done) {
       let driver = Driver.create();
-      await driver.delayMs(delays);
-      await driver.findComponent(ON.clickable(true));
-      expect(true).assertTrue();
-      done();
-    })
-
-
-    it('clickEventError_face', 0, async function (done) {
-      let driver = Driver.create();
-      await driver.delayMs(delays);
-      await driver.findComponent(ON.id('cancelBtnDialogSixPwd'));
+      await driver.delayMs(delayTime);
+      await driver.findComponent(ON.id('titlePinFace'));
       expect(true).assertTrue();
       done();
     })

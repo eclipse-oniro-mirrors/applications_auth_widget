@@ -29,17 +29,20 @@ export default class Constants {
 
   // getUserAuthWidgetMgr params
   static userAuthWidgetMgrVersion = 1;
-  //command result success
+  // command result success
   static userAuthWidgetMgrSuccess = 0;
 
-  // sendNotice param
-  // version
+  // sendNotice param: version
   static noticeVersion = '1';
   // type
   static noticeTypePin = 'pin';
   static noticeTypeFace = 'face';
   static noticeTypeFinger = 'fingerprint';
 
+  static fingerSensorPositionLine = 0.75;
+
+  static hintTimesByFailLess = 3;
+  static maxFailTimes = 5;
 
   static numKeyBoard = [
     {

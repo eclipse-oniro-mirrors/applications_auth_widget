@@ -52,10 +52,10 @@ export class FuncUtils {
   }
 
   getWindowHeight(): void {
-    LogUtils.i(TAG, 'getWindowHeight');
+    LogUtils.info(TAG, 'getWindowHeight');
     try {
       window.on('systemBarTintChange', (data) => {
-        LogUtils.d(TAG, 'Succeeded in enabling the listener for window stage event changes. Data: ' +
+        LogUtils.debug(TAG, 'Succeeded in enabling the listener for window stage event changes. Data: ' +
         JSON.stringify(data));
         for (let i = 0; i < data.regionTint.length; i++) {
           let regionData = data.regionTint[i];
@@ -69,9 +69,8 @@ export class FuncUtils {
           }
         }
       });
-    } catch (exception) {
-      LogUtils.e(TAG, 'Failed to enable the listener for window stage event changes. Cause:' +
-      JSON.stringify(exception));
+    } catch (error) {
+      LogUtils.error(TAG, 'Failed to enable the listener for window stage event changes. error: ' + error?.code);
     }
   }
 }
