@@ -19,17 +19,18 @@ const TAG = 'WindowPrivacyUtils';
 
 export class WindowPrivacyUtils {
   setWindowPrivacyMode(session: UIExtensionContentSession, isPrivacyMode: boolean): void {
-    LogUtils.d(TAG, 'setWindowPrivacyMode');
+    LogUtils.debug(TAG, 'setWindowPrivacyMode');
     try {
       session?.setWindowPrivacyMode(isPrivacyMode, (error) => {
         if (error) {
-          LogUtils.e(TAG, 'setWindowPrivacyMode error: ' + JSON.stringify(error));
+          LogUtils.error(TAG, 'setWindowPrivacyMode error');
           return;
         }
-        LogUtils.d(TAG, 'setWindowPrivacyMode success');
+        LogUtils.debug(TAG, 'setWindowPrivacyMode success');
       });
     } catch (error) {
-      LogUtils.e(TAG, 'setWindowPrivacyMode catch error: ' + JSON.stringify(error));
+      LogUtils.error(TAG, 'setWindowPrivacyMode catch error: ' + error?.code);
+      globalThis.session?.terminateSelf?.();
     }
   }
 }

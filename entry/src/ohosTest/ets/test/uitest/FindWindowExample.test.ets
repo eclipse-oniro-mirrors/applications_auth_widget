@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { describe, expect, it, TestType } from '@ohos/hypium'
-import { Driver } from '@ohos.UiTest'
+import { describe, expect, it, TestType } from '@ohos/hypium';
+import { Driver } from '@ohos.UiTest';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
@@ -22,21 +22,21 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delays = 1000;
 
-export default function findWindowExampleTest() {
-  describe('findWindowExampleTest', function () {
+export default function FindWindowExampleTest() {
+  describe('FindWindowExampleTest', function () {
     it('findWindowExampleTest_bundleName', TestType.FUNCTION, async function (done) {
       let want = {
         bundleName: bundleName,
-        abilityName: "EntryAbility"
+        abilityName: "TestAbility"
       }
       await delegator.startAbility(want);
-      let driver = Driver.create()
-      await driver.delayMs(delays)
+      let driver = Driver.create();
+      await driver.delayMs(delays);
       await driver.findWindow({
         bundleName: bundleName
-      })
+      });
       expect(true).assertTrue();
-      done()
+      done();
     })
   })
 }
