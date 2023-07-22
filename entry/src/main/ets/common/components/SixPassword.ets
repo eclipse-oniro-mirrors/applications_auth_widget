@@ -20,9 +20,24 @@ const MAX_LENGTH = 6;
 
 @Component
 export default struct SixPassword {
-  @Link textValue: string;
   @Link inputValue: string;
   @Link isEdit: boolean;
+  @Link @Watch('onTextValueChange') textValue: string;
+  @StorageLink('passwordArrayNumber') passwordArrayNumber: string[] = [];
+
+  onTextValueChange(): void {
+    this.passwordArrayNumber = this.textValue.replace(/[^\d]/g, '').split('');
+  }
+
+  clearPassword(): void {
+    this.passwordArrayNumber = [];
+    this.textValue = '';
+    this.inputValue = ' ';
+  }
+
+  aboutToDisappear(): void {
+    this.clearPassword();
+  }
 
   build() {
     Column() {
@@ -34,20 +49,6 @@ export default struct SixPassword {
         .fontWeight(FontWeight.Medium)
       Column() {
         Stack() {
-          TextInput({ placeholder: '', text: this.textValue })
-            .onChange(async (value: string) => {
-              this.textValue = value
-              if (value.length === MAX_LENGTH) {
-                AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
-              }
-            })
-            .backgroundImageSize(ImageSize.Auto)
-            .enabled(this.isEdit)
-            .maxLength(MAX_LENGTH)
-            .visibility(Visibility.Visible)
-            .opacity(0)
-            .caretColor('transparent')
-            .id('pinSix')
           List({ space: 4 }) {
             ForEach(['', '', '', '', '', ''], (item, index) => {
               ListItem() {
@@ -75,6 +76,21 @@ export default struct SixPassword {
           .listDirection(Axis.Horizontal)
           .height($r('app.float.input_height'))
 
+          TextInput({ placeholder: '', text: this.passwordArrayNumber?.join('') })
+            .onChange(async (value: string) => {
+              this.passwordArrayNumber = value?.replace(/[^\d]/g, '')?.split('');
+              this.textValue = this.passwordArrayNumber?.join('');
+              if (this.textValue?.length === MAX_LENGTH) {
+                AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
+              }
+            })
+            .backgroundImageSize(ImageSize.Auto)
+            .enabled(this.isEdit)
+            .maxLength(MAX_LENGTH)
+            .visibility(Visibility.Visible)
+            .opacity(0)
+            .caretColor('transparent')
+            .id('pinSix')
         }
       }
       .margin({ top: $r('app.float.content_padding') })
