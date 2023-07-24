@@ -46,9 +46,9 @@ export default struct PasswordAuth {
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
-      const { type,remainAttempts, lockoutDuration} = item.payload;
+      const { type, remainAttempts, lockoutDuration } = item.payload;
       if (type === Constants.noticeTypePin) {
-        if (remainAttempts) {
+        if (remainAttempts && remainAttempts < Constants.maxFailTimes) {
           this.inputValue = globalThis.context.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
           this.textValue = '';
@@ -56,7 +56,7 @@ export default struct PasswordAuth {
             this.inputValue = '';
           }
           // pin auth Remaining number
-          if (remainAttempts < 3) {
+          if (remainAttempts < Constants.hintTimesByFailLess) {
             this.inputValue = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
             + remainAttempts + globalThis.context.resourceManager
@@ -71,8 +71,7 @@ export default struct PasswordAuth {
           this.textValue = '';
           return;
         }
-        this.inputValue = globalThis.context.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
+        this.inputValue = ' ';
         this.textValue = '';
       }
     })
@@ -120,19 +119,23 @@ export default struct PasswordAuth {
     this.inputValue = promptText;
   }
 
+  handleCancel(): void {
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+    globalThis.session?.terminateSelf?.();
+  }
+
   build() {
     Column() {
       GridRow({
-        columns: 8,
-        gutter: { x: 5, y: 10 },
+        columns: { xs: 4, sm: 4, md: 8, lg: 12 },
+        gutter: { x: 24, y: 24 },
         breakpoints: { value: Constants.deviceDpi,
           reference: BreakpointsReference.WindowSize },
         direction: GridRowDirection.Row
       }) {
-        GridCol({ span: { xs: 0, sm: 0, md: 2, lg: 2 } })
-          .visibility(Visibility.Hidden)
         GridCol({
-          span: { xs: 8, sm: 8, md: 4, lg: 4 },
+          span: { xs: 4, sm: 4, md: 4, lg: 6 },
+          offset: { md: 2, lg: 3 },
         }) {
           Column() {
             if (this.pinSubType !== Constants.pinSix) {
@@ -155,7 +158,7 @@ export default struct PasswordAuth {
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
-                        globalThis.session?.terminateSelf?.();
+                        this.handleCancel();
                       })
                       .id('cancelBtnDialogPwd')
                   }.width('50%')
@@ -197,7 +200,7 @@ export default struct PasswordAuth {
                 })
                 Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                   .onClick(() => {
-                    globalThis.session?.terminateSelf?.();
+                    this.handleCancel();
                     this.textValue = '';
                     this.inputValue = ' ';
                   })

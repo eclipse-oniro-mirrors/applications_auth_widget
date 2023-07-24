@@ -26,7 +26,7 @@ import PasswordAuth from './components/PasswordAuth';
 
 const DEFAULT_SIZE = 72;
 const FIVE_SECOND = 5000;
-const LAND_SCAPE = 2;
+const LANDSCAPE = 2;
 const TAG = 'Index';
 let userAuthWidgetMgr;
 
@@ -41,7 +41,7 @@ struct Index {
   @State dialogType: DialogType = DialogType.ALL;
   @State windowModeType: string = 'DIALOG_BOX';
   @State cmdData: Array<CmdType> = [];
-  @Provide isLandscape: boolean = false;
+  @State isLandscape: boolean = false;
   @Provide underFingerPrint: boolean = false;
   @State loadFlag: boolean = false;
 
@@ -54,7 +54,9 @@ struct Index {
           return;
         }
         LogUtils.debug(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
-        this.isLandscape = data[0].orientation === LAND_SCAPE;
+        this.isLandscape = data[0]?.orientation === LANDSCAPE
+        || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
+        AppStorage.SetOrCreate('IS_LANDSCAPE', this.isLandscape);
         LogUtils.debug(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
         if (globalThis.wantParams) {
           this.getParams(globalThis.wantParams);
@@ -126,6 +128,7 @@ struct Index {
 
   aboutToAppear(): void {
     LogUtils.debug(TAG, 'aboutToAppear');
+    FuncUtils.getWindowHeight();
     this.onScreenChange();
   }
 
@@ -142,7 +145,6 @@ struct Index {
 
   getParams(result): void {
     LogUtils.info(TAG, 'getParams');
-    LogUtils.info(TAG, 'dengjiewen msg test');
     const { pinSubType, windowModeType, cmd, type, widgetContextId } = result;
     this.pinSubType = pinSubType;
     const newType = type && type.map(item => {
@@ -220,8 +222,6 @@ struct Index {
           }
         }
       }
-    }.onAreaChange(() => {
-      FuncUtils.getWindowHeight();
-    })
+    }
   }
 }

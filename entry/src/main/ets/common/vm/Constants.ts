@@ -14,7 +14,7 @@
  */
 
 export default class Constants {
-  static deviceDpi = ['360vp', '780vp'];
+  static deviceDpi = ['520vp', '840vp'];
 
   // Pin type
   static pinSix = 'PIN_SIX';
@@ -32,12 +32,15 @@ export default class Constants {
   // command result success
   static userAuthWidgetMgrSuccess = 0;
 
-  // sendNotice param: version
+  // sendNotice params
+  // version
   static noticeVersion = '1';
   // type
   static noticeTypePin = 'pin';
   static noticeTypeFace = 'face';
   static noticeTypeFinger = 'fingerprint';
+  // event cancel
+  static noticeEventCancel = 'EVENT_AUTH_USER_CANCEL';
 
   static fingerSensorPositionLine = 0.75;
 

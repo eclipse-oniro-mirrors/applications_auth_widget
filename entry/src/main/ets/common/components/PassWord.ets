@@ -64,7 +64,7 @@ export default struct PassWord {
           left: $r('app.float.digital_password_mask_height'),
           right: $r('app.float.digital_password_mask_height')
         })
-        .textAlign(TextAlign.Center)
+        .textAlign(TextAlign.Start)
         .fontColor($r('sys.color.ohos_id_color_text_primary'))
         .border({
           width: this.inputValue === ' ' ? '' : $r('app.float.input_border'),

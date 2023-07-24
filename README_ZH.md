@@ -35,7 +35,7 @@
 在OpenHarmony源码根目录下，调用以下指令，单独编译统一身份认证控件部件。
 
 ```
-./build.sh --product-name rk3568 --ccache --build-target useriam_auth_widget
+./build.sh --product-name rk3568 --ccache --build-target auth_widget
 ```
 
 > 说明：

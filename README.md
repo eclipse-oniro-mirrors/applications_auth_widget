@@ -32,7 +32,7 @@ The Authentication Widget works with the User Authentication Framework (user_aut
 In the root directory of the OpenHarmony source code, run the following command to build the Authentication Widget separately:
 
 ```
-./build.sh --product-name rk3568 --ccache --build-target useriam_auth_widget
+./build.sh --product-name rk3568 --ccache --build-target auth_widget
 ```
 
 > **NOTE**

@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import screen from '@ohos.screen';
 import account_osAccount from '@ohos.account.osAccount';
 import display from '@ohos.display';
 import util from '@ohos.util';
@@ -38,6 +37,7 @@ const SIX_PIN = 5;
 const SINGLE_FACE = 6;
 const SCREEN_LAND = 1;
 const SCREEN_PORTRAIT = 2;
+const NOTICE_DELAY = 500;
 let pinData = '';
 
 @Component
@@ -46,6 +46,7 @@ export default struct FaceAuth {
     .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
   @State @Watch('onTextValueChange') textValue: string = '';
   @Link @Watch('onCmdDataChange') cmdData: Array<CmdType>;
+  @StorageLink('IS_LANDSCAPE') IS_LANDSCAPE: boolean = false;
   @State isEdit: boolean = true;
   // 0:six number 1:arbitrary character 2:arbitrary number
   @Link type: string;
@@ -62,7 +63,7 @@ export default struct FaceAuth {
   }
   @State screen: number[] = [];
   @State faceLock: boolean = false;
-  @Consume isLandscape: boolean;
+  @State fingerLock: boolean = false;
   @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
 
   countTime(freezingTime): void {
@@ -125,12 +126,17 @@ export default struct FaceAuth {
     }
   }
 
-  send(): void {
-    if (this.prompt === globalThis.context.resourceManager
-      .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'))) {
+  sendFaceEvent(): void {
+    if (!this.faceLock) {
       this.prompt = globalThis.context.resourceManager
         .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+    }
+  }
+
+  sendFingerEvent(): void {
+    if (!this.fingerLock) {
+      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
     }
   }
 
@@ -219,20 +225,13 @@ export default struct FaceAuth {
               default:
                 if ((JSON.parse(sensorInfo)
                   .udSensorCenterYInThousandth / displayClass.height < Constants.fingerSensorPositionLine)) {
-                  try {
-                    await screen.getAllScreens((err, data) => {
-                      if (err.code) {
-                        LogUtils.error(TAG, 'Failed to get all screens. err: ' + err.code);
-                        return;
-                      }
-                      if (data[0].orientation !== SCREEN_PORTRAIT && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-                        this.screenType = SCREEN_LAND;
-                      } else {
-                        this.screenType = SCREEN_PORTRAIT;
-                      }
-                    });
-                  } catch (error) {
-                    LogUtils.error(TAG, 'getAllScreens catch error: ' + error?.code);
+                  if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+                    this.screenType = SCREEN_LAND;
+                  }
+                } else if ((JSON.parse(sensorInfo)
+                  .udSensorCenterYInThousandth / displayClass.height > Constants.fingerSensorPositionLine)) {
+                  if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+                    this.screenType = SCREEN_PORTRAIT;
                   }
                 }
                 break;
@@ -241,8 +240,11 @@ export default struct FaceAuth {
           if (remainAttempts) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
+            this.fingerLock = false;
             if (num !== 'first' && remainAttempts > 0) {
-              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+              setTimeout(() => {
+                AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+              }, NOTICE_DELAY);
             }
           }
           if (num === 'first') {
@@ -252,6 +254,7 @@ export default struct FaceAuth {
           if (remainAttempts === 0) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
+            this.fingerLock = true;
             this.toPin();
           }
           break;
@@ -262,19 +265,23 @@ export default struct FaceAuth {
     })
   }
 
+  handleCancel(): void {
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+    globalThis.session?.terminateSelf?.();
+  }
+
   build() {
     Column() {
       GridRow({
-        columns: 8,
-        gutter: { x: 5, y: 10 },
+        columns: { xs: 4, sm: 4, md: 8, lg: 12 },
+        gutter: { x: 24, y: 24 },
         breakpoints: { value: Constants.deviceDpi,
           reference: BreakpointsReference.WindowSize },
         direction: GridRowDirection.Row
       }) {
-        GridCol({ span: { xs: 0, sm: 0, md: 2, lg: 2 } })
-          .visibility(Visibility.Hidden)
         GridCol({
-          span: { xs: 8, sm: 8, md: 4, lg: 4 },
+          span: { xs: 4, sm: 4, md: 4, lg: 6 },
+          offset: { md: 2, lg: 3 },
         }) {
           Column() {
             if (this.dialogTypeFlag === PIN_FACE) {
@@ -296,13 +303,13 @@ export default struct FaceAuth {
                 .height($r('app.float.image_size'))
                 .colorBlend($r('sys.color.ohos_id_color_activated'))
                 .onClick(() => {
-                  this.send();
+                  this.sendFaceEvent();
                 })
               Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
                 .fontColor(this.onFontColor(this.prompt, globalThis.context))
                 .height($r('app.float.size_24'))
                 .onClick(() => {
-                  this.send();
+                  this.sendFaceEvent();
                 })
               Row() {
                 Column() {
@@ -316,7 +323,7 @@ export default struct FaceAuth {
                     .fontWeight(FontWeight.Medium)
                     .backgroundColor(Color.Transparent)
                     .onClick(() => {
-                      globalThis.session?.terminateSelf?.();
+                      this.handleCancel();
                     })
                 }.width(Constants.halfContainerWidth)
 
@@ -346,81 +353,67 @@ export default struct FaceAuth {
               .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
             }
             if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_PORTRAIT) {
-              if (!this.isLandscape) {
-                // The first form of facial fingerprint password
-                Flex({ justifyContent: FlexAlign.SpaceBetween }) {
-                  Image($r('app.media.ic_public_cancel'))
-                    .id('cancelImgAllFaceAuth')
-                    .width($r('app.float.digital_password_mask_height'))
-                    .height($r('app.float.digital_password_mask_height'))
-                    .margin({
-                      top: $r('app.float.digital_password_mask_height'),
-                      left: $r('app.float.digital_password_mask_height')
-                    })
-                    .onClick(() => {
-                      this.textValue = '';
-                      globalThis.session?.terminateSelf?.();
-                    })
-                  Button($r('app.string.unified_authwidget_usepwd'))
-                    .id('usePwdBtnAllFaceAuth')
-                    .backgroundColor(Color.White)
-                    .height($r('app.float.digital_password_mask_height'))
-                    .padding(0)
-                    .margin({
-                      top: $r('app.float.digital_password_mask_height'),
-                      right: $r('app.float.digital_password_mask_height')
-                    })
-                    .fontColor($r('sys.color.ohos_id_color_activated'))
-                    .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                    .fontWeight(FontWeight.Medium)
-                    .onClick(() => {
-                      this.inputValue = ' ';
-                      this.toPin();
-                    })
-                }
-
-                Image($r('app.media.error_faceID'))
-                  .id('imgAllFaceAuth')
-                  .width($r('app.float.image_small'))
-                  .height($r('app.float.image_small'))
-                  .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
-                  .colorBlend($r('sys.color.ohos_id_color_activated'))
-                  .onClick(() => {
-                    if (!this.faceLock) {
-                      this.prompt = globalThis.context.resourceManager
-                        .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
-                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
-                    }
-                  })
-                Text(globalThis.wantParams.title).fontSize($r('sys.float.ohos_id_text_size_body1'))
-                  .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                Text(this.prompt)
-                  .id('resetPromptTextAllFaceAuth')
-                  .margin({ top: $r('app.float.element_margin') })
-                  .height($r('app.float.size_24'))
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  .fontColor(this.onFontColor(this.prompt, globalThis.context))
-                  .onClick(() => {
-                    this.prompt = globalThis.context.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
-                    AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
-                  })
-                Image($r('app.media.ic_blue_fingerprint'))
-                  .id('blueFingerprintImgAllFaceAuth')
-                    // radius
-                  .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
-                  .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+              // The first form of facial fingerprint password
+              Flex({ justifyContent: FlexAlign.SpaceBetween }) {
+                Image($r('app.media.ic_public_cancel'))
+                  .id('cancelImgAllFaceAuth')
+                  .width($r('app.float.digital_password_mask_height'))
+                  .height($r('app.float.digital_password_mask_height'))
                   .margin({
                     top: $r('app.float.digital_password_mask_height'),
-                    bottom: $r('app.float.digital_password_mask_height')
+                    left: $r('app.float.digital_password_mask_height')
                   })
                   .onClick(() => {
-                    if (this.prompt !== globalThis.context.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
-                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-                    }
+                    this.textValue = '';
+                    this.handleCancel();
+                  })
+                Button($r('app.string.unified_authwidget_usepwd'))
+                  .id('usePwdBtnAllFaceAuth')
+                  .backgroundColor(Color.White)
+                  .height($r('app.float.digital_password_mask_height'))
+                  .padding(0)
+                  .margin({
+                    top: $r('app.float.digital_password_mask_height'),
+                    right: $r('app.float.digital_password_mask_height')
+                  })
+                  .fontColor($r('sys.color.ohos_id_color_activated'))
+                  .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                  .fontWeight(FontWeight.Medium)
+                  .onClick(() => {
+                    this.inputValue = ' ';
+                    this.toPin();
                   })
               }
+
+              Image($r('app.media.error_faceID'))
+                .id('imgAllFaceAuth')
+                .width($r('app.float.image_small'))
+                .height($r('app.float.image_small'))
+                .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
+                .colorBlend($r('sys.color.ohos_id_color_activated'))
+                .onClick(() => {
+                  this.sendFaceEvent();
+                })
+              Text(globalThis.wantParams.title).fontSize($r('sys.float.ohos_id_text_size_body1'))
+                .fontColor($r('sys.color.ohos_id_color_text_primary'))
+              Text(this.prompt)
+                .id('resetPromptTextAllFaceAuth')
+                .margin({ top: $r('app.float.element_margin') })
+                .height($r('app.float.size_24'))
+                .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                .fontColor(this.onFontColor(this.prompt, globalThis.context))
+              Image($r('app.media.ic_blue_fingerprint'))
+                .id('blueFingerprintImgAllFaceAuth')
+                  // radius
+                .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+                .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+                .margin({
+                  top: $r('app.float.digital_password_mask_height'),
+                  bottom: $r('app.float.digital_password_mask_height')
+                })
+                .onClick(() => {
+                  this.sendFingerEvent();
+                })
             }
             if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_LAND) {
               // Facial fingerprint password, second form
@@ -430,6 +423,9 @@ export default struct FaceAuth {
                 .height($r('app.float.image_small'))
                 .margin({ top: $r('app.float.content_padding_top'), bottom: $r('app.float.content_padding') })
                 .colorBlend($r('sys.color.ohos_id_color_activated'))
+                .onClick(() => {
+                  this.sendFaceEvent();
+                })
               Text(globalThis.wantParams.title).fontSize($r('sys.float.ohos_id_text_size_body1'))
                 .fontColor($r('sys.color.ohos_id_color_text_primary'))
 
@@ -439,14 +435,17 @@ export default struct FaceAuth {
                 .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                 .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                 .margin({ top: $r('app.float.content_padding') })
-                .onClick(() => {
-                  AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-                })
               Text(this.prompt)
                 .margin({ top: $r('app.float.content_padding') })
                 .fontSize($r('sys.float.ohos_id_text_size_body2'))
                 .height($r('app.float.size_24'))
                 .fontColor(this.onFontColor(this.prompt, globalThis.context))
+                .onClick(() => {
+                  if (globalThis?.context?.resourceManager
+                  ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'))) {
+                    this.sendFaceEvent();
+                  }
+                })
               Row() {
                 Column() {
                   Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
@@ -459,7 +458,7 @@ export default struct FaceAuth {
                     .fontWeight(FontWeight.Medium)
                     .backgroundColor(Color.Transparent)
                     .onClick(() => {
-                      globalThis.session?.terminateSelf?.();
+                      this.handleCancel();
                       this.textValue = '';
                     })
                 }.width(Constants.halfContainerWidth)
@@ -511,7 +510,7 @@ export default struct FaceAuth {
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
                         this.textValue = '';
-                        globalThis.session?.terminateSelf?.();
+                        this.handleCancel();
                       })
                   }.width(Constants.halfContainerWidth)
 
@@ -551,7 +550,7 @@ export default struct FaceAuth {
                 Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                   .id('cancelBtnSixPinFaceAuth')
                   .onClick(() => {
-                    globalThis.session?.terminateSelf?.();
+                    this.handleCancel();
                     this.textValue = '';
                   })
                   .backgroundColor(Color.Transparent)
@@ -583,7 +582,7 @@ export default struct FaceAuth {
                 .height($r('app.float.image_size'))
                 .colorBlend($r('sys.color.ohos_id_color_activated'))
                 .onClick(() => {
-                  this.send();
+                  this.sendFaceEvent();
                 })
               Text(this.prompt)
                 .fontSize($r('sys.float.ohos_id_text_size_body2'))
@@ -591,7 +590,7 @@ export default struct FaceAuth {
                 .height($r('app.float.size_24'))
                 .fontColor(this.onFontColor(this.prompt, globalThis.context))
                 .onClick(() => {
-                  this.send();
+                  this.sendFaceEvent();
                 })
               if (!globalThis.wantParams?.navigationButtonText) {
                 Row() {
@@ -599,7 +598,7 @@ export default struct FaceAuth {
                     Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                       .id('cancelBtnAllFace')
                       .onClick(() => {
-                        globalThis.session?.terminateSelf?.();
+                        this.handleCancel();
                       })
                       .backgroundColor(Color.Transparent)
                       .height($r('app.float.btn_height'))
@@ -624,7 +623,7 @@ export default struct FaceAuth {
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
-                        globalThis.session?.terminateSelf?.();
+                        this.handleCancel();
                       })
                   }.width(Constants.halfContainerWidth)
 
@@ -636,6 +635,7 @@ export default struct FaceAuth {
                   Column() {
                     Button(globalThis.wantParams?.navigationButtonText)
                       .onClick(() => {
+                        AuthUtils.getInstance().sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFace]);
                         globalThis.session?.terminateSelf?.();
                       })
                       .margin({ right: $r('app.float.content_padding') })
@@ -654,7 +654,7 @@ export default struct FaceAuth {
           }
           .position({
             y: this.fingerPosition.udSensorCenterYInThousandth / this.screen[1] < Constants.fingerSensorPositionLine &&
-               !this.isLandscape
+               !this.IS_LANDSCAPE
               ? (px2vp(this.screen[1]) * this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH)
                 - px2vp(this.screen[1]) +
                 this.SYSTEM_NAVIGATION_BAR_HEIGHT - MARGIN_TOP - px2vp(this.fingerPosition.udSensorRadiusInPx)

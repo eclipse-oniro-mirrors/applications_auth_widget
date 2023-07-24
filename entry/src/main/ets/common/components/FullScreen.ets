@@ -14,7 +14,6 @@
  */
 
 import display from '@ohos.display';
-import screen from '@ohos.screen';
 import userAuth from '@ohos.userIAM.userAuth';
 import Constants, { CmdType, FingerPosition } from '../../common/vm/Constants';
 import AuthUtils from '../utils/AuthUtils';
@@ -24,22 +23,21 @@ import NumKeyBoard from './NumkeyBoard';
 
 const TAG = 'FullScreen';
 const INTERVAL = 1000;
-const DIGITAL_PASSWORD_IC_DIAMETER = 12;
 const THOUSANDTH = 1000;
-const TITLE_POSITION = 200;
 const DEL_PWD = -2;
 const CALL_PHONE = -1;
 const GO_BACK = -3;
-const DEFAULT_SIZE = 72;
 const FINGER_TEXT_POSITION = 120;
-const FINGER_HIGH = 72;
-const FINGER_X_POSITION = 86;
-const FINGER_Y_POSITION = 40;
+const FINGER_HIGH = 80;
+const FINGER_Y_POSITION = 60;
 const MAX_LENGTH = 32;
+const SIX_MAX_LENGTH = 6;
 const AUTH_TYPE_FACE = 2;
 const AUTH_TYPE_FINGER = 4;
 const PASSWORD_LENGTH = 4;
 const PASSWORD_ARRAY_LENGTH = 6;
+const UNDER_FINGER = 170;
+const NOTICE_DELAY = 500;
 
 interface ControlType {
   isSixPassword?: boolean,
@@ -64,7 +62,7 @@ export default struct FullScreen {
   @Link authType: Array<userAuth.UserAuthType>;
   @Link @Watch('onCmdDataChange') cmdData: Array<CmdType>;
   @State pinLock: number = 0;
-  @State screenClass: object = {};
+  @State fingerPositionY: number = 0;
   @StorageLink('cueWord') cueWord: string = globalThis.context.resourceManager
     .getStringSync($r('app.string.unified_authwidget_use_pwd'));
   @StorageLink('passwordArray') passwordArray: string[] = [];
@@ -76,6 +74,7 @@ export default struct FullScreen {
   @State fingerText: string = globalThis.context.resourceManager
     .getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp'));
   @StorageLink('screenLockDirection') screenLockDirection: number = 1;
+  @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
   @State controlType: ControlType = {
     jumpFinger: false,
     isLandscape: false,
@@ -88,22 +87,8 @@ export default struct FullScreen {
   }
   @State screen: number[] = [];
   @State faceFingerLockArr: boolean[] = [false, false];
-  @Consume isLandscape: boolean;
+  @StorageLink('IS_LANDSCAPE') IS_LANDSCAPE: boolean = false;
   @Consume underFingerPrint: boolean;
-
-  queryScreenInfo(): void {
-    try {
-      screen.getAllScreens((err, data) => {
-        if (err.code) {
-          LogUtils.error(TAG, 'Failed to get all screens. err: ' + err.code);
-          return;
-        }
-        this.screenClass = data[0];
-      });
-    } catch (error) {
-      LogUtils.error(TAG, 'getAllScreens catch error: ' + error?.code);
-    }
-  }
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
@@ -144,6 +129,9 @@ export default struct FullScreen {
             this.faceFingerLockArr[0] = false;
           }
           if (num === 'first') {
+            if (remainAttempts === 0) {
+              this.controlType.isShowFace = false;
+            }
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
           }
@@ -166,27 +154,40 @@ export default struct FullScreen {
               .getStringSync($r('app.string.unified_authwidget_use_pwd'));
           }
           if (remainAttempts) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
-            this.fingerText = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
+            if (this.controlType.jumpFinger) {
+              this.fingerText = globalThis.context.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
+            } else {
+              this.prompt = globalThis.context.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_use_pwd'));
+            }
             if (sensor) {
               if (sensor.sensorType === 'UNDER_SCREEN_SENSOR' ||
-              sensor.sensorType === 'BOTH_SENSOR' ||
-              sensor.sensorType === 'SensorType1') {
-                // 5: Residual number
+                sensor.sensorType === 'BOTH_SENSOR' ||
+                sensor.sensorType === 'SensorType1') {
                 if (num !== 'first' && remainAttempts > 0) {
+                  setTimeout(() => {
+                    AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+                  }, NOTICE_DELAY);
+                }
+                if (num === 'first' && sensor.udSensorCenterYInThousandth /
+                  this.screen[1] > Constants.fingerSensorPositionLine) {
                   AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                 }
               }
             }
           }
           if (remainAttempts === 0) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
-            this.fingerText = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
+            if (num === 'first') {
+              this.controlType.isShowFinger = false;
+            } else {
+              this.prompt = globalThis.context.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
+              this.fingerText = globalThis.context.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
+            }
             this.faceFingerLockArr[1] = true;
+            this.controlType.jumpFinger = false;
           }
           break;
         default:
@@ -200,15 +201,11 @@ export default struct FullScreen {
     LogUtils.debug(TAG, 'aboutToAppear');
     try {
       AppStorage.SetOrCreate('passwordArray', []);
-      this.queryScreenInfo();
       if (this.cmdData && this.cmdData.length > 0) {
         this.onCmdDataChange('first');
       }
-      if (this.controlType.isShowFace && this.controlType.isShowFinger) {
-        AuthUtils.getInstance()
-          .sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-        return;
-      }
+      this.fingerPositionY = px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1]) / THOUSANDTH
+        - this.SYSTEM_STATUS_BAR_HEIGHT - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx)
       if (this.controlType.isShowFace) {
         AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
         return;
@@ -268,7 +265,7 @@ export default struct FullScreen {
               .fontColor($r('sys.color.ohos_id_color_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_headline6'))
               .fontWeight(FontWeight.Medium)
-          } else if (this.controlType.isShowFace) {
+          } else if (this.controlType.isShowFace && !this.faceFingerLockArr[0]) {
             Image($r('app.media.white_faceID'))
               .id('faceImgCustomPwd')
               .width($r('app.float.image_small'))
@@ -316,46 +313,67 @@ export default struct FullScreen {
             // 0: pin unlock
             if (this.pinLock === 0) {
               if (this.pinSubType === Constants.pinSix) {
-                List({ space: DIGITAL_PASSWORD_IC_DIAMETER }) {
-                  ForEach(this.passwordArray, (item) => {
-                    if ((!item || item === '') && item !== 0) {
-                      ListItem() {
-                        Button()
-                          .border({
-                            color: Color.White,
-                            style: BorderStyle.Solid,
-                            width: 1
-                          })
-                          .borderRadius($r('app.float.input_btn_size'))
-                          .width($r('app.float.input_btn_size'))
-                          .height($r('app.float.input_btn_size'))
-                          .type(ButtonType.Circle)
-                          .backgroundColor(Color.Transparent)
+                Stack() {
+                  List() {
+                    ForEach(this.passwordArray, item => {
+                      if ((!item || item === '') && item !== 0) {
+                        ListItem() {
+                          Button()
+                            .border({
+                              color: Color.White,
+                              style: BorderStyle.Solid,
+                              width: 1
+                            })
+                            .borderRadius($r('app.float.input_btn_size'))
+                            .width($r('app.float.input_btn_size'))
+                            .height($r('app.float.input_btn_size'))
+                            .type(ButtonType.Circle)
+                            .backgroundColor(Color.Transparent)
+                        }
+                        .margin({
+                          left: $r('app.float.margin_12'),
+                          right: $r('app.float.margin_12'),
+                          top: $r('app.float.margin_14')
+                        })
+                      } else {
+                        ListItem() {
+                          Button()
+                            .borderRadius($r('app.float.input_btn_size'))
+                            .width($r('app.float.input_btn_size'))
+                            .height($r('app.float.input_btn_size'))
+                            .type(ButtonType.Circle)
+                            .backgroundColor($r('sys.color.ohos_id_color_text_primary_contrary'))
+                        }
+                        .margin({
+                          left: $r('app.float.margin_12'),
+                          right: $r('app.float.margin_12'),
+                          top: $r('app.float.margin_14')
+                        })
                       }
-                      .margin({
-                        left: $r('app.float.margin_12'),
-                        right: $r('app.float.margin_12'),
-                        top: $r('app.float.margin_14')
+                    })
+                  }
+                  .listDirection(Axis.Horizontal)
+                  .height($r('app.float.input_height'))
+
+                  if (this.IS_LANDSCAPE) {
+                    TextInput({ placeholder: '', text: this.passwordArray?.join('') })
+                      .onChange(async (value: string) => {
+                        const arr = value?.replace(/[^\d]/g, '')?.split('');
+                        arr?.map((item, index) => {
+                          this.passwordArray[index] = item;
+                        });
+                        if (arr?.length === SIX_MAX_LENGTH) {
+                          this.textValue = arr?.join('');
+                          AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
+                        }
                       })
-                    } else {
-                      ListItem() {
-                        Button()
-                          .borderRadius($r('app.float.input_btn_size'))
-                          .width($r('app.float.input_btn_size'))
-                          .height($r('app.float.input_btn_size'))
-                          .type(ButtonType.Circle)
-                          .backgroundColor($r('sys.color.ohos_id_color_text_primary_contrary'))
-                      }
-                      .margin({
-                        left: $r('app.float.margin_12'),
-                        right: $r('app.float.margin_12'),
-                        top: $r('app.float.margin_14')
-                      })
-                    }
-                  })
+                      .backgroundImageSize(ImageSize.Auto)
+                      .maxLength(SIX_MAX_LENGTH)
+                      .visibility(Visibility.Visible)
+                      .opacity(0)
+                      .caretColor('transparent')
+                  }
                 }
-                .listDirection(Axis.Horizontal)
-                .height($r('app.float.input_height'))
 
               } else if (this.pinSubType === Constants.pinNumber) {
                 Stack() {
@@ -382,12 +400,13 @@ export default struct FullScreen {
                     .visibility(Visibility.Visible)
                     .copyOption(CopyOptions.None)
                     .maxLength(MAX_LENGTH)
+                    .textAlign(TextAlign.Start)
                 }
               } else if (this.pinSubType === Constants.pinMixed) {
                 TextInput({ text: this.passwordObj })
                   .height($r('app.float.btn_height'))
                   .type(InputType.Password)
-                  .textAlign(TextAlign.Center)
+                  .textAlign(TextAlign.Start)
                   .copyOption(CopyOptions.None)
                   .maxLength(MAX_LENGTH)
                   .onSubmit(async (enterKey: EnterKeyType) => {
@@ -425,7 +444,7 @@ export default struct FullScreen {
 
         // 0: pin unlock
         Column() {
-          if (!this.isLandscape && this.pinLock === 0 && this.pinSubType === Constants.pinSix) {
+          if (!this.IS_LANDSCAPE && this.pinLock === 0 && this.pinSubType === Constants.pinSix) {
             NumKeyBoard({
               onKeyPress: (index, callback) => {
                 let keyValue = this.numKeyboard[index].value;
@@ -464,6 +483,7 @@ export default struct FullScreen {
                   this.pinLock = 0;
                   this.clearPassword();
                   globalThis.session?.terminateSelf?.();
+                  AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
                 } else if (keyValue === CALL_PHONE) {
                   if (this.passwordArray.join('').length < PASSWORD_ARRAY_LENGTH) {
                     return;
@@ -484,26 +504,22 @@ export default struct FullScreen {
 
         // 1: pin lock
         Column() {
-          if (this.controlType.isShowFinger && this.pinLock !== 1) {
-            if (this.fingerPosition.sensorType !== 'OUT_OF_SCREEN_SENSOR'
-            && this.fingerPosition.sensorType !== 'NON_SENSOR') {
+          if (this.controlType.isShowFinger && this.pinLock !== 1 && !this.faceFingerLockArr[1]) {
+            if (this.fingerPosition.sensorType !== 'OUT_OF_SCREEN_SENSOR' &&
+              this.fingerPosition.sensorType !== 'NON_SENSOR') {
               if (this.fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR' ||
-              this.fingerPosition.sensorType === 'BOTH_SENSOR' ||
-              this.fingerPosition.sensorType === 'SensorType1') {
+                this.fingerPosition.sensorType === 'BOTH_SENSOR' ||
+                this.fingerPosition.sensorType === 'SensorType1') {
                 if (this.fingerPosition.udSensorCenterYInThousandth /
-                this.screen[1] > Constants.fingerSensorPositionLine &&
-                !this.isLandscape) {
+                  this.screen[1] > Constants.fingerSensorPositionLine &&
+                  !this.IS_LANDSCAPE) {
                   Image($r('app.media.ic_unlock_fingerprint'))
                     .id('fingerprintImgCustomPassword')
                     .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
                     .height(px2vp(this.fingerPosition.udSensorRadiusInPx))
-                    .position({
-                      x: px2vp(this.fingerPosition.udSensorCenterXInThousandth),
-                      y: px2vp(this.fingerPosition.udSensorCenterYInThousandth)
-                    })
-                    .onClick(() => {
-                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-                    })
+                    .position({ y: px2vp(UNDER_FINGER)
+                    - px2vp(this.screen[1])
+                    + px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH) })
                 } else {
                   Image($r('app.media.finger_white'))
                     .id('fingerWhiteImgCustomPassword')
@@ -511,7 +527,7 @@ export default struct FullScreen {
                     .height($r('app.float.image_back_size'))
                     .margin({ top: $r('app.float.input_btn_size') })
                     .onClick(() => {
-                      if (this.isLandscape) {
+                      if (this.IS_LANDSCAPE) {
                         this.underFingerPrint = true;
                       } else {
                         this.controlType.jumpFinger = true;
@@ -530,48 +546,49 @@ export default struct FullScreen {
       .width(Constants.fullContainerWidth)
     } else if (!this.controlType.isLandscape) {
       Column() {
-        Text(globalThis.wantParams?.title)
+        Text(this.fingerText)
           .id('titleFullScreen')
           .height($r('app.float.text_high'))
-          .fontColor($r('sys.color.ohos_id_color_text_primary'))
-          .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
+          .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
+          .fontSize($r('sys.float.ohos_id_text_size_body1'))
           .fontWeight(FontWeight.Medium)
-          .position({ y: TITLE_POSITION })
-          .width('100%')
-          .textAlign(TextAlign.Center)
-        Text(this.fingerText)
-          .height($r('app.float.text_high'))
-          .fontColor($r('sys.color.ohos_id_color_text_secondary'))
-          .fontSize($r('sys.float.ohos_id_text_size_body2'))
           .position({
             y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH) -
-            FINGER_TEXT_POSITION - px2vp(FINGER_HIGH + this.fingerPosition.udSensorRadiusInPx))
+            px2vp(FINGER_Y_POSITION) - FINGER_TEXT_POSITION - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx))
+          })
+          .width('100%')
+          .textAlign(TextAlign.Center)
+        Text($r('app.string.unified_authwidget_hint_inscreen_fp'))
+          .height($r('app.float.text_high'))
+          .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
+          .fontSize($r('sys.float.ohos_id_text_size_body2'))
+          .fontWeight(FontWeight.Regular)
+          .position({
+            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH) -
+            px2vp(FINGER_Y_POSITION) - FINGER_HIGH - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx))
           })
           .width('100%')
           .textAlign(TextAlign.Center)
           .margin({ top: $r('app.float.padding_8') })
-        Image($r('app.media.ic_unlock_fingerprint'))
-          .id('unlockFingerprintImgCustomPwd')
-            // radius
-          .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
-          .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
-          .position({
-            x: (px2vp(this.fingerPosition.udSensorCenterXInThousandth * this.screen[0] / THOUSANDTH)
-            - px2vp(FINGER_X_POSITION + this.fingerPosition.udSensorRadiusInPx)),
-            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH)
-            - FINGER_Y_POSITION - px2vp(DEFAULT_SIZE + this.fingerPosition.udSensorRadiusInPx))
-          })
-          .onClick(() => {
-            if (this.prompt !== globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'))) {
-              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-            }
-          })
+        Column() {
+          Image($r('app.media.ic_unlock_fingerprint'))
+            .id('unlockFingerprintImgCustomPwd')
+              // radius
+            .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+            .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+        }.width('100%')
+        .position({ y: this.fingerPositionY })
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+
         Button($r('app.string.unified_authwidget_cancel'), {
           type: ButtonType.Normal,
           stateEffect: true
         })
-          .margin({ bottom: $r('app.float.three_hundred_size'), left: 'auto', right: 'auto' })
+          .width('100%')
+          .position({
+            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH))
+          })
           .backgroundColor(Color.Transparent)
           .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
           .onClick(() => {
@@ -579,6 +596,7 @@ export default struct FullScreen {
           })
       }
       .justifyContent(FlexAlign.End)
+      .alignItems(HorizontalAlign.Center)
       .height('100%')
       .width('100%')
     }

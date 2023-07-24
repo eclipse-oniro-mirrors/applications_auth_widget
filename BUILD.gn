@@ -13,17 +13,9 @@
 
 import("//build/ohos.gni")
 
-ohos_hap("authwidget_hap") {
-  hap_profile = "entry/src/main/module5.json"
-  deps = [
-    ":authwidget_js_assets",
-    ":authwidget_resources",
-  ]
-  //certificate_profile = "signature/authwidget.p7b"
-  hap_name = "Authwidget"
-  subsystem_name = "applications"
-  part_name = "prebuilt_hap"
-  module_install_dir = "app/com.ohos.useriam.authwidget"
+ohos_app_scope("authwidget_app_profile") {
+  app_profile = "./AppScope/app.json"
+  sources = [ "./AppScope/resources" ]
 }
 
 ohos_js_assets("authwidget_js_assets") {
@@ -31,13 +23,21 @@ ohos_js_assets("authwidget_js_assets") {
   source_dir = "entry/src/main/ets"
 }
 
-ohos_app_scope("authwidget_app_profile") {
-  app_profile = "AppScope/app.json"
-  sources = [ "AppScope/resources" ]
-}
-
 ohos_resources("authwidget_resources") {
   sources = [ "entry/src/main/resources" ]
   deps = [ ":authwidget_app_profile" ]
-  hap_profile = "entry/src/main/module5.json"
+  hap_profile = "entry/src/main/module.json"
+}
+
+ohos_hap("auth_widget") {
+  hap_profile = "entry/src/main/module.json"
+  deps = [
+    ":authwidget_js_assets",
+    ":authwidget_resources",
+  ]
+  certificate_profile = "signature/auth_widget.p7b"
+  hap_name = "AuthWidget"
+  subsystem_name = "applications"
+  part_name = "prebuilt_hap"
+  module_install_dir = "app/com.ohos.useriam.authwidget"
 }

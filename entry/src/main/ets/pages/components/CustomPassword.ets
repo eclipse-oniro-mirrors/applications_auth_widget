@@ -19,6 +19,7 @@ import FullScreen from '../../common/components/FullScreen';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import Constants from '../../common/vm/Constants';
+import AuthUtils from '../../common/utils/AuthUtils';
 
 const TAG = 'CustomPassword';
 const BLUR_OPACITY = 0.5;
@@ -36,7 +37,7 @@ export default struct CustomPassword {
   @Link cmdData: [];
   @State isBackTouched: boolean = false
   @State @Watch('onTextValueChange') textValue: string = '';
-  @Consume isLandscape: boolean;
+  @StorageLink('IS_LANDSCAPE') IS_LANDSCAPE: boolean = false;
   @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
   @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
 
@@ -90,6 +91,7 @@ export default struct CustomPassword {
               ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
             .onClick(() => {
               globalThis.session?.terminateSelf?.();
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
             })
             .onTouch((event: TouchEvent) => {
               if (event.type === TouchType.Down) {
@@ -102,16 +104,15 @@ export default struct CustomPassword {
         }
 
         GridRow({
-          columns: 8,
-          gutter: { x: 5, y: 10 },
+          columns: { xs: 4, sm: 4, md: 8, lg: 12 },
+          gutter: { x: 24, y: 24 },
           breakpoints: { value: Constants.deviceDpi,
             reference: BreakpointsReference.WindowSize },
           direction: GridRowDirection.Row
         }) {
-          GridCol({ span: { xs: 0, sm: 1, md: 1, lg: 1 } })
-            .visibility(Visibility.Hidden)
           GridCol({
-            span: { xs: 8, sm: 6, md: 6, lg: 6 },
+            span: { xs: 4, sm: 4, md: 4, lg: 6 },
+            offset: { md: 2, lg: 3 },
           }) {
             FullScreen({
               textValue: $textValue,
@@ -122,7 +123,7 @@ export default struct CustomPassword {
           }
         }
       }
-      .padding(this.isLandscape
+      .padding(this.IS_LANDSCAPE
         ? PADDING_ZERO
         : { top: this.SYSTEM_STATUS_BAR_HEIGHT, bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
       .justifyContent(FlexAlign.SpaceBetween)
