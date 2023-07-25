@@ -22,17 +22,19 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delayTime: number = 1000;
 
-export default function PinFaceFailTest() {
-  describe('PinFaceFailTest', function () {
+export default function FacePinFailTimesTest() {
+  describe('FacePinFailTimesTest', function () {
     beforeAll(async function () {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 2147483647, "remainAttempts": 0, "type": "pin"
+            "lockoutDuration": 0, "remainAttempts": 2, "type": "pin"
           }, "version": "1"
         }, {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 2147483647, "remainAttempts": 0, "type": "face"
+            "lockoutDuration": 0,
+            "remainAttempts": 2,
+            "type": "face"
           }, "version": "1"
         }],
         "pinSubType": "PIN_SIX",
@@ -45,7 +47,7 @@ export default function PinFaceFailTest() {
 
       let want = {
         bundleName: bundleName,
-        abilityName: 'FaceMixSuccessAbility'
+        abilityName: 'FacePinFailTimesAbility'
       }
       await delegator.startAbility(want);
     })

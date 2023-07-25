@@ -24,11 +24,6 @@ const delayTime: number = 1000;
 
 export default function FaceFailTimesTest() {
   describe('FaceFailTimesTest', function () {
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     beforeAll(async function () {
       const data = {
         "cmd": [{
@@ -44,14 +39,12 @@ export default function FaceFailTimesTest() {
         "navigationButtonText": "确定！"
       }
       globalThis.wantParams = data;
-      sleep(1000);
 
       let want = {
         bundleName: bundleName,
         abilityName: 'FaceFailTimesAbility'
       }
       await delegator.startAbility(want);
-      sleep(1000);
     })
 
     it('navigationBtnFace_test', 0, async function (done) {

@@ -25,11 +25,6 @@ const delayTime: number = 1000;
 
 export default function FaceTest() {
   describe('FaceTest', function () {
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     beforeAll(async function () {
       let userAuthInstance = null;
       const authParam = {
@@ -51,21 +46,18 @@ export default function FaceTest() {
             "lockoutDuration": 0, "remainAttempts": 5, "type": "face"
           }, "version": "1"
         }],
-        "pinSubType": "",
-        "title": "",
+        "title": "请输入密码",
         "type": ["face"],
         "widgetContextId": 13808827370146417000,
         "windowModeType": "DIALOG_BOX"
       }
       globalThis.wantParams = data;
-      sleep(1000);
 
       let want = {
         bundleName: bundleName,
         abilityName: 'FaceAbility'
       }
       await delegator.startAbility(want);
-      sleep(1000);
     })
 
     it('title_faceAuth_test', 0, async function (done) {

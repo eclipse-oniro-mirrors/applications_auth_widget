@@ -24,11 +24,6 @@ const delayTime: number = 1000;
 
 export default function PinNumberTest() {
   describe('PinNumberTest', function () {
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     beforeAll(async function () {
       const data = {
         "cmd": [{
@@ -43,14 +38,12 @@ export default function PinNumberTest() {
         "windowModeType": "DIALOG_BOX"
       };
       globalThis.wantParams = data;
-      sleep(1000);
 
       let want = {
         bundleName: bundleName,
         abilityName: "PasswordAbility"
       }
       await delegator.startAbility(want);
-      sleep(1000);
     })
 
     it('title_pwd_auth_test', 0, async function (done) {

@@ -22,22 +22,33 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delayTime: number = 1000;
 
-export default function PinFaceFailTest() {
-  describe('PinFaceFailTest', function () {
+export default function FaceMixSuccessLandscapeTest() {
+  describe('FaceMixSuccessLandscapeTest', function () {
     beforeAll(async function () {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 2147483647, "remainAttempts": 0, "type": "pin"
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "pin"
           }, "version": "1"
         }, {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 2147483647, "remainAttempts": 0, "type": "face"
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "face"
+          }, "version": "1"
+        }, {
+          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+            "lockoutDuration": 0,
+            "remainAttempts": 5,
+            "sensorInfo": "{\"sensorType\":\"SensorType1\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
+            "type": "fingerprint"
+          }, "version": "1"
+        }, {
+          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "test"
           }, "version": "1"
         }],
         "pinSubType": "PIN_SIX",
         "title": "",
-        "type": ["pin", "face"],
+        "type": ["pin", "face", "fingerprint"],
         "widgetContextId": 7728484037972500000,
         "windowModeType": "DIALOG_BOX"
       }
@@ -45,15 +56,15 @@ export default function PinFaceFailTest() {
 
       let want = {
         bundleName: bundleName,
-        abilityName: 'FaceMixSuccessAbility'
+        abilityName: 'FaceMixSuccessLandscapeAbility'
       }
       await delegator.startAbility(want);
     })
 
-    it('cancelImg_allFaceAuth_test', 0, async function (done) {
+    it('faceMixSuccessLandscape_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('cancelImgAllFaceAuth'));
+      await driver.findComponent(ON.id('cancelBtnFaceAuth'));
       expect(true).assertTrue();
       done();
     })
