@@ -38,7 +38,7 @@ const AUTH_TYPE_FINGER = 4;
 const PASSWORD_LENGTH = 4;
 const PASSWORD_ARRAY_LENGTH = 6;
 const UNDER_FINGER = 170;
-const NOTICE_DELAY = 500;
+const NOTICE_DELAY = 50;
 
 interface ControlType {
   isSixPassword?: boolean,
@@ -67,6 +67,7 @@ export default struct FullScreen {
   @State fingerTextPositionY: number = 0;
   @State fingerTipsPositionY: number = 0;
   @State fingerButtonPositionY: number = 0;
+  @State fingerPositionLine: number = 0;
   @StorageLink('cueWord') cueWord: string = globalThis.context.resourceManager
     .getStringSync($r('app.string.unified_authwidget_use_pwd'));
   @StorageLink('passwordArray') passwordArray: string[] = [];
@@ -135,13 +136,16 @@ export default struct FullScreen {
           if (num === 'first') {
             if (remainAttempts === 0) {
               this.controlType.isShowFace = false;
+            } else {
+              this.prompt = globalThis.context.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
             }
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
           }
           if (remainAttempts === 0) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden'));
+            if (num !== 'first') {
+              this.prompt = globalThis.context.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden'));
+            }
             this.faceFingerLockArr[0] = true;
           }
           break;
@@ -174,8 +178,9 @@ export default struct FullScreen {
                     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                   }, NOTICE_DELAY);
                 }
-                if (num === 'first' && sensor.udSensorCenterYInThousandth /
-                  this.screen[1] > Constants.fingerSensorPositionLine) {
+                let tempPositionLine = sensor.udSensorCenterYInThousandth / this.screen[1];
+                FuncUtils.judgmentOverflow(tempPositionLine);
+                if (num === 'first' && tempPositionLine > Constants.fingerSensorPositionLine) {
                   AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                 }
               }
@@ -211,6 +216,8 @@ export default struct FullScreen {
       }
 
       if (this.controlType.isShowFinger) {
+        this.fingerPositionLine = this.fingerPosition.udSensorCenterYInThousandth / this.screen[1];
+        FuncUtils.judgmentOverflow(this.fingerPositionLine);
         let tempPosition = px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1]);
         FuncUtils.judgmentOverflow(tempPosition);
         this.fingerButtonPositionY = tempPosition / THOUSANDTH;
@@ -284,7 +291,7 @@ export default struct FullScreen {
           if (this.pinLock === 1) {
             Text($r('app.string.unified_authwidget_locked'))
               .margin({ bottom: $r('app.float.content_padding') })
-              .fontColor($r('sys.color.ohos_id_color_primary_contrary'))
+              .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_headline6'))
               .fontWeight(FontWeight.Medium)
           } else if (this.controlType.isShowFace) {
@@ -306,18 +313,19 @@ export default struct FullScreen {
           } else {
             Text()
               .margin({ bottom: $r('app.float.content_padding') })
-              .fontColor($r('sys.color.ohos_id_color_primary_contrary'))
+              .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_headline6'))
               .fontWeight(FontWeight.Medium)
           }
           Text(this.prompt)
             .id('cancelIconCustomPassword')
-            .fontSize(this.prompt === globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_use_pwd'))
+            .fontSize(this.pinLock === 0
               ? $r('sys.float.ohos_id_text_size_body1')
               : $r('sys.float.ohos_id_text_size_body2'))
             .fontWeight(FontWeight.Medium)
-            .fontColor($r('sys.color.ohos_id_color_text_secondary_contrary'))
+            .fontColor(this.pinLock === 0
+              ? $r('sys.color.ohos_id_color_text_primary_contrary')
+              : $r('sys.color.ohos_id_color_text_secondary_contrary'))
             .margin({ bottom: $r('app.float.margin_16') })
             .textAlign(TextAlign.Center)
             .textOverflow({ overflow: TextOverflow.None })
@@ -421,7 +429,7 @@ export default struct FullScreen {
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontWeight(FontWeight.Regular)
                     .maxLength(MAX_LENGTH)
-                    .backgroundColor("rgba(255,255,255,0.2)")
+                    .backgroundColor('rgba(255,255,255,0.2)')
                     .textAlign(TextAlign.Start)
                     .margin({
                       left: $r('app.float.custom_password_input_margin'),
@@ -437,7 +445,7 @@ export default struct FullScreen {
                   .fontSize($r('sys.float.ohos_id_text_size_body1'))
                   .fontWeight(FontWeight.Regular)
                   .maxLength(MAX_LENGTH)
-                  .backgroundColor("rgba(255,255,255,0.2)")
+                  .backgroundColor('rgba(255,255,255,0.2)')
                   .textAlign(TextAlign.Start)
                   .margin({
                     left: $r('app.float.custom_password_input_margin'),
@@ -544,16 +552,14 @@ export default struct FullScreen {
               if (this.fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR' ||
                 this.fingerPosition.sensorType === 'BOTH_SENSOR' ||
                 this.fingerPosition.sensorType === 'SensorType1') {
-                if (this.fingerPosition.udSensorCenterYInThousandth /
-                  this.screen[1] > Constants.fingerSensorPositionLine &&
-                  !this.IS_LANDSCAPE) {
+                if (this.fingerPositionLine > Constants.fingerSensorPositionLine && !this.IS_LANDSCAPE) {
                   Image($r('app.media.ic_unlock_fingerprint'))
                     .id('fingerprintImgCustomPassword')
                     .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
                     .height(px2vp(this.fingerPosition.udSensorRadiusInPx))
                     .position({ y: px2vp(UNDER_FINGER)
                     - px2vp(this.screen[1])
-                    + px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH) })
+                    + this.fingerButtonPositionY })
                 } else {
                   Image($r('app.media.finger_white'))
                     .id('fingerWhiteImgCustomPassword')
@@ -584,7 +590,7 @@ export default struct FullScreen {
           .id('titleFullScreen')
           .height($r('app.float.text_high'))
           .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
-          .fontSize($r('sys.float.ohos_id_text_size_body1'))
+          .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
           .fontWeight(FontWeight.Medium)
           .position({
             y: this.fingerTextPositionY
@@ -593,7 +599,7 @@ export default struct FullScreen {
           .textAlign(TextAlign.Center)
         Text($r('app.string.unified_authwidget_hint_inscreen_fp'))
           .height($r('app.float.text_high'))
-          .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
+          .fontColor($r('sys.color.ohos_id_color_text_secondary_contrary'))
           .fontSize($r('sys.float.ohos_id_text_size_body2'))
           .fontWeight(FontWeight.Regular)
           .position({

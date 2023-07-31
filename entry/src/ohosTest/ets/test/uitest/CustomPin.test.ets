@@ -30,10 +30,6 @@ export default function CustomPinTest() {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 0, "remainAttempts": 5, "type": "pin", "sensorInfo": ""
           }, "version": "1"
-        }, {
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 5, "type": "test"
-          }, "version": "1"
         }],
         "pinSubType": "PIN_SIX",
         "title": "请输入密码",
