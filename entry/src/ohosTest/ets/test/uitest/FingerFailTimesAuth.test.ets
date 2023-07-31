@@ -24,11 +24,6 @@ const delayTime: number = 1000;
 
 export default function FingerFailAuthTest() {
   describe('FingerFailAuthTest', function () {
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     beforeAll(async function () {
       const data = {
         "cmd": [{
@@ -44,20 +39,18 @@ export default function FingerFailAuthTest() {
           }, "version": "1"
         }],
         "pinSubType": "PIN_SIX",
-        "title": "",
+        "title": "请输入密码",
         "type": ["pin", "fingerprint"],
         "widgetContextId": 10234972519197798000,
         "windowModeType": "DIALOG_BOX"
       }
       globalThis.wantParams = data;
-      sleep(1000);
 
       let want = {
         bundleName: bundleName,
         abilityName: 'FingerFailTimesAbility'
       }
       await delegator.startAbility(want);
-      sleep(1000);
     })
 
     it('cancelBth_state3_fingerprintAuth_test', 0, async function (done) {

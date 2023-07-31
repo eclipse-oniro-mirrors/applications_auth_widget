@@ -73,6 +73,13 @@ export class FuncUtils {
       LogUtils.error(TAG, 'Failed to enable the listener for window stage event changes. error: ' + error?.code);
     }
   }
+
+  judgmentOverflow(value: number): void {
+    if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
+      LogUtils.error(TAG, 'judgmentOverflow spill code value： ' + value);
+      globalThis.session?.terminateSelf?.();
+    }
+  }
 }
 
 let funcUtils = new FuncUtils();

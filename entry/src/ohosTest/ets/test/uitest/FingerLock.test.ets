@@ -22,38 +22,45 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delayTime: number = 1000;
 
-export default function PinFaceFailTest() {
-  describe('PinFaceFailTest', function () {
+export default function FingerLock() {
+  describe('FingerLock', function () {
     beforeAll(async function () {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 2147483647, "remainAttempts": 0, "type": "pin"
+            "lockoutDuration": 0, "remainAttempts": 0, "type": "PIN_NUM"
           }, "version": "1"
         }, {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 2147483647, "remainAttempts": 0, "type": "face"
+            "lockoutDuration": 0, "remainAttempts": 0, "type": "123"
+          }, "version": "1"
+        }, {
+          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+            "lockoutDuration": 0,
+            "remainAttempts": 0,
+            "sensorInfo": "{\"sensorType\":\"OUT_OF_SCREEN_SENSOR\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
+            "type": "fingerprint"
           }, "version": "1"
         }],
         "pinSubType": "PIN_SIX",
         "title": "",
-        "type": ["pin", "face"],
-        "widgetContextId": 7728484037972500000,
+        "type": ["pin", "fingerprint"],
+        "widgetContextId": 10234972519197798000,
         "windowModeType": "DIALOG_BOX"
       }
       globalThis.wantParams = data;
 
       let want = {
         bundleName: bundleName,
-        abilityName: 'FaceMixSuccessAbility'
+        abilityName: 'FingerprintLockAbility'
       }
       await delegator.startAbility(want);
     })
 
-    it('cancelImg_allFaceAuth_test', 0, async function (done) {
+    it('cancelBth_state3_fingerprintLock_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('cancelImgAllFaceAuth'));
+      await driver.findComponent(ON.id('cancelBthState3FingerprintLock'));
       expect(true).assertTrue();
       done();
     })

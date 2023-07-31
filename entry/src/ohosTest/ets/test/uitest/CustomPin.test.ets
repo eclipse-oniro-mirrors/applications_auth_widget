@@ -24,16 +24,15 @@ const delayTime: number = 1000;
 
 export default function CustomPinTest() {
   describe('CustomPinTest', function () {
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     beforeAll(async function () {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 0, "remainAttempts": 5, "type": "pin", "sensorInfo": ""
+          }, "version": "1"
+        }, {
+          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+            "lockoutDuration": 0, "remainAttempts": 5, "type": "test"
           }, "version": "1"
         }],
         "pinSubType": "PIN_SIX",
@@ -43,14 +42,12 @@ export default function CustomPinTest() {
         "windowModeType": "FULLSCREEN"
       };
       globalThis.wantParams = data;
-      sleep(1000);
 
       let want = {
         bundleName: bundleName,
         abilityName: 'CustomPwdAbility'
       }
       await delegator.startAbility(want);
-      sleep(1000);
     })
 
     it('title_full_screen_test', 0, async function (done) {

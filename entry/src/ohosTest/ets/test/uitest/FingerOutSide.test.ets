@@ -22,8 +22,8 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delayTime: number = 1000;
 
-export default function PinFaceFingerTest() {
-  describe('PinFaceFingerTest', function () {
+export default function FingerOutSideTest() {
+  describe('FingerOutSideTest', function () {
 
     function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -33,41 +33,33 @@ export default function PinFaceFingerTest() {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 0, "type": "pin"
-          }, "version": "1"
-        }, {
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 5, "type": "face"
-          }, "version": "1"
-        }, {
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 0,
             "remainAttempts": 5,
-            "sensorInfo": "{\"sensorType\":\"SensorType1\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
+            "sensorInfo": "{\"sensorType\":\"OUT_OF_SCREEN_SENSOR\",\"outOfScreenSensorType\":\"SIDE\"}",
             "type": "fingerprint"
           }, "version": "1"
         }],
-        "pinSubType": "PIN_SIX",
-        "title": "",
-        "type": ["pin", "face", "fingerprint"],
-        "widgetContextId": 7728484037972500000,
+        "title": "请输入密码",
+        "type": ["fingerprint"],
+        "navigationButtonText": "按钮",
+        "widgetContextId": 10234972519197718021,
         "windowModeType": "DIALOG_BOX"
       }
       globalThis.wantParams = data;
-      sleep(1000);
+      sleep(delayTime);
 
       let want = {
         bundleName: bundleName,
-        abilityName: 'FaceMixSuccess3Ability'
+        abilityName: 'FingerOutSideAbility'
       }
       await delegator.startAbility(want);
-      sleep(1000);
+      sleep(delayTime);
     })
 
-    it('cancelImg_allFaceAuth_test', 0, async function (done) {
+    it('cancel_fingerSide_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('cancelImgAllFaceAuth'));
+      await driver.findComponent(ON.id('outFingerImage'));
       expect(true).assertTrue();
       done();
     })

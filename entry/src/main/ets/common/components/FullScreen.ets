@@ -17,6 +17,7 @@ import display from '@ohos.display';
 import userAuth from '@ohos.userIAM.userAuth';
 import Constants, { CmdType, FingerPosition } from '../../common/vm/Constants';
 import AuthUtils from '../utils/AuthUtils';
+import FuncUtils from '../utils/FuncUtils';
 import LogUtils from '../utils/LogUtils';
 import TimeUtils from '../utils/TimeUtils';
 import NumKeyBoard from './NumkeyBoard';
@@ -63,6 +64,9 @@ export default struct FullScreen {
   @Link @Watch('onCmdDataChange') cmdData: Array<CmdType>;
   @State pinLock: number = 0;
   @State fingerPositionY: number = 0;
+  @State fingerTextPositionY: number = 0;
+  @State fingerTipsPositionY: number = 0;
+  @State fingerButtonPositionY: number = 0;
   @StorageLink('cueWord') cueWord: string = globalThis.context.resourceManager
     .getStringSync($r('app.string.unified_authwidget_use_pwd'));
   @StorageLink('passwordArray') passwordArray: string[] = [];
@@ -192,6 +196,7 @@ export default struct FullScreen {
           break;
         default:
           LogUtils.error(TAG, 'type: ' + type);
+          globalThis.session?.terminateSelf?.();
           break;
       }
     })
@@ -204,8 +209,25 @@ export default struct FullScreen {
       if (this.cmdData && this.cmdData.length > 0) {
         this.onCmdDataChange('first');
       }
-      this.fingerPositionY = px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1]) / THOUSANDTH
-        - this.SYSTEM_STATUS_BAR_HEIGHT - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx)
+
+      if (this.controlType.isShowFinger) {
+        let tempPosition = px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1]);
+        FuncUtils.judgmentOverflow(tempPosition);
+        this.fingerButtonPositionY = tempPosition / THOUSANDTH;
+        FuncUtils.judgmentOverflow(this.fingerButtonPositionY);
+        this.fingerPositionY = this.fingerButtonPositionY - this.SYSTEM_STATUS_BAR_HEIGHT
+          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx);
+        FuncUtils.judgmentOverflow(this.fingerPositionY);
+
+        this.fingerTipsPositionY = this.fingerButtonPositionY - px2vp(FINGER_Y_POSITION) - FINGER_HIGH
+          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx)
+        FuncUtils.judgmentOverflow(this.fingerTipsPositionY);
+
+        this.fingerTextPositionY = this.fingerButtonPositionY - px2vp(FINGER_Y_POSITION) - FINGER_TEXT_POSITION
+          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx);
+        FuncUtils.judgmentOverflow(this.fingerTextPositionY);
+      }
+
       if (this.controlType.isShowFace) {
         AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
         return;
@@ -265,7 +287,7 @@ export default struct FullScreen {
               .fontColor($r('sys.color.ohos_id_color_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_headline6'))
               .fontWeight(FontWeight.Medium)
-          } else if (this.controlType.isShowFace && !this.faceFingerLockArr[0]) {
+          } else if (this.controlType.isShowFace) {
             Image($r('app.media.white_faceID'))
               .id('faceImgCustomPwd')
               .width($r('app.float.image_small'))
@@ -367,7 +389,6 @@ export default struct FullScreen {
                           AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
                         }
                       })
-                      .backgroundImageSize(ImageSize.Auto)
                       .maxLength(SIX_MAX_LENGTH)
                       .visibility(Visibility.Visible)
                       .opacity(0)
@@ -378,7 +399,6 @@ export default struct FullScreen {
               } else if (this.pinSubType === Constants.pinNumber) {
                 Stack() {
                   TextInput({ placeholder: '', text: this.passwordArrayNumber.join('') })
-                    .width('100%')
                     .onChange(async (value: string) => {
                       // Removes non-numeric characters from a string
                       this.passwordArrayNumber = value.replace(/[^\d]/g, '').split('');
@@ -390,25 +410,39 @@ export default struct FullScreen {
                       if (this.passwordArrayNumber.length < PASSWORD_LENGTH) {
                         return;
                       }
-
                       const strData = this.passwordArrayNumber.toString();
                       this.textValue = strData.replace(/,/g, '');
                       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
                     })
+                    .fontColor(Color.White)
+                    .height($r('app.float.btn_height'))
                     .type(InputType.Password)
-                    .backgroundImageSize(ImageSize.Auto)
-                    .visibility(Visibility.Visible)
                     .copyOption(CopyOptions.None)
+                    .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                    .fontWeight(FontWeight.Regular)
                     .maxLength(MAX_LENGTH)
+                    .backgroundColor("rgba(255,255,255,0.2)")
                     .textAlign(TextAlign.Start)
+                    .margin({
+                      left: $r('app.float.custom_password_input_margin'),
+                      right: $r('app.float.custom_password_input_margin')
+                    })
                 }
               } else if (this.pinSubType === Constants.pinMixed) {
                 TextInput({ text: this.passwordObj })
+                  .fontColor(Color.White)
                   .height($r('app.float.btn_height'))
                   .type(InputType.Password)
-                  .textAlign(TextAlign.Start)
                   .copyOption(CopyOptions.None)
+                  .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                  .fontWeight(FontWeight.Regular)
                   .maxLength(MAX_LENGTH)
+                  .backgroundColor("rgba(255,255,255,0.2)")
+                  .textAlign(TextAlign.Start)
+                  .margin({
+                    left: $r('app.float.custom_password_input_margin'),
+                    right: $r('app.float.custom_password_input_margin')
+                  })
                   .onSubmit(async (enterKey: EnterKeyType) => {
                     // check callback
                     if (this.passwordObj.length < PASSWORD_LENGTH) {
@@ -553,8 +587,7 @@ export default struct FullScreen {
           .fontSize($r('sys.float.ohos_id_text_size_body1'))
           .fontWeight(FontWeight.Medium)
           .position({
-            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH) -
-            px2vp(FINGER_Y_POSITION) - FINGER_TEXT_POSITION - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx))
+            y: this.fingerTextPositionY
           })
           .width('100%')
           .textAlign(TextAlign.Center)
@@ -564,8 +597,7 @@ export default struct FullScreen {
           .fontSize($r('sys.float.ohos_id_text_size_body2'))
           .fontWeight(FontWeight.Regular)
           .position({
-            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH) -
-            px2vp(FINGER_Y_POSITION) - FINGER_HIGH - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx))
+            y: this.fingerTipsPositionY
           })
           .width('100%')
           .textAlign(TextAlign.Center)
@@ -587,7 +619,7 @@ export default struct FullScreen {
         })
           .width('100%')
           .position({
-            y: (px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1] / THOUSANDTH))
+            y: this.fingerButtonPositionY
           })
           .backgroundColor(Color.Transparent)
           .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))

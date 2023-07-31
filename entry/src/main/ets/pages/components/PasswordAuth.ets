@@ -39,6 +39,7 @@ export default struct PasswordAuth {
   // tip
   @State inputValue: string = ' ';
   @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
+  @StorageLink('IS_LANDSCAPE') IS_LANDSCAPE: boolean = false;
 
   onTextValueChange(): void {
     pinData = this.textValue;
@@ -220,14 +221,14 @@ export default struct PasswordAuth {
           .margin({
             left: ($r('sys.float.ohos_id_dialog_margin_start')),
             right: ($r('sys.float.ohos_id_dialog_margin_end')),
-            bottom: ($r('sys.float.ohos_id_dialog_margin_bottom'))
+            bottom: this.IS_LANDSCAPE ? '0' : ($r('sys.float.ohos_id_dialog_margin_bottom'))
           })
         }
       }
     }
-    .margin({ bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
+    .margin(this.IS_LANDSCAPE ? '0' : { bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
     .height('100%')
-    .justifyContent(FlexAlign.End)
+    .justifyContent(this.IS_LANDSCAPE ? FlexAlign.Center : FlexAlign.End)
     .backgroundColor(Color.Transparent)
   }
 }

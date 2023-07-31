@@ -24,11 +24,6 @@ const delayTime: number = 1000;
 
 export default function PinFingerFailTest() {
   describe('PinFingerFailTest', function () {
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     beforeAll(async function () {
       const data = {
         "cmd": [{
@@ -50,14 +45,12 @@ export default function PinFingerFailTest() {
         "windowModeType": "DIALOG_BOX"
       }
       globalThis.wantParams = data;
-      sleep(1000);
 
       let want = {
         bundleName: bundleName,
         abilityName: 'FingerFailAbility'
       }
       await delegator.startAbility(want);
-      sleep(1000);
     })
 
     it('cancelBth_state3_fingerprintAuth_test', 0, async function (done) {

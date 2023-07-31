@@ -181,6 +181,10 @@
       "value": "36px"
     },
     {
+      "name": "custom_password_input_margin",
+      "value": "36px"
+    },
+    {
       "name": "custom_password_input_margin_bottom",
       "value": "90px"
     },

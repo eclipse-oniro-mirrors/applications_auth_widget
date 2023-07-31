@@ -82,6 +82,12 @@ export default function FuncUtilsTest() {
       done();
     })
 
+    it('judgmentOverflowFunc_test', 0, function (done) {
+      FuncUtils.judgmentOverflow(Number.POSITIVE_INFINITY);
+      FuncUtils.judgmentOverflow(Number.NEGATIVE_INFINITY);
+      done();
+    })
+
     it('sendNoticeFunc_test', 0, async function (done) {
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', ['pin']);
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_START', ['pin']);

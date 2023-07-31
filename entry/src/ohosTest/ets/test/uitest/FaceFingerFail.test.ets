@@ -24,11 +24,6 @@ const delayTime: number = 1000;
 
 export default function FaceFingerFailTest() {
   describe('FaceFingerFailTest', function () {
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     beforeAll(async function () {
       const data = {
         "cmd": [{
@@ -37,9 +32,9 @@ export default function FaceFingerFailTest() {
           }, "version": "1"
         }, {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 5555,
+            "lockoutDuration": 10000,
             "remainAttempts": 0,
-            "sensorInfo": "{\"sensorType\":\"SensorType1\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
+            "sensorInfo": "{\"sensorType\":\"NON_SENSOR\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
             "type": "fingerprint"
           }, "version": "1"
         }],
@@ -50,14 +45,12 @@ export default function FaceFingerFailTest() {
         "windowModeType": "DIALOG_BOX"
       }
       globalThis.wantParams = data;
-      sleep(1000);
 
       let want = {
         bundleName: bundleName,
         abilityName: 'FaceMixSuccess3Ability'
       }
       await delegator.startAbility(want);
-      sleep(1000);
     })
 
     it('cancelImg_allFaceAuth_test', 0, async function (done) {

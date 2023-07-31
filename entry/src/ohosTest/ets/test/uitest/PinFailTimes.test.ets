@@ -22,38 +22,34 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 
 const delayTime: number = 1000;
 
-export default function PinFaceFailTest() {
-  describe('PinFaceFailTest', function () {
+export default function PinFailTimesTest() {
+  describe('PinFailTimesTest', function () {
     beforeAll(async function () {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 2147483647, "remainAttempts": 0, "type": "pin"
-          }, "version": "1"
-        }, {
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 2147483647, "remainAttempts": 0, "type": "face"
+            "lockoutDuration": 0, "remainAttempts": 1, "type": "pin"
           }, "version": "1"
         }],
-        "pinSubType": "PIN_SIX",
+        "pinSubType": "PIN_MIXED",
         "title": "",
-        "type": ["pin", "face"],
-        "widgetContextId": 7728484037972500000,
+        "type": ["pin"],
+        "widgetContextId": 17202660292065450000,
         "windowModeType": "DIALOG_BOX"
       }
       globalThis.wantParams = data;
 
       let want = {
         bundleName: bundleName,
-        abilityName: 'FaceMixSuccessAbility'
+        abilityName: "PasswordFailTimesAbility"
       }
       await delegator.startAbility(want);
     })
 
-    it('cancelImg_allFaceAuth_test', 0, async function (done) {
+    it('pinFailTimes_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      await driver.findComponent(ON.id('cancelImgAllFaceAuth'));
+      await driver.findComponent(ON.id('pinSix'));
       expect(true).assertTrue();
       done();
     })
