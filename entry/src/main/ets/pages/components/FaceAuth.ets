@@ -38,7 +38,7 @@ const SIX_PIN = 5;
 const SINGLE_FACE = 6;
 const SCREEN_LAND = 1;
 const SCREEN_PORTRAIT = 2;
-const NOTICE_DELAY = 500;
+const NOTICE_DELAY = 50;
 let pinData = '';
 
 @Component
@@ -136,6 +136,14 @@ export default struct FaceAuth {
   }
 
   toPin(): void {
+    LogUtils.debug(TAG, 'toPin this.dialogType: ' + this.dialogType);
+    if (this.dialogType === DialogType.ALL) {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+    } else if (this.dialogType === DialogType.PIN_FACE) {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace]);
+    } else {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+    }
     if ([DialogType.PIN_FACE, DialogType.ALL].includes(this.dialogType)) {
       if (this.pinSubType !== Constants.pinSix) {
         this.dialogTypeFlag = MULTI_PIN;
@@ -248,13 +256,13 @@ export default struct FaceAuth {
               }
               default:
                 this.isPinFaceFinger = true;
-                if ((JSON.parse(sensorInfo)
-                  .udSensorCenterYInThousandth / displayClass.height < Constants.fingerSensorPositionLine)) {
+                let tempPositionLine = JSON.parse(sensorInfo).udSensorCenterYInThousandth / displayClass.height;
+                FuncUtils.judgmentOverflow(tempPositionLine);
+                if (tempPositionLine < Constants.fingerSensorPositionLine) {
                   if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
                     this.screenType = SCREEN_LAND;
                   }
-                } else if ((JSON.parse(sensorInfo)
-                  .udSensorCenterYInThousandth / displayClass.height > Constants.fingerSensorPositionLine)) {
+                } else if (tempPositionLine > Constants.fingerSensorPositionLine) {
                   if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
                     this.screenType = SCREEN_PORTRAIT;
                   }
@@ -316,8 +324,97 @@ export default struct FaceAuth {
           offset: { md: 2, lg: 3 },
         }) {
           if (this.isPinFaceFinger) {
-            Column() {
-              if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_PORTRAIT) {
+            if (this.dialogTypeFlag === MULTI_PIN) {
+              Column() {
+                // Password 32-bit
+                Column() {
+                  PassWord({
+                    textValue: $textValue,
+                    inputValue: $inputValue,
+                    isEdit: $isEdit,
+                    pinSubType: $pinSubType
+                  })
+                  Row() {
+                    Column() {
+                      Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
+                        .id('cancelBtnMixedPinFaceAuth')
+                        .margin({ left: $r('app.float.content_padding') })
+                        .width(Constants.ninetyPercentWidth)
+                        .height($r('app.float.btn_height'))
+                        .fontSize($r('sys.float.ohos_id_text_size_button1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
+                        .fontWeight(FontWeight.Medium)
+                        .backgroundColor(Color.Transparent)
+                        .onClick(() => {
+                          this.textValue = '';
+                          this.handleCancel();
+                        })
+                    }.width(Constants.halfContainerWidth)
+
+                    Divider()
+                      .vertical(true)
+                      .height($r('app.float.digital_password_mask_height'))
+                      .color($r('sys.color.ohos_id_color_list_separator'))
+                      .width($r('app.float.divider_width'))
+                    Column() {
+                      Button($r('app.string.unified_authwidget_confirm'))
+                        .id('okBtnFaceAuth')
+                        .margin({ right: $r('app.float.content_padding') })
+                        .width(Constants.ninetyPercentWidth)
+                        .height($r('app.float.btn_height'))
+                        .fontSize($r('sys.float.ohos_id_text_size_button1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
+                        .fontWeight(FontWeight.Medium)
+                        .backgroundColor(Color.Transparent)
+                        .onClick(async (e) => {
+                          AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
+                        })
+                    }.width(Constants.halfContainerWidth)
+                  }
+                  .height($r('app.float.btn_height'))
+                  .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
+                }
+              }
+              .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
+              .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))
+              .margin({
+                left: ($r('sys.float.ohos_id_dialog_margin_start')),
+                right: ($r('sys.float.ohos_id_dialog_margin_end')),
+                bottom: this.IS_LANDSCAPE ? '0' : ($r('sys.float.ohos_id_dialog_margin_bottom'))
+              })
+            } else if (this.dialogTypeFlag === SIX_PIN) {
+              Column() {
+                // Password 6-bit
+                Column() {
+                  SixPassword({
+                    textValue: $textValue,
+                    inputValue: $inputValue,
+                    isEdit: $isEdit
+                  })
+                  Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
+                    .id('cancelBtnSixPinFaceAuth')
+                    .onClick(() => {
+                      this.handleCancel();
+                      this.textValue = '';
+                    })
+                    .backgroundColor(Color.Transparent)
+                    .height($r('app.float.btn_height'))
+                    .width(Constants.halfContainerWidth)
+                    .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
+                    .fontSize($r('sys.float.ohos_id_text_size_button1'))
+                    .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
+                    .fontWeight(FontWeight.Medium)
+                }
+              }
+              .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
+              .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))
+              .margin({
+                left: ($r('sys.float.ohos_id_dialog_margin_start')),
+                right: ($r('sys.float.ohos_id_dialog_margin_end')),
+                bottom: this.IS_LANDSCAPE ? '0' : ($r('sys.float.ohos_id_dialog_margin_bottom'))
+              })
+            } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_PORTRAIT) {
+              Column() {
                 // The first form of facial fingerprint password
                 Flex({ justifyContent: FlexAlign.SpaceBetween }) {
                   Image($r('app.media.ic_public_cancel'))
@@ -380,7 +477,16 @@ export default struct FaceAuth {
                     this.sendFingerEvent();
                   })
               }
-              if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_LAND) {
+              .position({ y: this.fingerPositionY })
+              .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
+              .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))
+              .margin({
+                left: ($r('sys.float.ohos_id_dialog_margin_start')),
+                right: ($r('sys.float.ohos_id_dialog_margin_end')),
+                bottom: ($r('sys.float.ohos_id_dialog_margin_bottom'))
+              })
+            } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_LAND) {
+              Column() {
                 // Facial fingerprint password, second form
                 Image($r('app.media.error_faceID'))
                   .id('errFaceImgFaceAuth')
@@ -453,89 +559,15 @@ export default struct FaceAuth {
                 .height($r('app.float.btn_height'))
                 .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
               }
-              if (this.dialogTypeFlag === MULTI_PIN) {
-                // Password 32-bit
-                Column() {
-                  PassWord({
-                    textValue: $textValue,
-                    inputValue: $inputValue,
-                    isEdit: $isEdit,
-                    pinSubType: $pinSubType
-                  })
-                  Row() {
-                    Column() {
-                      Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
-                        .id('cancelBtnMixedPinFaceAuth')
-                        .margin({ left: $r('app.float.content_padding') })
-                        .width(Constants.ninetyPercentWidth)
-                        .height($r('app.float.btn_height'))
-                        .fontSize($r('sys.float.ohos_id_text_size_button1'))
-                        .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
-                        .fontWeight(FontWeight.Medium)
-                        .backgroundColor(Color.Transparent)
-                        .onClick(() => {
-                          this.textValue = '';
-                          this.handleCancel();
-                        })
-                    }.width(Constants.halfContainerWidth)
-
-                    Divider()
-                      .vertical(true)
-                      .height($r('app.float.digital_password_mask_height'))
-                      .color($r('sys.color.ohos_id_color_list_separator'))
-                      .width($r('app.float.divider_width'))
-                    Column() {
-                      Button($r('app.string.unified_authwidget_confirm'))
-                        .id('okBtnFaceAuth')
-                        .margin({ right: $r('app.float.content_padding') })
-                        .width(Constants.ninetyPercentWidth)
-                        .height($r('app.float.btn_height'))
-                        .fontSize($r('sys.float.ohos_id_text_size_button1'))
-                        .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
-                        .fontWeight(FontWeight.Medium)
-                        .backgroundColor(Color.Transparent)
-                        .onClick(async (e) => {
-                          AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
-                        })
-                    }.width(Constants.halfContainerWidth)
-                  }
-                  .height($r('app.float.btn_height'))
-                  .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
-                }
-
-              }
-              if (this.dialogTypeFlag === SIX_PIN) {
-                // Password 6-bit
-                Column() {
-                  SixPassword({
-                    textValue: $textValue,
-                    inputValue: $inputValue,
-                    isEdit: $isEdit
-                  })
-                  Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
-                    .id('cancelBtnSixPinFaceAuth')
-                    .onClick(() => {
-                      this.handleCancel();
-                      this.textValue = '';
-                    })
-                    .backgroundColor(Color.Transparent)
-                    .height($r('app.float.btn_height'))
-                    .width(Constants.halfContainerWidth)
-                    .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
-                    .fontSize($r('sys.float.ohos_id_text_size_button1'))
-                    .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
-                    .fontWeight(FontWeight.Medium)
-                }
-              }
+              .position({ y: this.fingerPositionY })
+              .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
+              .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))
+              .margin({
+                left: ($r('sys.float.ohos_id_dialog_margin_start')),
+                right: ($r('sys.float.ohos_id_dialog_margin_end')),
+                bottom: ($r('sys.float.ohos_id_dialog_margin_bottom'))
+              })
             }
-            .position({ y: this.fingerPositionY })
-            .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
-            .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))
-            .margin({
-              left: ($r('sys.float.ohos_id_dialog_margin_start')),
-              right: ($r('sys.float.ohos_id_dialog_margin_end')),
-              bottom: ($r('sys.float.ohos_id_dialog_margin_bottom'))
-            })
 
           } else {
             Column() {

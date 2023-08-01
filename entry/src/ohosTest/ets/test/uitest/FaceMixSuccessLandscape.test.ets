@@ -59,6 +59,7 @@ export default function FaceMixSuccessLandscapeTest() {
         abilityName: 'FaceMixSuccessLandscapeAbility'
       }
       await delegator.startAbility(want);
+      AppStorage.SetOrCreate('IS_LANDSCAPE', true);
     })
 
     it('faceMixSuccessLandscape_test', 0, async function (done) {

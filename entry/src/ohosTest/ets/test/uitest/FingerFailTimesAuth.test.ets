@@ -34,7 +34,7 @@ export default function FingerFailAuthTest() {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 0,
             "remainAttempts": 2,
-            "sensorInfo": "{\"sensorType\":\"OUT_OF_SCREEN_SENSOR\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
+            "sensorInfo": "{\"sensorType\":\"UNDER_SCREEN_SENSOR\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
             "type": "fingerprint"
           }, "version": "1"
         }],

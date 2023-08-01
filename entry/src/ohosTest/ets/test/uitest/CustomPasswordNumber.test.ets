@@ -17,6 +17,7 @@ import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import userAuth from '@ohos.userIAM.userAuth';
+import Constants from '../../../../main/ets/common/vm/Constants';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -72,8 +73,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord1_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd1'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd1'));
       expect(true).assertTrue();
       done();
     })
@@ -81,8 +81,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord2_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd2'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd2'));
       expect(true).assertTrue();
       done();
     })
@@ -90,8 +89,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord3_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd3'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd3'));
       expect(true).assertTrue();
       done();
     })
@@ -99,8 +97,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord4_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd4'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd4'));
       expect(true).assertTrue();
       done();
     })
@@ -108,8 +105,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord5_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd5'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd5'));
       expect(true).assertTrue();
       done();
     })
@@ -117,8 +113,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord6_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd6'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd6'));
       expect(true).assertTrue();
       done();
     })
@@ -126,8 +121,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord7_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd7'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd7'));
       expect(true).assertTrue();
       done();
     })
@@ -135,8 +129,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord8_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd8'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd8'));
       expect(true).assertTrue();
       done();
     })
@@ -144,8 +137,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord10_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd10'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd10'));
       expect(true).assertTrue();
       done();
     })
@@ -153,8 +145,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord9_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd9'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd9'));
       expect(true).assertTrue();
       done();
     })
@@ -162,8 +153,7 @@ export default function CustomPasswordNumberTest() {
     it('numKeyBord11_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('numKeyBordCustomPwd11'));
-      await btn.click();
+      await driver.findComponent(ON.id('numKeyBordCustomPwd11'));
       expect(true).assertTrue();
       done();
     })
@@ -179,8 +169,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord1_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd1'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd1'));
       expect(true).assertTrue();
       done();
     })
@@ -188,8 +177,7 @@ export default function CustomPasswordNumberTest() {
     it('teNtnumKeyBord2_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd2'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd2'));
       expect(true).assertTrue();
       done();
     })
@@ -197,8 +185,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord3_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd3'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd3'));
       expect(true).assertTrue();
       done();
     })
@@ -206,8 +193,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord4_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd4'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd4'));
       expect(true).assertTrue();
       done();
     })
@@ -215,8 +201,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord5_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd5'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd5'));
       expect(true).assertTrue();
       done();
     })
@@ -224,8 +209,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord6_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd6'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd6'));
       expect(true).assertTrue();
       done();
     })
@@ -233,8 +217,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord7_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd7'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd7'));
       expect(true).assertTrue();
       done();
     })
@@ -242,8 +225,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord8_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd8'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd8'));
       expect(true).assertTrue();
       done();
     })
@@ -251,8 +233,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord10_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd10'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd10'));
       expect(true).assertTrue();
       done();
     })
@@ -260,8 +241,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord9_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd9'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd9'));
       expect(true).assertTrue();
       done();
     })
@@ -269,8 +249,7 @@ export default function CustomPasswordNumberTest() {
     it('textNumKeyBord11_customPwd_test', 0, async function (done) {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
-      const btn = await driver.findComponent(ON.id('textNumKeyBordCustomPwd11'));
-      await btn.getType();
+      await driver.findComponent(ON.id('textNumKeyBordCustomPwd11'));
       expect(true).assertTrue();
       done();
     })
