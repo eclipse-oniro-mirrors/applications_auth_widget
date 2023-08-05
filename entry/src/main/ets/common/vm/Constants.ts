@@ -42,11 +42,6 @@ export default class Constants {
   // event cancel
   static noticeEventCancel = 'EVENT_AUTH_USER_CANCEL';
 
-  static fingerSensorPositionLine = 0.75;
-
-  static hintTimesByFailLess = 3;
-  static maxFailTimes = 5;
-
   static numKeyBoard = [
     {
       index: 0,

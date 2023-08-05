@@ -43,6 +43,8 @@ const AUTH_LOCK = 0;
 const NOTICE_DELAY = 50;
 const ON_SCREEN = 1;
 const UNDER_SCREEN = 2;
+const FINGER_SENSOR_POSITION_LINE = 0.75;
+const MAX_FAIL_TIMES = 5;
 
 @Component
 export default struct FingerprintAuth {
@@ -131,6 +133,8 @@ export default struct FingerprintAuth {
           }
           if (remainAttempts === AUTH_LOCK && lockoutDuration) {
             this.countTime(lockoutDuration);
+            this.textValue = '';
+            this.toPin();
             this.isEdit = false;
           }
           break;
@@ -150,9 +154,9 @@ export default struct FingerprintAuth {
               default:
                 let tempPositionLine = JSON.parse(sensorInfo).udSensorCenterYInThousandth / displayClass.height;
                 FuncUtils.judgmentOverflow(tempPositionLine);
-                if (tempPositionLine < Constants.fingerSensorPositionLine) {
+                if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
                   this.screenType = ON_SCREEN;
-                } else if (tempPositionLine > Constants.fingerSensorPositionLine) {
+                } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
                   this.screenType = UNDER_SCREEN;
                 }
                 break;
@@ -164,7 +168,7 @@ export default struct FingerprintAuth {
                 $r('app.string.unified_authwidget_hint_inscreen_fp'));
             }
           }
-          if (remainAttempts < Constants.maxFailTimes) {
+          if (remainAttempts < MAX_FAIL_TIMES) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
             this.fingerLock = false;
@@ -250,13 +254,16 @@ export default struct FingerprintAuth {
   }
 
   handleCancel(): void {
-    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+    if (this.state === SIX_PIN || this.state === MULTI_PIN) {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypePin]);
+    } else {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+    }
     globalThis.session?.terminateSelf?.();
   }
 
   toPin(): void {
     LogUtils.debug(TAG, 'toPin this.pinSubType: ' + this.pinSubType);
-    this.inputValue = ' ';
     AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
     if (this.pinSubType !== Constants.pinSix) {
       this.state = MULTI_PIN;
@@ -331,6 +338,7 @@ export default struct FingerprintAuth {
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
+                        this.inputValue = ' ';
                         this.toPin();
                       })
                   }.width(Constants.halfContainerWidth)
@@ -621,6 +629,7 @@ export default struct FingerprintAuth {
                         .fontWeight(FontWeight.Medium)
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
+                          this.inputValue = ' ';
                           this.toPin();
                         })
                     }.width(Constants.halfContainerWidth)
@@ -653,6 +662,7 @@ export default struct FingerprintAuth {
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
                       .fontWeight(FontWeight.Medium)
                       .onClick(() => {
+                        this.inputValue = ' ';
                         this.toPin();
                       })
                   }

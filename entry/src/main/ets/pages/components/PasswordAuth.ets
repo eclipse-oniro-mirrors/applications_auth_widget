@@ -26,6 +26,8 @@ const TAG = 'PasswordAuth';
 const INTERVAL = 1000;
 const BUTTON_OPACITY = 1;
 const TEXT_LENGTH = 4;
+const MAX_FAIL_TIMES = 5;
+const HINT_TIMES_BY_FAIL_LESS = 3;
 
 let pinAuthManager;
 let pinData = '';
@@ -49,7 +51,7 @@ export default struct PasswordAuth {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
       const { type, remainAttempts, lockoutDuration } = item.payload;
       if (type === Constants.noticeTypePin) {
-        if (remainAttempts && remainAttempts < Constants.maxFailTimes) {
+        if (remainAttempts && remainAttempts < MAX_FAIL_TIMES) {
           this.inputValue = globalThis.context.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
           this.textValue = '';
@@ -57,7 +59,7 @@ export default struct PasswordAuth {
             this.inputValue = '';
           }
           // pin auth Remaining number
-          if (remainAttempts < Constants.hintTimesByFailLess) {
+          if (remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
             this.inputValue = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
             + remainAttempts + globalThis.context.resourceManager
