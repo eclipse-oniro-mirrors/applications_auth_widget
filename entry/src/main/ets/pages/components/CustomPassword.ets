@@ -35,7 +35,8 @@ export default struct CustomPassword {
   @Link pinSubType: string;
   @Link authType: Array<userAuth.UserAuthType>;
   @Link cmdData: [];
-  @State isBackTouched: boolean = false
+  @State isBackTouched: boolean = false;
+  @State cancelImageShow: boolean = false;
   @State @Watch('onTextValueChange') textValue: string = '';
   @StorageLink('IS_LANDSCAPE') IS_LANDSCAPE: boolean = false;
   @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
@@ -101,7 +102,7 @@ export default struct CustomPassword {
                 this.isBackTouched = false;
               }
             });
-        }
+        }.visibility(this.cancelImageShow ? Visibility.Hidden : Visibility.Visible)
 
         GridRow({
           columns: { xs: 4, sm: 4, md: 8, lg: 12 },
@@ -118,7 +119,8 @@ export default struct CustomPassword {
               textValue: $textValue,
               authType: $authType,
               pinSubType: $pinSubType,
-              cmdData: $cmdData
+              cmdData: $cmdData,
+              cancelImage: $cancelImageShow,
             })
           }
         }

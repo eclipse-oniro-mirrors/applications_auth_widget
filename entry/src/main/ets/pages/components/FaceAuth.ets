@@ -39,6 +39,8 @@ const SINGLE_FACE = 6;
 const SCREEN_LAND = 1;
 const SCREEN_PORTRAIT = 2;
 const NOTICE_DELAY = 50;
+const FINGER_SENSOR_POSITION_LINE = 0.75;
+const HINT_TIMES_BY_FAIL_LESS = 3;
 let pinData = '';
 
 @Component
@@ -96,7 +98,7 @@ export default struct FaceAuth {
         FuncUtils.judgmentOverflow(tempPosition);
         let tempFingerPositionY = px2vp(this.screen[1]) * this.fingerPosition.udSensorCenterYInThousandth;
         FuncUtils.judgmentOverflow(tempFingerPositionY);
-        if (tempPosition < Constants.fingerSensorPositionLine) {
+        if (tempPosition < FINGER_SENSOR_POSITION_LINE) {
           this.fingerPositionY = (tempFingerPositionY / THOUSANDTH) - px2vp(this.screen[1])
           + this.SYSTEM_NAVIGATION_BAR_HEIGHT - MARGIN_TOP - px2vp(this.fingerPosition.udSensorRadiusInPx);
         } else {
@@ -136,15 +138,15 @@ export default struct FaceAuth {
   }
 
   toPin(): void {
-    LogUtils.debug(TAG, 'toPin this.dialogType: ' + this.dialogType);
-    if (this.dialogType === DialogType.ALL) {
-      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-    } else if (this.dialogType === DialogType.PIN_FACE) {
-      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace]);
-    } else {
-      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
-    }
     if ([DialogType.PIN_FACE, DialogType.ALL].includes(this.dialogType)) {
+      LogUtils.debug(TAG, 'toPin this.dialogType: ' + this.dialogType);
+      if (this.dialogType === DialogType.ALL) {
+        AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+      } else if (this.dialogType === DialogType.PIN_FACE) {
+        AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace]);
+      } else {
+        AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+      }
       if (this.pinSubType !== Constants.pinSix) {
         this.dialogTypeFlag = MULTI_PIN;
       } else {
@@ -202,7 +204,7 @@ export default struct FaceAuth {
             if (num === 'first') {
               this.inputValue = '';
             }
-            if (remainAttempts < Constants.hintTimesByFailLess) {
+            if (remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
               this.inputValue = globalThis.context.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
               + remainAttempts + globalThis.context.resourceManager
@@ -211,6 +213,8 @@ export default struct FaceAuth {
           }
           if (remainAttempts === 0 && lockoutDuration) {
             this.countTime(lockoutDuration);
+            this.textValue = '';
+            this.toPin();
             this.isEdit = false;
           }
           break;
@@ -258,11 +262,11 @@ export default struct FaceAuth {
                 this.isPinFaceFinger = true;
                 let tempPositionLine = JSON.parse(sensorInfo).udSensorCenterYInThousandth / displayClass.height;
                 FuncUtils.judgmentOverflow(tempPositionLine);
-                if (tempPositionLine < Constants.fingerSensorPositionLine) {
+                if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
                   if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
                     this.screenType = SCREEN_LAND;
                   }
-                } else if (tempPositionLine > Constants.fingerSensorPositionLine) {
+                } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
                   if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
                     this.screenType = SCREEN_PORTRAIT;
                   }
@@ -306,7 +310,11 @@ export default struct FaceAuth {
   }
 
   handleCancel(): void {
-    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+    if (this.dialogTypeFlag === SIX_PIN || this.dialogTypeFlag === MULTI_PIN) {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypePin]);
+    } else {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+    }
     globalThis.session?.terminateSelf?.();
   }
 
@@ -512,7 +520,7 @@ export default struct FaceAuth {
                   .height($r('app.float.size_24'))
                   .fontColor(this.onFontColor(this.prompt, globalThis.context))
                   .onClick(() => {
-                    if (globalThis?.context?.resourceManager
+                    if (this.prompt === globalThis?.context?.resourceManager
                     ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'))) {
                       this.sendFaceEvent();
                     }

@@ -39,6 +39,8 @@ const PASSWORD_LENGTH = 4;
 const PASSWORD_ARRAY_LENGTH = 6;
 const UNDER_FINGER = 170;
 const NOTICE_DELAY = 50;
+const FINGER_SENSOR_POSITION_LINE = 0.75;
+const RADIUS = 2;
 
 interface ControlType {
   isSixPassword?: boolean,
@@ -62,22 +64,20 @@ export default struct FullScreen {
   @Link textValue: string;
   @Link authType: Array<userAuth.UserAuthType>;
   @Link @Watch('onCmdDataChange') cmdData: Array<CmdType>;
+  @Link cancelImage: boolean;
   @State pinLock: number = 0;
   @State fingerPositionY: number = 0;
   @State fingerTextPositionY: number = 0;
   @State fingerTipsPositionY: number = 0;
   @State fingerButtonPositionY: number = 0;
   @State fingerPositionLine: number = 0;
-  @StorageLink('cueWord') cueWord: string = globalThis.context.resourceManager
-    .getStringSync($r('app.string.unified_authwidget_use_pwd'));
   @StorageLink('passwordArray') passwordArray: string[] = [];
   @StorageLink('passwordArrayNumber') passwordArrayNumber: string[] = [];
   @State passwordObj: string = '';
   numKeyboard: KeyboardType[] = Constants.numKeyBoard;
   @State prompt: string = globalThis.context.resourceManager
     .getStringSync($r('app.string.unified_authwidget_use_pwd'));
-  @State fingerText: string = globalThis.context.resourceManager
-    .getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp'));
+  @State fingerText: string = globalThis.wantParams?.title;
   @StorageLink('screenLockDirection') screenLockDirection: number = 1;
   @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
   @State controlType: ControlType = {
@@ -104,7 +104,8 @@ export default struct FullScreen {
           if (remainAttempts) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
-            if (num === 'first') {
+            if (num === 'first' && this.prompt !== globalThis.context.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_hint_recognition'))) {
               this.prompt = globalThis.context.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_use_pwd'));
             }
@@ -129,16 +130,20 @@ export default struct FullScreen {
           break;
         case Constants.noticeTypeFace:
           if (remainAttempts) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'));
-            this.faceFingerLockArr[0] = false;
+            if (this.pinLock !== 1) {
+              this.prompt = globalThis.context.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'));
+              this.faceFingerLockArr[0] = false;
+            }
           }
           if (num === 'first') {
             if (remainAttempts === 0) {
               this.controlType.isShowFace = false;
             } else {
-              this.prompt = globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+              if (this.pinLock !== 1) {
+                this.prompt = globalThis.context.resourceManager
+                  .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+              }
             }
           }
           if (remainAttempts === 0) {
@@ -157,17 +162,10 @@ export default struct FullScreen {
             const displayClass = display.getDefaultDisplaySync();
             this.screen = [displayClass.width, displayClass.height];
           }
-          if (num === 'first') {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_use_pwd'));
-          }
           if (remainAttempts) {
             if (this.controlType.jumpFinger) {
               this.fingerText = globalThis.context.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
-            } else {
-              this.prompt = globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_use_pwd'));
             }
             if (sensor) {
               if (sensor.sensorType === 'UNDER_SCREEN_SENSOR' ||
@@ -180,7 +178,7 @@ export default struct FullScreen {
                 }
                 let tempPositionLine = sensor.udSensorCenterYInThousandth / this.screen[1];
                 FuncUtils.judgmentOverflow(tempPositionLine);
-                if (num === 'first' && tempPositionLine > Constants.fingerSensorPositionLine) {
+                if (num === 'first' && tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
                   AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                 }
               }
@@ -197,6 +195,7 @@ export default struct FullScreen {
             }
             this.faceFingerLockArr[1] = true;
             this.controlType.jumpFinger = false;
+            this.cancelImage = false;
           }
           break;
         default:
@@ -223,19 +222,19 @@ export default struct FullScreen {
         this.fingerButtonPositionY = tempPosition / THOUSANDTH;
         FuncUtils.judgmentOverflow(this.fingerButtonPositionY);
         this.fingerPositionY = this.fingerButtonPositionY - this.SYSTEM_STATUS_BAR_HEIGHT
-          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx);
+          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS);
         FuncUtils.judgmentOverflow(this.fingerPositionY);
 
         this.fingerTipsPositionY = this.fingerButtonPositionY - px2vp(FINGER_Y_POSITION) - FINGER_HIGH
-          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx)
+          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS)
         FuncUtils.judgmentOverflow(this.fingerTipsPositionY);
 
         this.fingerTextPositionY = this.fingerButtonPositionY - px2vp(FINGER_Y_POSITION) - FINGER_TEXT_POSITION
-          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx);
+          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS);
         FuncUtils.judgmentOverflow(this.fingerTextPositionY);
       }
 
-      if (this.controlType.isShowFace) {
+      if (this.controlType.isShowFace && this.pinLock !== 1) {
         AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
         return;
       }
@@ -552,7 +551,7 @@ export default struct FullScreen {
               if (this.fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR' ||
                 this.fingerPosition.sensorType === 'BOTH_SENSOR' ||
                 this.fingerPosition.sensorType === 'SensorType1') {
-                if (this.fingerPositionLine > Constants.fingerSensorPositionLine && !this.IS_LANDSCAPE) {
+                if (this.fingerPositionLine > FINGER_SENSOR_POSITION_LINE && !this.IS_LANDSCAPE) {
                   Image($r('app.media.ic_unlock_fingerprint'))
                     .id('fingerprintImgCustomPassword')
                     .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
@@ -572,6 +571,7 @@ export default struct FullScreen {
                       } else {
                         this.controlType.jumpFinger = true;
                         AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+                        this.cancelImage = true;
                       }
                     })
                 }
@@ -612,8 +612,8 @@ export default struct FullScreen {
           Image($r('app.media.ic_unlock_fingerprint'))
             .id('unlockFingerprintImgCustomPwd')
               // radius
-            .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
-            .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+            .width(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
+            .height(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
         }.width('100%')
         .position({ y: this.fingerPositionY })
         .justifyContent(FlexAlign.Center)
@@ -631,6 +631,7 @@ export default struct FullScreen {
           .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
           .onClick(() => {
             this.controlType.jumpFinger = false;
+            this.cancelImage = false;
           })
       }
       .justifyContent(FlexAlign.End)
