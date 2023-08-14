@@ -177,6 +177,10 @@
       "value": "后重试"
     },
     {
+      "name": "unified_authwidget_hour",
+      "value": "小时"
+    },
+    {
       "name": "unified_authwidget_minutes",
       "value": "分钟"
     },
