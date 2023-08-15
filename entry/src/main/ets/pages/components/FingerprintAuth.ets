@@ -161,22 +161,22 @@ export default struct FingerprintAuth {
                 }
                 break;
             }
-            if (num === 'first') {
-              this.prompt = globalThis.context.resourceManager
-                .getStringSync(this.isOffFinger ?
-                $r('app.string.unified_authwidget_hint_normal_fp_only') :
-                $r('app.string.unified_authwidget_hint_inscreen_fp'));
-            }
           }
-          if (remainAttempts < MAX_FAIL_TIMES) {
+          if (remainAttempts) {
             this.prompt = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
             this.fingerLock = false;
+            if (remainAttempts > AUTH_LOCK && num !== 'first') {
+              setTimeout(() => {
+                AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+              }, NOTICE_DELAY);
+            }
           }
-          if (remainAttempts > AUTH_LOCK && num !== 'first') {
-            setTimeout(() => {
-              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-            }, NOTICE_DELAY);
+          if (num === 'first') {
+            this.prompt = globalThis.context.resourceManager
+              .getStringSync(this.isOffFinger ?
+              $r('app.string.unified_authwidget_hint_normal_fp_only') :
+              $r('app.string.unified_authwidget_hint_inscreen_fp'));
           }
           if (remainAttempts === AUTH_LOCK) {
             this.prompt = globalThis.context.resourceManager

@@ -177,6 +177,10 @@
       "value": "retry"
     },
     {
+      "name": "unified_authwidget_hour",
+      "value": "hour"
+    },
+    {
       "name": "unified_authwidget_minutes",
       "value": "minutes "
     },

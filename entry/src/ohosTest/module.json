@@ -203,7 +203,8 @@
         "permissions": [
           "ohos.permission.ACCESS_PIN_AUTH",
           "ohos.permission.ACCESS_BIOMETRIC",
-          "ohos.permission.SUPPORT_USER_AUTH"
+          "ohos.permission.SUPPORT_USER_AUTH",
+          "ohos.permission.PRIVACY_WINDOW"
         ],
         "metadata": [
           {
@@ -223,6 +224,9 @@
       {
         "name": "ohos.permission.SUPPORT_USER_AUTH"
       },
+      {
+        "name": "ohos.permission.PRIVACY_WINDOW"
+      }
     ]
   }
 }

@@ -226,7 +226,7 @@ export default struct FullScreen {
         FuncUtils.judgmentOverflow(this.fingerPositionY);
 
         this.fingerTipsPositionY = this.fingerButtonPositionY - px2vp(FINGER_Y_POSITION) - FINGER_HIGH
-          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS)
+          - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS);
         FuncUtils.judgmentOverflow(this.fingerTipsPositionY);
 
         this.fingerTextPositionY = this.fingerButtonPositionY - px2vp(FINGER_Y_POSITION) - FINGER_TEXT_POSITION
@@ -248,6 +248,7 @@ export default struct FullScreen {
     this.passwordArray = [];
     this.passwordArrayNumber = [];
     this.passwordArray = ['', '', '', '', '', ''];
+    this.passwordObj = '';
     this.numKeyboard[11].value = GO_BACK;
     this.numKeyboard[11].row1 = globalThis.context.resourceManager
       .getStringSync($r('app.string.unified_authwidget_back'));
@@ -632,6 +633,8 @@ export default struct FullScreen {
           .onClick(() => {
             this.controlType.jumpFinger = false;
             this.cancelImage = false;
+            AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+            this.fingerText = globalThis.wantParams?.title;
           })
       }
       .justifyContent(FlexAlign.End)
