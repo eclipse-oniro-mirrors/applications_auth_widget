@@ -289,17 +289,20 @@ export default struct FingerprintAuth {
             Column() {
               if ([PIN_FINGER, SINGLE_FINGER].includes(this.state)) {
                 Text(globalThis.wantParams?.title)
+                  .draggable(false)
                   .margin({ top: $r('app.float.title_padding_top') })
                   .fontSize($r('sys.float.ohos_id_text_size_body1'))
                   .fontColor($r('sys.color.ohos_id_color_text_primary'))
                   .fontWeight(FontWeight.Medium)
                 Image(this.getFingerPosition(this.fingerPosition?.outOfScreenSensorType))
+                  .draggable(false)
                   .width($r('app.float.image_big'))
                   .height($r('app.float.image_big'))
                   .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
                   .id('outFingerImage')
 
                 Text(this.prompt)
+                  .draggable(false)
                   .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                   .fontSize($r('sys.float.ohos_id_text_size_body2'))
               }
@@ -579,6 +582,7 @@ export default struct FingerprintAuth {
               Column() {
                 if (this.screenType === ON_SCREEN) {
                   Text(globalThis.wantParams?.title)
+                    .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -586,6 +590,7 @@ export default struct FingerprintAuth {
                   Image(this.prompt === globalThis.context.resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))
                     ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
+                    .draggable(false)
                     .margin({
                       top: $r('app.float.digital_password_mask_height'),
                       bottom: $r('app.float.digital_password_mask_height')
@@ -594,6 +599,7 @@ export default struct FingerprintAuth {
                     .width(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
                     .height(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
                   Text(this.prompt)
+                    .draggable(false)
                     .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   Row() {
@@ -639,6 +645,7 @@ export default struct FingerprintAuth {
                 } else if (this.screenType === UNDER_SCREEN) {
                   Flex({ justifyContent: FlexAlign.SpaceBetween }) {
                     Image($r('app.media.ic_public_cancel'))
+                      .draggable(false)
                       .id('cancelBtnState4FingerprintAuth')
                       .width($r('app.float.digital_password_mask_height'))
                       .height($r('app.float.digital_password_mask_height'))
@@ -668,13 +675,16 @@ export default struct FingerprintAuth {
                   }
 
                   Text(globalThis.wantParams?.title).fontSize($r('sys.float.ohos_id_text_size_body1'))
+                    .draggable(false)
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
                   Text(this.prompt)
+                    .draggable(false)
                     .margin({ top: $r('app.float.element_margin') })
                     .height($r('app.float.size_24'))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                     .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                   Image($r('app.media.ic_blue_fingerprint'))
+                    .draggable(false)
                     .width(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
                     .height(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
                     .margin({
@@ -698,6 +708,7 @@ export default struct FingerprintAuth {
               Column() {
                 if (this.screenType === ON_SCREEN) {
                   Text(globalThis.wantParams?.title)
+                    .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -705,6 +716,7 @@ export default struct FingerprintAuth {
                   Image(this.prompt === globalThis.context.resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))
                     ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
+                    .draggable(false)
                     .margin({
                       top: $r('app.float.digital_password_mask_height'),
                       bottom: $r('app.float.digital_password_mask_height')
@@ -713,6 +725,7 @@ export default struct FingerprintAuth {
                     .width(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
                     .height(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
                   Text(this.prompt)
+                    .draggable(false)
                     .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   if (!globalThis.wantParams?.navigationButtonText) {
@@ -779,6 +792,7 @@ export default struct FingerprintAuth {
                 } else if (this.screenType === UNDER_SCREEN) {
                   Flex({ justifyContent: FlexAlign.SpaceBetween }) {
                     Image($r('app.media.ic_public_cancel'))
+                      .draggable(false)
                       .id('fingerUnderImage')
                       .width($r('app.float.digital_password_mask_height'))
                       .height($r('app.float.digital_password_mask_height'))
@@ -812,13 +826,16 @@ export default struct FingerprintAuth {
                   }
 
                   Text(globalThis.wantParams?.title).fontSize($r('sys.float.ohos_id_text_size_body1'))
+                    .draggable(false)
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
                   Text(this.prompt)
+                    .draggable(false)
                     .margin({ top: $r('app.float.element_margin') })
                     .height($r('app.float.size_24'))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                     .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                   Image($r('app.media.ic_blue_fingerprint'))
+                    .draggable(false)
                     .width(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
                     .height(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
                     .margin({

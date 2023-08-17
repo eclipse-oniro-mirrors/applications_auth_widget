@@ -173,6 +173,7 @@ struct Index {
           Column() {
             Text(globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode')))
+              .draggable(false)
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_body2'))
               .fontWeight(FontWeight.Regular)

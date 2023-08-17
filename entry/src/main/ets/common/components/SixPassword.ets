@@ -42,6 +42,7 @@ export default struct SixPassword {
   build() {
     Column() {
       Text(globalThis.wantParams?.title)
+        .draggable(false)
         .margin({ top: $r('app.float.content_padding_top') })
         .fontSize($r('sys.float.ohos_id_text_size_body1'))
         .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -77,6 +78,7 @@ export default struct SixPassword {
           .height($r('app.float.input_height'))
 
           TextInput({ placeholder: '', text: this.passwordArrayNumber?.join('') })
+            .draggable(false)
             .onChange(async (value: string) => {
               this.passwordArrayNumber = value?.replace(/[^\d]/g, '')?.split('');
               this.textValue = this.passwordArrayNumber?.join('');
@@ -96,6 +98,7 @@ export default struct SixPassword {
       .margin({ top: $r('app.float.content_padding') })
 
       Text(this.inputValue)
+        .draggable(false)
         .fontSize($r('sys.float.ohos_id_text_size_body2'))
         .margin({ top: $r('app.float.element_margin') })
         .fontColor($r('sys.color.ohos_id_color_warning'))
