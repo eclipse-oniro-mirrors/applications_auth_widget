@@ -45,6 +45,7 @@ export default struct PassWord {
   build() {
     Column() {
       Text(globalThis.wantParams?.title)
+        .draggable(false)
         .margin({ top: $r('app.float.content_padding_top') })
         .fontSize($r('sys.float.ohos_id_text_size_body1'))
         .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -55,6 +56,7 @@ export default struct PassWord {
         placeholder: '',
         text: this.pinSubType === Constants.pinNumber ? this.passwordArrNumber.join('') : this.textValue
       })
+        .draggable(false)
         .maxLength(MAX_LENGTH)
         .enabled(this.isEdit)
         .height($r('app.float.input_height'))
@@ -78,6 +80,7 @@ export default struct PassWord {
         })
         .id('pinInputMix')
       Text(this.inputValue)
+        .draggable(false)
         .fontSize($r('sys.float.ohos_id_text_size_body2'))
         .margin({ top: $r('app.float.element_margin') })
         .fontColor($r('sys.color.ohos_id_color_warning'))

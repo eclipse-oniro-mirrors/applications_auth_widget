@@ -84,6 +84,7 @@ export default struct CustomPassword {
       Column() {
         Flex({ direction: FlexDirection.Row }) {
           Image($r('app.media.ic_white_cancel'))
+            .draggable(false)
             .id('cancelImgCustomPwd')
             .width($r('app.float.image_back_size'))
             .height($r('app.float.image_back_size'))

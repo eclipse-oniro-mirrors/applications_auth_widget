@@ -290,12 +290,14 @@ export default struct FullScreen {
           // 1: pin lock
           if (this.pinLock === 1) {
             Text($r('app.string.unified_authwidget_locked'))
+              .draggable(false)
               .margin({ bottom: $r('app.float.content_padding') })
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_headline6'))
               .fontWeight(FontWeight.Medium)
           } else if (this.controlType.isShowFace) {
             Image($r('app.media.white_faceID'))
+              .draggable(false)
               .id('faceImgCustomPwd')
               .width($r('app.float.image_small'))
               .height($r('app.float.image_small'))
@@ -312,12 +314,14 @@ export default struct FullScreen {
               })
           } else {
             Text()
+              .draggable(false)
               .margin({ bottom: $r('app.float.content_padding') })
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_headline6'))
               .fontWeight(FontWeight.Medium)
           }
           Text(this.prompt)
+            .draggable(false)
             .id('cancelIconCustomPassword')
             .fontSize(this.pinLock === 0
               ? $r('sys.float.ohos_id_text_size_body1')
@@ -387,6 +391,7 @@ export default struct FullScreen {
 
                   if (this.IS_LANDSCAPE) {
                     TextInput({ placeholder: '', text: this.passwordArray?.join('') })
+                      .draggable(false)
                       .onChange(async (value: string) => {
                         const arr = value?.replace(/[^\d]/g, '')?.split('');
                         arr?.map((item, index) => {
@@ -407,6 +412,7 @@ export default struct FullScreen {
               } else if (this.pinSubType === Constants.pinNumber) {
                 Stack() {
                   TextInput({ placeholder: '', text: this.passwordArrayNumber.join('') })
+                    .draggable(false)
                     .onChange(async (value: string) => {
                       // Removes non-numeric characters from a string
                       this.passwordArrayNumber = value.replace(/[^\d]/g, '').split('');
@@ -438,6 +444,7 @@ export default struct FullScreen {
                 }
               } else if (this.pinSubType === Constants.pinMixed) {
                 TextInput({ text: this.passwordObj })
+                  .draggable(false)
                   .fontColor(Color.White)
                   .height($r('app.float.btn_height'))
                   .type(InputType.Password)
@@ -538,7 +545,7 @@ export default struct FullScreen {
               }
             })
           } else {
-            Text().height(Constants.fullContainerHeight)
+            Text().draggable(false).height(Constants.fullContainerHeight)
           }
         }
         .width(Constants.fullContainerWidth)
@@ -554,6 +561,7 @@ export default struct FullScreen {
                 this.fingerPosition.sensorType === 'SensorType1') {
                 if (this.fingerPositionLine > FINGER_SENSOR_POSITION_LINE && !this.IS_LANDSCAPE) {
                   Image($r('app.media.ic_unlock_fingerprint'))
+                    .draggable(false)
                     .id('fingerprintImgCustomPassword')
                     .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
                     .height(px2vp(this.fingerPosition.udSensorRadiusInPx))
@@ -562,6 +570,7 @@ export default struct FullScreen {
                     + this.fingerButtonPositionY })
                 } else {
                   Image($r('app.media.finger_white'))
+                    .draggable(false)
                     .id('fingerWhiteImgCustomPassword')
                     .width($r('app.float.image_back_size'))
                     .height($r('app.float.image_back_size'))
@@ -588,6 +597,7 @@ export default struct FullScreen {
     } else if (!this.controlType.isLandscape) {
       Column() {
         Text(this.fingerText)
+          .draggable(false)
           .id('titleFullScreen')
           .height($r('app.float.text_high'))
           .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
@@ -599,6 +609,7 @@ export default struct FullScreen {
           .width('100%')
           .textAlign(TextAlign.Center)
         Text($r('app.string.unified_authwidget_hint_inscreen_fp'))
+          .draggable(false)
           .height($r('app.float.text_high'))
           .fontColor($r('sys.color.ohos_id_color_text_secondary_contrary'))
           .fontSize($r('sys.float.ohos_id_text_size_body2'))
@@ -611,6 +622,7 @@ export default struct FullScreen {
           .margin({ top: $r('app.float.padding_8') })
         Column() {
           Image($r('app.media.ic_unlock_fingerprint'))
+            .draggable(false)
             .id('unlockFingerprintImgCustomPwd')
               // radius
             .width(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))

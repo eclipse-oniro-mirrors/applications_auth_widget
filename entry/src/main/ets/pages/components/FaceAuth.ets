@@ -426,6 +426,7 @@ export default struct FaceAuth {
                 // The first form of facial fingerprint password
                 Flex({ justifyContent: FlexAlign.SpaceBetween }) {
                   Image($r('app.media.ic_public_cancel'))
+                    .draggable(false)
                     .id('cancelImgAllFaceAuth')
                     .width($r('app.float.digital_password_mask_height'))
                     .height($r('app.float.digital_password_mask_height'))
@@ -456,6 +457,7 @@ export default struct FaceAuth {
                 }
 
                 Image($r('app.media.error_faceID'))
+                  .draggable(false)
                   .id('imgAllFaceAuth')
                   .width($r('app.float.image_small'))
                   .height($r('app.float.image_small'))
@@ -464,15 +466,19 @@ export default struct FaceAuth {
                   .onClick(() => {
                     this.sendFaceEvent();
                   })
-                Text(globalThis.wantParams.title).fontSize($r('sys.float.ohos_id_text_size_body1'))
+                Text(globalThis.wantParams.title)
+                  .draggable(false)
+                  .fontSize($r('sys.float.ohos_id_text_size_body1'))
                   .fontColor($r('sys.color.ohos_id_color_text_primary'))
                 Text(this.prompt)
+                  .draggable(false)
                   .id('resetPromptTextAllFaceAuth')
                   .margin({ top: $r('app.float.element_margin') })
                   .height($r('app.float.size_24'))
                   .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   .fontColor(this.onFontColor(this.prompt, globalThis.context))
                 Image($r('app.media.ic_blue_fingerprint'))
+                  .draggable(false)
                   .id('blueFingerprintImgAllFaceAuth')
                     // radius
                   .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
@@ -497,6 +503,7 @@ export default struct FaceAuth {
               Column() {
                 // Facial fingerprint password, second form
                 Image($r('app.media.error_faceID'))
+                  .draggable(false)
                   .id('errFaceImgFaceAuth')
                   .width($r('app.float.image_small'))
                   .height($r('app.float.image_small'))
@@ -506,15 +513,18 @@ export default struct FaceAuth {
                     this.sendFaceEvent();
                   })
                 Text(globalThis.wantParams.title).fontSize($r('sys.float.ohos_id_text_size_body1'))
+                  .draggable(false)
                   .fontColor($r('sys.color.ohos_id_color_text_primary'))
 
                 Image($r('app.media.ic_blue_fingerprint'))
+                  .draggable(false)
                   .id('blueFingerprintImgFaceAuth')
                     // radius
                   .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                   .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                   .margin({ top: $r('app.float.content_padding') })
                 Text(this.prompt)
+                  .draggable(false)
                   .margin({ top: $r('app.float.content_padding') })
                   .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   .height($r('app.float.size_24'))
@@ -582,6 +592,7 @@ export default struct FaceAuth {
               if (this.dialogTypeFlag === PIN_FACE) {
                 // Pin FACE
                 Text(globalThis.wantParams.title)
+                  .draggable(false)
                   .id('titlePinFace')
                   .fontSize($r('sys.float.ohos_id_text_size_body1'))
                   .margin({ top: $r('app.float.content_padding_top') })
@@ -590,6 +601,7 @@ export default struct FaceAuth {
                 Image(this.prompt !== globalThis.context.resourceManager
                   .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
                   ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
+                  .draggable(false)
                   .margin({
                     top: $r('app.float.digital_password_mask_height'),
                     bottom: $r('app.float.digital_password_mask_height')
@@ -601,6 +613,7 @@ export default struct FaceAuth {
                     this.sendFaceEvent();
                   })
                 Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
+                  .draggable(false)
                   .fontColor(this.onFontColor(this.prompt, globalThis.context))
                   .height($r('app.float.size_24'))
                   .onClick(() => {
@@ -724,6 +737,7 @@ export default struct FaceAuth {
               if (this.dialogTypeFlag === SINGLE_FACE) {
                 // Single FACE
                 Text(globalThis.wantParams.title)
+                  .draggable(false)
                   .id('titleFaceAuth')
                   .fontSize($r('sys.float.ohos_id_text_size_body1'))
                   .margin({ top: $r('app.float.content_padding_top') })
@@ -733,6 +747,7 @@ export default struct FaceAuth {
                   .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
                   ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
                   .id('imageFaceAuth')
+                  .draggable(false)
                   .margin({
                     top: $r('app.float.digital_password_mask_height'),
                     bottom: $r('app.float.digital_password_mask_height')
@@ -744,6 +759,7 @@ export default struct FaceAuth {
                     this.sendFaceEvent();
                   })
                 Text(this.prompt)
+                  .draggable(false)
                   .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   .id('textFaceAuth')
                   .height($r('app.float.size_24'))

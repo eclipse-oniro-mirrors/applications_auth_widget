@@ -42,6 +42,7 @@ export default struct NumKeyBoard {
                 }) {
                   if (item.value === CALL_PHONE || item.value === GO_BACK || item.value === DEL_PASSWORD) {
                     Text(item.row1)
+                      .draggable(false)
                       .id('textNumKeyBordCustomPwd' + item.index)
                       .fontSize($r('app.float.digital_password_prompt_font_size'))
                       .fontWeight(FontWeight.Medium)
@@ -52,6 +53,7 @@ export default struct NumKeyBoard {
                       .margin($r('app.float.numkeyBoard_rowsGap'))
                   } else {
                     Text(item.row1)
+                      .draggable(false)
                       .id('textNumKeyBordCustomPwd' + item.index)
                       .fontSize($r('app.float.digital_password_row1_font_size'))
                       .fontWeight(FontWeight.Medium)
@@ -63,6 +65,7 @@ export default struct NumKeyBoard {
                   }
                   if (!!item.row2) {
                     Text(item.row2)
+                      .draggable(false)
                       .fontSize($r('app.float.digital_password_row2_font_size'))
                       .fontWeight(FontWeight.Regular)
                       .fontColor(Color.White)
