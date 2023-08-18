@@ -41,12 +41,29 @@ export default struct SixPassword {
 
   build() {
     Column() {
-      Text(globalThis.wantParams?.title)
-        .margin({ top: $r('app.float.content_padding_top') })
-        .fontSize($r('sys.float.ohos_id_text_size_body1'))
-        .fontColor($r('sys.color.ohos_id_color_text_primary'))
-        .height($r('app.float.size_24'))
-        .fontWeight(FontWeight.Medium)
+      if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+        Scroll() {
+          Text(globalThis.wantParams?.title)
+	    .draggable(false)
+            .fontSize($r('sys.float.ohos_id_text_size_body1'))
+            .fontColor($r('sys.color.ohos_id_color_text_primary'))
+            .fontWeight(FontWeight.Medium)
+        }
+        .width('80%')
+        .height($r('app.float.textArea_height'))
+        .margin({ top: $r('app.float.title_padding_top') })
+        .scrollable(ScrollDirection.Vertical)
+        .scrollBarColor(Color.Gray)
+      } else {
+        Text(globalThis.wantParams?.title)
+	  .draggable(false)
+          .margin({ top: $r('app.float.title_padding_top') })
+          .fontSize($r('sys.float.ohos_id_text_size_body1'))
+          .fontColor($r('sys.color.ohos_id_color_text_primary'))
+          .height($r('app.float.size_24'))
+          .fontWeight(FontWeight.Medium)
+      }
+
       Column() {
         Stack() {
           List({ space: 4 }) {
@@ -77,6 +94,7 @@ export default struct SixPassword {
           .height($r('app.float.input_height'))
 
           TextInput({ placeholder: '', text: this.passwordArrayNumber?.join('') })
+            .draggable(false)
             .onChange(async (value: string) => {
               this.passwordArrayNumber = value?.replace(/[^\d]/g, '')?.split('');
               this.textValue = this.passwordArrayNumber?.join('');
@@ -96,6 +114,7 @@ export default struct SixPassword {
       .margin({ top: $r('app.float.content_padding') })
 
       Text(this.inputValue)
+        .draggable(false)
         .fontSize($r('sys.float.ohos_id_text_size_body2'))
         .margin({ top: $r('app.float.element_margin') })
         .fontColor($r('sys.color.ohos_id_color_warning'))
