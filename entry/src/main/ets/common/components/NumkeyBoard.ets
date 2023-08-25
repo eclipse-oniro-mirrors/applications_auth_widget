@@ -112,7 +112,7 @@ export default struct NumKeyBoard {
       .width(Constants.fullContainerWidth)
       .height(Constants.fullContainerHeight)
     }
-    .width(Constants.fullContainerWidth)
+    .width('86%')
     .height(Constants.fullContainerHeight)
   }
 }

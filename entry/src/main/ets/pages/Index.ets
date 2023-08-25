@@ -56,6 +56,9 @@ struct Index {
         LogUtils.debug(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
         this.isLandscape = data[0]?.orientation === LANDSCAPE
         || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
+        AppStorage.SetOrCreate('titleLength', (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)))
+        LogUtils.debug(TAG, 'titleLength: ' + (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)));
+        LogUtils.debug(TAG, 'title: ' + globalThis.wantParams?.title.length);
         AppStorage.SetOrCreate('IS_LANDSCAPE', this.isLandscape);
         LogUtils.debug(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
         if (globalThis.wantParams) {
@@ -90,13 +93,9 @@ struct Index {
         callback: function (result) {
           LogUtils.info(TAG, 'userAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
           const cmdDataObj = JSON.parse(result?.cmdData || '{}');
-          if (cmdDataObj?.cmd?.[0]?.payload?.result === Constants.userAuthWidgetMgrSuccess) {
-            globalThis.session?.terminateSelf();
-          } else {
-            that.cmdData = cmdDataObj?.cmd || [];
-            that.pinSubType = cmdDataObj?.pinSubType;
-            that.handleIsUnder(cmdDataObj?.cmd || []);
-          }
+          that.cmdData = cmdDataObj?.cmd || [];
+          that.pinSubType = cmdDataObj?.pinSubType;
+          that.handleIsUnder(cmdDataObj?.cmd || []);
         }
       });
     } catch (error) {
