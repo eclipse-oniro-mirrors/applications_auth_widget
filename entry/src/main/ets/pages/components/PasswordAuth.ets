@@ -166,6 +166,8 @@ export default struct PasswordAuth {
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
                         this.handleCancel();
+			this.textValue = ' ';
+                        this.inputValue = ' ';
                       })
                       .id('cancelBtnDialogPwd')
                   }.width('50%')

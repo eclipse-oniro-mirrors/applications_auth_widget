@@ -45,7 +45,7 @@ const ON_SCREEN = 1;
 const UNDER_SCREEN = 2;
 const FINGER_SENSOR_POSITION_LINE = 0.75;
 const MAX_FAIL_TIMES = 5;
-const SECOND = 1000;
+const SECOND = 2000;
 
 @Component
 export default struct FingerprintAuth {

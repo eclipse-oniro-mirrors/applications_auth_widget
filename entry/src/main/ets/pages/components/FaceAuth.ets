@@ -41,7 +41,7 @@ const SCREEN_PORTRAIT = 2;
 const NOTICE_DELAY = 50;
 const FINGER_SENSOR_POSITION_LINE = 0.75;
 const HINT_TIMES_BY_FAIL_LESS = 3;
-const SECOND = 1000;
+const SECOND = 2000;
 let pinData = '';
 
 @Component
