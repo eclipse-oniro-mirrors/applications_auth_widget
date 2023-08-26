@@ -633,6 +633,7 @@ export default struct FullScreen {
         if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
           Scroll() {
             Text(globalThis.wantParams?.title)
+            .draggable(false)
             .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
             .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
             .fontWeight(FontWeight.Medium)
@@ -648,6 +649,7 @@ export default struct FullScreen {
           .scrollBarColor(Color.Gray)
         } else {
           Text(globalThis.wantParams?.title)
+            .draggable(false)
             .height($r('app.float.text_high'))
             .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
             .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
@@ -661,6 +663,7 @@ export default struct FullScreen {
         }
 
         Text(this.fingerText)
+          .draggable(false)
           .height($r('app.float.text_high'))
           .fontColor($r('sys.color.ohos_id_color_text_secondary_contrary'))
           .fontSize($r('sys.float.ohos_id_text_size_body2'))
