@@ -109,7 +109,7 @@ export default class Constants {
     {
       index: 9,
       row1: $r('app.string.unified_authwidget_notarize'),
-      row2: '',
+      row2: ' ',
       value: -1,
       bkg: false
     },
@@ -123,7 +123,7 @@ export default class Constants {
     {
       index: 11,
       row1: $r('app.string.unified_authwidget_back'),
-      row2: '',
+      row2: ' ',
       value: -3,
       bkg: false
     }];
@@ -141,6 +141,7 @@ export interface CmdData {
   type: string,
   remainAttempts: number,
   lockoutDuration: number,
+  result: number,
   sensorInfo?: string
 }
 
