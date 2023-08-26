@@ -77,7 +77,8 @@ export default struct FullScreen {
   numKeyboard: KeyboardType[] = Constants.numKeyBoard;
   @State prompt: string = globalThis.context.resourceManager
     .getStringSync($r('app.string.unified_authwidget_use_pwd'));
-  @State fingerText: string = globalThis.wantParams?.title;
+  @State fingerText: string = globalThis.context.resourceManager
+    .getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp'));
   @StorageLink('screenLockDirection') screenLockDirection: number = 1;
   @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
   @State controlType: ControlType = {
@@ -97,7 +98,7 @@ export default struct FullScreen {
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
-      const { type,remainAttempts, lockoutDuration,sensorInfo} = item.payload;
+      const { type,remainAttempts, lockoutDuration,sensorInfo, result} = item.payload;
       switch (type) {
         case Constants.noticeTypePin:
           this.clearPassword();
@@ -110,7 +111,7 @@ export default struct FullScreen {
                 .getStringSync($r('app.string.unified_authwidget_use_pwd'));
             }
             // 3: pin Residual number
-            if (remainAttempts < 3) {
+            if (remainAttempts < 3 && num !== 'first') {
               this.prompt = globalThis.context.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
               + remainAttempts + globalThis.context.resourceManager
@@ -127,9 +128,12 @@ export default struct FullScreen {
             // 1: pin lock
             this.pinLock = 1;
           }
+          if (result === 0) {
+            globalThis.session?.terminateSelf?.();
+          }
           break;
         case Constants.noticeTypeFace:
-          if (remainAttempts) {
+          if (remainAttempts < 5 && remainAttempts > 0) {
             if (this.pinLock !== 1) {
               this.prompt = globalThis.context.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'));
@@ -153,6 +157,9 @@ export default struct FullScreen {
             }
             this.faceFingerLockArr[0] = true;
           }
+          if (result === 0) {
+            globalThis.session?.terminateSelf?.();
+          }
           break;
         case Constants.noticeTypeFinger:
           let sensor;
@@ -162,7 +169,7 @@ export default struct FullScreen {
             const displayClass = display.getDefaultDisplaySync();
             this.screen = [displayClass.width, displayClass.height];
           }
-          if (remainAttempts) {
+          if (remainAttempts && result !== 0) {
             if (this.controlType.jumpFinger) {
               this.fingerText = globalThis.context.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
@@ -171,14 +178,16 @@ export default struct FullScreen {
               if (sensor.sensorType === 'UNDER_SCREEN_SENSOR' ||
                 sensor.sensorType === 'BOTH_SENSOR' ||
                 sensor.sensorType === 'SensorType1') {
-                if (num !== 'first' && remainAttempts > 0) {
+                if (num !== 'first' && remainAttempts > 0 && result != 0) {
                   setTimeout(() => {
                     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                   }, NOTICE_DELAY);
+                  this.prompt = globalThis.context.resourceManager
+                    .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
                 }
                 let tempPositionLine = sensor.udSensorCenterYInThousandth / this.screen[1];
                 FuncUtils.judgmentOverflow(tempPositionLine);
-                if (num === 'first' && tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
+                if (num === 'first' && tempPositionLine > FINGER_SENSOR_POSITION_LINE && result != 0) {
                   AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                 }
               }
@@ -196,6 +205,9 @@ export default struct FullScreen {
             this.faceFingerLockArr[1] = true;
             this.controlType.jumpFinger = false;
             this.cancelImage = false;
+          }
+          if (result === 0) {
+            globalThis.session?.terminateSelf?.();
           }
           break;
         default:
@@ -290,12 +302,14 @@ export default struct FullScreen {
           // 1: pin lock
           if (this.pinLock === 1) {
             Text($r('app.string.unified_authwidget_locked'))
+              .draggable(false)
               .margin({ bottom: $r('app.float.content_padding') })
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_headline6'))
               .fontWeight(FontWeight.Medium)
           } else if (this.controlType.isShowFace) {
             Image($r('app.media.white_faceID'))
+              .draggable(false)
               .id('faceImgCustomPwd')
               .width($r('app.float.image_small'))
               .height($r('app.float.image_small'))
@@ -310,14 +324,15 @@ export default struct FullScreen {
                     .getStringSync($r('app.string.unified_authwidget_title_face_forbidden'));
                 }
               })
-          } else {
-            Text()
-              .margin({ bottom: $r('app.float.content_padding') })
-              .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
-              .fontSize($r('sys.float.ohos_id_text_size_headline6'))
-              .fontWeight(FontWeight.Medium)
+          } else if (!this.controlType.isShowFace) {
+            Column() {
+            }
+            .width($r('app.float.image_small'))
+            .height($r('app.float.image_small'))
+            .margin({ bottom: $r('app.float.content_padding') })
           }
           Text(this.prompt)
+            .draggable(false)
             .id('cancelIconCustomPassword')
             .fontSize(this.pinLock === 0
               ? $r('sys.float.ohos_id_text_size_body1')
@@ -387,6 +402,7 @@ export default struct FullScreen {
 
                   if (this.IS_LANDSCAPE) {
                     TextInput({ placeholder: '', text: this.passwordArray?.join('') })
+                      .draggable(false)
                       .onChange(async (value: string) => {
                         const arr = value?.replace(/[^\d]/g, '')?.split('');
                         arr?.map((item, index) => {
@@ -407,6 +423,7 @@ export default struct FullScreen {
               } else if (this.pinSubType === Constants.pinNumber) {
                 Stack() {
                   TextInput({ placeholder: '', text: this.passwordArrayNumber.join('') })
+                    .draggable(false)
                     .onChange(async (value: string) => {
                       // Removes non-numeric characters from a string
                       this.passwordArrayNumber = value.replace(/[^\d]/g, '').split('');
@@ -424,6 +441,7 @@ export default struct FullScreen {
                     })
                     .fontColor(Color.White)
                     .height($r('app.float.btn_height'))
+                    .width($r('app.float.fullScreen_input_width'))
                     .type(InputType.Password)
                     .copyOption(CopyOptions.None)
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -438,8 +456,10 @@ export default struct FullScreen {
                 }
               } else if (this.pinSubType === Constants.pinMixed) {
                 TextInput({ text: this.passwordObj })
+                  .draggable(false)
                   .fontColor(Color.White)
                   .height($r('app.float.btn_height'))
+                  .width($r('app.float.fullScreen_input_width'))
                   .type(InputType.Password)
                   .copyOption(CopyOptions.None)
                   .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -483,6 +503,8 @@ export default struct FullScreen {
             })
             .visibility(Visibility.Hidden)
         }
+        .width(Constants.fullContainerWidth)
+        .position({y:'10%'})
 
         // 0: pin unlock
         Column() {
@@ -538,30 +560,41 @@ export default struct FullScreen {
               }
             })
           } else {
-            Text().height(Constants.fullContainerHeight)
+            Text().draggable(false).height(Constants.fullContainerHeight)
           }
         }
         .width(Constants.fullContainerWidth)
-        .height('40%')
+        .height('45%')
+        .position({y:'30%'})
 
         // 1: pin lock
-        Column() {
-          if (this.controlType.isShowFinger && this.pinLock !== 1 && !this.faceFingerLockArr[1]) {
-            if (this.fingerPosition.sensorType !== 'OUT_OF_SCREEN_SENSOR' &&
-              this.fingerPosition.sensorType !== 'NON_SENSOR') {
-              if (this.fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR' ||
-                this.fingerPosition.sensorType === 'BOTH_SENSOR' ||
-                this.fingerPosition.sensorType === 'SensorType1') {
-                if (this.fingerPositionLine > FINGER_SENSOR_POSITION_LINE && !this.IS_LANDSCAPE) {
+        if (this.controlType.isShowFinger && this.pinLock !== 1 && !this.faceFingerLockArr[1]) {
+          if (this.fingerPosition.sensorType !== 'OUT_OF_SCREEN_SENSOR' &&
+          this.fingerPosition.sensorType !== 'NON_SENSOR') {
+            if (this.fingerPosition.sensorType === 'UNDER_SCREEN_SENSOR' ||
+            this.fingerPosition.sensorType === 'BOTH_SENSOR' ||
+            this.fingerPosition.sensorType === 'SensorType1') {
+              if (this.fingerPositionLine > FINGER_SENSOR_POSITION_LINE && !this.IS_LANDSCAPE) {
+                Column() {
                   Image($r('app.media.ic_unlock_fingerprint'))
+                    .draggable(false)
                     .id('fingerprintImgCustomPassword')
-                    .width(px2vp(this.fingerPosition.udSensorRadiusInPx))
-                    .height(px2vp(this.fingerPosition.udSensorRadiusInPx))
-                    .position({ y: px2vp(UNDER_FINGER)
-                    - px2vp(this.screen[1])
-                    + this.fingerButtonPositionY })
-                } else {
+                    .width(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
+                    .height(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
+                    .onClick(() => {
+                      if (!this.faceFingerLockArr[1]) {
+                        AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+                      }
+                    })
+                }
+                .width(Constants.fullContainerWidth)
+                .height(this.controlType.isShowFinger ? $r('app.float.finger_high') : '9%')
+                .justifyContent(FlexAlign.Start)
+                .alignItems(HorizontalAlign.Center)
+              } else {
+                Column() {
                   Image($r('app.media.finger_white'))
+                    .draggable(false)
                     .id('fingerWhiteImgCustomPassword')
                     .width($r('app.float.image_back_size'))
                     .height($r('app.float.image_back_size'))
@@ -576,29 +609,61 @@ export default struct FullScreen {
                       }
                     })
                 }
+                .width(Constants.fullContainerWidth)
+                .height(this.controlType.isShowFinger ? $r('app.float.finger_high') : '9%')
+                .justifyContent(FlexAlign.Start)
+                .alignItems(HorizontalAlign.Center)
+                .position({y:'75%'})
               }
             }
           }
-        }.width($r('app.float.digital_password_mask_height'))
-        .height(this.controlType.isShowFinger ? $r('app.float.finger_high') : '9%')
-        .justifyContent(FlexAlign.Start)
+        }
+        if (!this.controlType.isShowFinger) {
+          Column() {
+          }
+          .width(Constants.fullContainerWidth)
+          .height(this.controlType.isShowFinger ? $r('app.float.finger_high') : '9%')
+        }
       }
-      .justifyContent(FlexAlign.End)
+      .alignItems(HorizontalAlign.Center)
+      .height(Constants.fullContainerHeight)
       .width(Constants.fullContainerWidth)
     } else if (!this.controlType.isLandscape) {
       Column() {
-        Text(this.fingerText)
+        if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+          Scroll() {
+            Text(globalThis.wantParams?.title)
+            .draggable(false)
+            .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
+            .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
+            .fontWeight(FontWeight.Medium)
+          }
+          .width('80%')
           .id('titleFullScreen')
-          .height($r('app.float.text_high'))
-          .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
-          .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
-          .fontWeight(FontWeight.Medium)
           .position({
-            y: this.fingerTextPositionY
+            y: this.fingerTextPositionY,
+            x: '10%'
           })
-          .width('100%')
-          .textAlign(TextAlign.Center)
-        Text($r('app.string.unified_authwidget_hint_inscreen_fp'))
+          .height($r('app.float.textArea_height'))
+          .scrollable(ScrollDirection.Vertical)
+          .scrollBarColor(Color.Gray)
+        } else {
+          Text(globalThis.wantParams?.title)
+            .draggable(false)
+            .height($r('app.float.text_high'))
+            .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
+            .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
+            .fontWeight(FontWeight.Medium)
+            .id('titleFullScreen')
+            .position({
+              y: this.fingerTextPositionY
+            })
+            .width('100%')
+            .textAlign(TextAlign.Center)
+        }
+
+        Text(this.fingerText)
+          .draggable(false)
           .height($r('app.float.text_high'))
           .fontColor($r('sys.color.ohos_id_color_text_secondary_contrary'))
           .fontSize($r('sys.float.ohos_id_text_size_body2'))
@@ -611,6 +676,7 @@ export default struct FullScreen {
           .margin({ top: $r('app.float.padding_8') })
         Column() {
           Image($r('app.media.ic_unlock_fingerprint'))
+            .draggable(false)
             .id('unlockFingerprintImgCustomPwd')
               // radius
             .width(px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS))
@@ -634,7 +700,8 @@ export default struct FullScreen {
             this.controlType.jumpFinger = false;
             this.cancelImage = false;
             AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
-            this.fingerText = globalThis.wantParams?.title;
+            this.prompt = globalThis.context.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_use_pwd'));
           })
       }
       .justifyContent(FlexAlign.End)

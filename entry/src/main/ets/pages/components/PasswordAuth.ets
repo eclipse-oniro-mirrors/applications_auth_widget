@@ -49,21 +49,22 @@ export default struct PasswordAuth {
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
-      const { type, remainAttempts, lockoutDuration } = item.payload;
+      const { type, remainAttempts, lockoutDuration, result } = item.payload;
       if (type === Constants.noticeTypePin) {
         if (remainAttempts && remainAttempts < MAX_FAIL_TIMES) {
           this.inputValue = globalThis.context.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
           this.textValue = '';
-          if (num === 'first') {
-            this.inputValue = '';
-          }
+
           // pin auth Remaining number
           if (remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
             this.inputValue = globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
             + remainAttempts + globalThis.context.resourceManager
               .getStringSync($r('app.string.unified_authwidget_frequency'));
+          }
+          if (num === 'first') {
+            this.inputValue = '';
           }
           return;
         }
@@ -73,6 +74,9 @@ export default struct PasswordAuth {
           this.isEdit = false;
           this.textValue = '';
           return;
+        }
+        if (result === 0) {
+          globalThis.session?.terminateSelf();
         }
         this.inputValue = ' ';
         this.textValue = '';
@@ -162,6 +166,8 @@ export default struct PasswordAuth {
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
                         this.handleCancel();
+			this.textValue = ' ';
+                        this.inputValue = ' ';
                       })
                       .id('cancelBtnDialogPwd')
                   }.width('50%')

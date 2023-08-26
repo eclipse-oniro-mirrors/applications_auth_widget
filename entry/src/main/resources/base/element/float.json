@@ -399,6 +399,14 @@
     {
       "name": "margin_64",
       "value": "64vp"
+    },
+    {
+      "name": "fullScreen_input_width",
+      "value": "288vp"
+    },
+    {
+      "name": "textArea_height",
+      "value": "36vp"
     }
   ]
 }
