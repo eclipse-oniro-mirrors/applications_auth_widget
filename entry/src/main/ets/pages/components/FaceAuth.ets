@@ -490,7 +490,7 @@ export default struct FaceAuth {
                 if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
                   Scroll() {
                     Text(globalThis.wantParams?.title)
-		      .draggable(false)
+                      .draggable(false)
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
                       .fontColor($r('sys.color.ohos_id_color_text_primary'))
                       .fontWeight(FontWeight.Medium)
@@ -501,7 +501,7 @@ export default struct FaceAuth {
                   .scrollBarColor(Color.Gray)
                 } else {
                   Text(globalThis.wantParams?.title)
-		    .draggable(false)
+                    .draggable(false)
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
                     .height($r('app.float.size_24'))
@@ -553,7 +553,7 @@ export default struct FaceAuth {
                 if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
                   Scroll() {
                     Text(globalThis.wantParams?.title)
-		      .draggable(false)
+                      .draggable(false)
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
                       .fontColor($r('sys.color.ohos_id_color_text_primary'))
                       .fontWeight(FontWeight.Medium)
@@ -564,7 +564,7 @@ export default struct FaceAuth {
                   .scrollBarColor(Color.Gray)
                 } else {
                   Text(globalThis.wantParams?.title)
-		    .draggable(false)
+                    .draggable(false)
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
                     .height($r('app.float.size_24'))
@@ -654,7 +654,7 @@ export default struct FaceAuth {
                 if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
                   Scroll() {
                     Text(globalThis.wantParams?.title)
-		      .draggable(false)
+                      .draggable(false)
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
                       .fontColor($r('sys.color.ohos_id_color_text_primary'))
                       .fontWeight(FontWeight.Medium)
@@ -666,7 +666,7 @@ export default struct FaceAuth {
                   .scrollBarColor(Color.Gray)
                 } else {
                   Text(globalThis.wantParams?.title)
-		    .draggable(false)
+                    .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -814,7 +814,7 @@ export default struct FaceAuth {
                 if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
                   Scroll() {
                     Text(globalThis.wantParams?.title)
-		      .draggable(false)
+                      .draggable(false)
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
                       .fontColor($r('sys.color.ohos_id_color_text_primary'))
                       .fontWeight(FontWeight.Medium)
@@ -827,7 +827,7 @@ export default struct FaceAuth {
                   .scrollBarColor(Color.Gray)
                 } else {
                   Text(globalThis.wantParams?.title)
-		    .draggable(false)
+                    .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))

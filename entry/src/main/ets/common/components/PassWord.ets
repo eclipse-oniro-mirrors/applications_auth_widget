@@ -60,6 +60,7 @@ export default struct PassWord {
         .scrollBarColor(Color.Gray)
       } else {
         Text(globalThis.wantParams?.title)
+          .draggable(false)
           .margin({ top: $r('app.float.title_padding_top') })
           .fontSize($r('sys.float.ohos_id_text_size_body1'))
           .fontColor($r('sys.color.ohos_id_color_text_primary'))
