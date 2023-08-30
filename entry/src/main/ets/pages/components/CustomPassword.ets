@@ -26,7 +26,7 @@ const BLUR_OPACITY = 0.5;
 const SATURATE = 1.3;
 const BLUR_RADIUS = 242;
 const BACK_BLUR = 80;
-const PADDING_ZERO = 0;
+const PADDING_SIXTEEN = 16;
 let pinAuthManager;
 let pinData = '';
 
@@ -88,7 +88,7 @@ export default struct CustomPassword {
             .id('cancelImgCustomPwd')
             .width($r('app.float.image_back_size'))
             .height($r('app.float.image_back_size'))
-            .margin({ left: $r('sys.float.ohos_id_max_padding_start'), top: $r('app.float.content_padding') })
+            .margin({ left: $r('sys.float.ohos_id_max_padding_start'), top: this.SYSTEM_STATUS_BAR_HEIGHT + PADDING_SIXTEEN })
             .backgroundColor(this.isBackTouched
               ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
             .onClick(() => {
@@ -126,9 +126,6 @@ export default struct CustomPassword {
           }
         }
       }
-      .padding(this.IS_LANDSCAPE
-        ? PADDING_ZERO
-        : { top: this.SYSTEM_STATUS_BAR_HEIGHT, bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
       .justifyContent(FlexAlign.SpaceBetween)
       .width(Constants.fullContainerWidth)
       .height(Constants.fullContainerWidth)

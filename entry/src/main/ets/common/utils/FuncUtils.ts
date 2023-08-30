@@ -76,7 +76,7 @@ export class FuncUtils {
 
   judgmentOverflow(value: number): void {
     if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
-      LogUtils.error(TAG, 'judgmentOverflow spill code value： ' + value);
+      LogUtils.error(TAG, 'judgmentOverflow spill code value: ' + value);
       globalThis.session?.terminateSelf?.();
     }
   }

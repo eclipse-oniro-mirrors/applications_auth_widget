@@ -397,6 +397,10 @@
       "value": "16vp"
     },
     {
+      "name": "margin_36",
+      "value": "36vp"
+    },
+    {
       "name": "margin_64",
       "value": "64vp"
     },
@@ -407,6 +411,50 @@
     {
       "name": "textArea_height",
       "value": "36vp"
+    },
+    {
+      "name": "numKeyBoard_row1_16",
+      "value": "16vp"
+    },
+    {
+      "name": "numKeyBoard_row1_28",
+      "value": "28vp"
+    },
+    {
+      "name": "numKeyBoard_row2",
+      "value": "12vp"
+    },
+    {
+      "name": "keyboard_key_high_phone",
+      "value": "54vp"
+    },
+    {
+      "name": "scroll_height_122",
+      "value": "122vp"
+    },
+    {
+      "name": "scroll_height_90",
+      "value": "90vp"
+    },
+    {
+      "name": "scroll_height_182",
+      "value": "182vp"
+    },
+    {
+      "name": "scroll_height_220",
+      "value": "220vp"
+    },
+    {
+      "name": "scroll_height_76",
+      "value": "76vp"
+    },
+    {
+      "name": "scroll_height_88",
+      "value": "88vp"
+    },
+    {
+      "name": "scroll_height_72",
+      "value": "72vp"
     }
   ]
 }

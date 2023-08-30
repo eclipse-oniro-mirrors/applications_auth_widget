@@ -300,26 +300,50 @@ export default struct FingerprintAuth {
           if (this.isOffFinger) {
             Column() {
               if ([PIN_FINGER, SINGLE_FINGER].includes(this.state)) {
-                Text().margin({ top: $r('app.float.content_padding_top') })
-                TextArea({ text: globalThis.wantParams?.title })
-                  .draggable(false)
-                  .focusable(false)
-                  .textAlign(TextAlign.Center)
-                  .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                  .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                  .backgroundColor(Color.White)
-                  .height($r('app.float.textArea_height'))
-                Image(this.getFingerPosition(this.fingerPosition?.outOfScreenSensorType))
-                  .draggable(false)
-                  .width($r('app.float.image_big'))
-                  .height($r('app.float.image_big'))
-                  .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
-                  .id('outFingerImage')
-
-                Text(this.prompt)
-                  .draggable(false)
-                  .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+                  Scroll() {
+                    Column() {
+                      Text(globalThis.wantParams?.title)
+                        .draggable(false)
+                        .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                        .fontWeight(FontWeight.Medium)
+                      Image(this.getFingerPosition(this.fingerPosition?.outOfScreenSensorType))
+                        .draggable(false)
+                        .width($r('app.float.image_big'))
+                        .height($r('app.float.image_big'))
+                        .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
+                        .id('outFingerImage')
+                      Text(this.prompt)
+                        .draggable(false)
+                        .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
+                        .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                    }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
+                  }
+                  .width('100%')
+                  .height($r('app.float.scroll_height_220'))
+                  .margin({ top: $r('app.float.title_padding_top') })
+                  .scrollable(ScrollDirection.Vertical)
+                  .scrollBarColor(Color.Gray)
+                } else {
+                  Text(globalThis.wantParams?.title)
+                    .draggable(false)
+                    .margin({ top: $r('app.float.title_padding_top') })
+                    .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                    .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                    .height($r('app.float.size_24'))
+                    .fontWeight(FontWeight.Medium)
+                  Image(this.getFingerPosition(this.fingerPosition?.outOfScreenSensorType))
+                    .draggable(false)
+                    .width($r('app.float.image_big'))
+                    .height($r('app.float.image_big'))
+                    .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
+                    .id('outFingerImage')
+                  Text(this.prompt)
+                    .draggable(false)
+                    .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
+                    .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                }
               }
 
               if (this.state === PIN_FINGER) {
@@ -603,8 +627,9 @@ export default struct FingerprintAuth {
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
                         .fontWeight(FontWeight.Medium)
+                        .margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                     }
-                    .width('80%')
+                    .width('100%')
                     .height($r('app.float.textArea_height'))
                     .margin({ top: $r('app.float.title_padding_top') })
                     .scrollable(ScrollDirection.Vertical)
@@ -711,14 +736,22 @@ export default struct FingerprintAuth {
 
                   if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
                     Scroll() {
-                      Text(globalThis.wantParams?.title)
-                        .draggable(false)
-                        .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                        .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                        .fontWeight(FontWeight.Medium)
+                      Column() {
+                        Text(globalThis.wantParams?.title)
+                          .draggable(false)
+                          .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                          .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                          .fontWeight(FontWeight.Medium)
+                        Text(this.prompt)
+                          .draggable(false)
+                          .margin({ top: $r('app.float.element_margin') })
+                          .height($r('app.float.size_24'))
+                          .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                          .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
+                      }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                     }
-                    .width('80%')
-                    .height($r('app.float.textArea_height'))
+                    .width('100%')
+                    .height($r('app.float.scroll_height_76'))
                     .scrollable(ScrollDirection.Vertical)
                     .scrollBarColor(Color.Gray)
                   } else {
@@ -728,13 +761,13 @@ export default struct FingerprintAuth {
                       .fontColor($r('sys.color.ohos_id_color_text_primary'))
                       .height($r('app.float.size_24'))
                       .fontWeight(FontWeight.Medium)
+                    Text(this.prompt)
+                      .draggable(false)
+                      .margin({ top: $r('app.float.element_margin') })
+                      .height($r('app.float.size_24'))
+                      .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                      .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                   }
-                  Text(this.prompt)
-                    .draggable(false)
-                    .margin({ top: $r('app.float.element_margin') })
-                    .height($r('app.float.size_24'))
-                    .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                    .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                   Image(this.prompt === globalThis.context.resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))
                     ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
@@ -769,8 +802,9 @@ export default struct FingerprintAuth {
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
                         .fontWeight(FontWeight.Medium)
+                        .margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                     }
-                    .width('80%')
+                    .width('100%')
                     .height($r('app.float.textArea_height'))
                     .margin({ top: $r('app.float.title_padding_top') })
                     .scrollable(ScrollDirection.Vertical)
@@ -902,14 +936,22 @@ export default struct FingerprintAuth {
 
                   if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
                     Scroll() {
-                      Text(globalThis.wantParams?.title)
-                        .draggable(false)
-                        .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                        .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                        .fontWeight(FontWeight.Medium)
+                      Column() {
+                        Text(globalThis.wantParams?.title)
+                          .draggable(false)
+                          .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                          .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                          .fontWeight(FontWeight.Medium)
+                        Text(this.prompt)
+                          .draggable(false)
+                          .margin({ top: $r('app.float.element_margin') })
+                          .height($r('app.float.size_24'))
+                          .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                          .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
+                      }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                     }
-                    .width('80%')
-                    .height($r('app.float.textArea_height'))
+                    .width('100%')
+                    .height($r('app.float.scroll_height_76'))
                     .scrollable(ScrollDirection.Vertical)
                     .scrollBarColor(Color.Gray)
                   } else {
@@ -919,13 +961,13 @@ export default struct FingerprintAuth {
                       .fontColor($r('sys.color.ohos_id_color_text_primary'))
                       .height($r('app.float.size_24'))
                       .fontWeight(FontWeight.Medium)
+                    Text(this.prompt)
+                      .draggable(false)
+                      .margin({ top: $r('app.float.element_margin') })
+                      .height($r('app.float.size_24'))
+                      .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                      .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                   }
-                  Text(this.prompt)
-                    .draggable(false)
-                    .margin({ top: $r('app.float.element_margin') })
-                    .height($r('app.float.size_24'))
-                    .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                    .fontColor(this.onFingerPrintFontColor(this.prompt, globalThis.context))
                   Image(this.prompt === globalThis.context.resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))
                     ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))

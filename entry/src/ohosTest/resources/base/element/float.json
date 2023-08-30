@@ -407,6 +407,22 @@
     {
       "name": "textArea_height",
       "value": "44vp"
+    },
+    {
+      "name": "numKeyBoard_row1_16",
+      "value": "16vp"
+    },
+    {
+      "name": "numKeyBoard_row1_28",
+      "value": "28vp"
+    },
+    {
+      "name": "numKeyBoard_row2",
+      "value": "12vp"
+    },
+    {
+      "name": "keyBoard_key_high_phone",
+      "value": "54vp"
     }
   ]
 }

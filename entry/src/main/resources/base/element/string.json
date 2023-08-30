@@ -173,6 +173,10 @@
       "value": "Too many failures, please "
     },
     {
+      "name": "unified_authwidget_pleaseretry",
+      "value": "Please"
+    },
+    {
       "name": "unified_authwidget_postretry",
       "value": "retry"
     },

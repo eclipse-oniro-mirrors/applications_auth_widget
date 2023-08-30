@@ -185,6 +185,10 @@
       "value": "失败次数过多，请"
     },
     {
+      "name": "unified_authwidget_pleaseretry",
+      "value": "请"
+    },
+    {
       "name": "unified_authwidget_postretry",
       "value": "后重试"
     },

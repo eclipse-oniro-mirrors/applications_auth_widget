@@ -44,7 +44,9 @@ export default struct NumKeyBoard {
                     Text(item.row1)
                       .draggable(false)
                       .id('textNumKeyBordCustomPwd' + item.index)
-                      .fontSize($r('app.float.digital_password_prompt_font_size'))
+                      .fontSize(deviceInfo.deviceType === 'tablet'
+                        ? $r('app.float.digital_password_prompt_font_size')
+                        : $r('app.float.numKeyBoard_row1_16'))
                       .fontWeight(FontWeight.Medium)
                       .fontColor(Color.White)
                       .textAlign(TextAlign.Center)
@@ -55,7 +57,9 @@ export default struct NumKeyBoard {
                     Text(item.row1)
                       .draggable(false)
                       .id('textNumKeyBordCustomPwd' + item.index)
-                      .fontSize($r('app.float.digital_password_row1_font_size'))
+                      .fontSize(deviceInfo.deviceType === 'tablet'
+                        ? $r('app.float.digital_password_prompt_font_size')
+                        : $r('app.float.numKeyBoard_row1_28'))
                       .fontWeight(FontWeight.Medium)
                       .fontColor(Color.White)
                       .textAlign(TextAlign.Center)
@@ -66,7 +70,9 @@ export default struct NumKeyBoard {
                   if (!!item.row2) {
                     Text(item.row2)
                       .draggable(false)
-                      .fontSize($r('app.float.digital_password_row2_font_size'))
+                      .fontSize(deviceInfo.deviceType === 'tablet'
+                        ? $r('app.float.digital_password_row2_font_size')
+                        : $r('app.float.numKeyBoard_row2'))
                       .fontWeight(FontWeight.Regular)
                       .fontColor(Color.White)
                       .opacity($r('app.float.numkeyBoard_text_opacity'))
@@ -78,6 +84,9 @@ export default struct NumKeyBoard {
                 }
                 .width(Constants.fullContainerWidth)
                 .height($r('app.float.keyboard_key_high'))
+                .height(deviceInfo.deviceType === 'tablet'
+                  ? $r('app.float.keyboard_key_high')
+                  : $r('app.float.keyboard_key_high_phone'))
               }
 
               if (deviceInfo.deviceType === 'tablet') {
