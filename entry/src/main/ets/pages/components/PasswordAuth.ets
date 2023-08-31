@@ -64,7 +64,7 @@ export default struct PasswordAuth {
               .getStringSync($r('app.string.unified_authwidget_frequency'));
           }
           if (num === 'first') {
-            this.inputValue = '';
+            this.inputValue = ' ';
           }
           return;
         }

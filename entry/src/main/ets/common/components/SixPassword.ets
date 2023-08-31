@@ -43,14 +43,72 @@ export default struct SixPassword {
     Column() {
       if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
         Scroll() {
-          Text(globalThis.wantParams?.title)
-            .draggable(false)
-            .fontSize($r('sys.float.ohos_id_text_size_body1'))
-            .fontColor($r('sys.color.ohos_id_color_text_primary'))
-            .fontWeight(FontWeight.Medium)
+          Column() {
+            Text(globalThis.wantParams?.title)
+	      .draggable(false)
+              .fontSize($r('sys.float.ohos_id_text_size_body1'))
+              .fontColor($r('sys.color.ohos_id_color_text_primary'))
+              .fontWeight(FontWeight.Medium)
+
+            Column() {
+              Stack() {
+                List({ space: 4 }) {
+                  ForEach(['', '', '', '', '', ''], (item, index) => {
+                    ListItem() {
+                      Button()
+                        .border({
+                          color: $r('sys.color.ohos_id_color_primary'),
+                          style: BorderStyle.Solid,
+                          width: this.textValue.length !== 0 && index < this.textValue.length
+                            ? $r('app.float.button_border_width') : 1
+                        })
+                        .type(ButtonType.Circle)
+                        .backgroundColor(Color.White)
+                        .width($r('app.float.input_btn_size'))
+                        .height($r('app.float.input_btn_size'))
+                        .borderRadius($r('app.float.input_btn_size'))
+                        .margin(index > 0 ?
+                          {
+                            left: $r('app.float.input_btn_padding_around'),
+                            top: $r('app.float.margin_12')
+                          } : { top: $r('app.float.margin_12') })
+                        .focusable(true)
+                    }
+                  }, item => item)
+                }
+                .listDirection(Axis.Horizontal)
+                .height($r('app.float.input_height'))
+
+                TextInput({ placeholder: '', text: this.passwordArrayNumber?.join('') })
+                  .draggable(false)
+                  .onChange(async (value: string) => {
+                    this.passwordArrayNumber = value?.replace(/[^\d]/g, '')?.split('');
+                    this.textValue = this.passwordArrayNumber?.join('');
+                    if (this.textValue?.length === MAX_LENGTH) {
+                      AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
+                    }
+                  })
+                  .backgroundImageSize(ImageSize.Auto)
+                  .enabled(this.isEdit)
+                  .maxLength(MAX_LENGTH)
+                  .visibility(Visibility.Visible)
+                  .opacity(0)
+                  .caretColor('transparent')
+                  .id('pinSix')
+              }
+            }
+            .margin({ top: $r('app.float.content_padding') })
+
+            Text(this.inputValue)
+              .draggable(false)
+              .fontSize($r('sys.float.ohos_id_text_size_body2'))
+              .margin({ top: $r('app.float.element_margin') })
+              .fontColor($r('sys.color.ohos_id_color_warning'))
+          }
+          .margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
         }
-        .width('80%')
-        .height($r('app.float.textArea_height'))
+        .width('100%')
+        .height($r('app.float.scroll_height_88'))
         .margin({ top: $r('app.float.title_padding_top') })
         .scrollable(ScrollDirection.Vertical)
         .scrollBarColor(Color.Gray)
@@ -62,62 +120,62 @@ export default struct SixPassword {
           .fontColor($r('sys.color.ohos_id_color_text_primary'))
           .height($r('app.float.size_24'))
           .fontWeight(FontWeight.Medium)
-      }
+        Column() {
+          Stack() {
+            List({ space: 4 }) {
+              ForEach(['', '', '', '', '', ''], (item, index) => {
+                ListItem() {
+                  Button()
+                    .border({
+                      color: $r('sys.color.ohos_id_color_primary'),
+                      style: BorderStyle.Solid,
+                      width: this.textValue.length !== 0 && index < this.textValue.length
+                        ? $r('app.float.button_border_width') : 1
+                    })
+                    .type(ButtonType.Circle)
+                    .backgroundColor(Color.White)
+                    .width($r('app.float.input_btn_size'))
+                    .height($r('app.float.input_btn_size'))
+                    .borderRadius($r('app.float.input_btn_size'))
+                    .margin(index > 0 ?
+                      {
+                        left: $r('app.float.input_btn_padding_around'),
+                        top: $r('app.float.margin_12')
+                      } : { top: $r('app.float.margin_12') })
+                    .focusable(true)
+                }
+              }, item => item)
+            }
+            .listDirection(Axis.Horizontal)
+            .height($r('app.float.input_height'))
 
-      Column() {
-        Stack() {
-          List({ space: 4 }) {
-            ForEach(['', '', '', '', '', ''], (item, index) => {
-              ListItem() {
-                Button()
-                  .border({
-                    color: $r('sys.color.ohos_id_color_primary'),
-                    style: BorderStyle.Solid,
-                    width: this.textValue.length !== 0 && index < this.textValue.length
-                      ? $r('app.float.button_border_width') : 1
-                  })
-                  .type(ButtonType.Circle)
-                  .backgroundColor(Color.White)
-                  .width($r('app.float.input_btn_size'))
-                  .height($r('app.float.input_btn_size'))
-                  .borderRadius($r('app.float.input_btn_size'))
-                  .margin(index > 0 ?
-                    {
-                      left: $r('app.float.input_btn_padding_around'),
-                      top: $r('app.float.margin_12')
-                    } : { top: $r('app.float.margin_12') })
-                  .focusable(true)
-              }
-            }, item => item)
+            TextInput({ placeholder: '', text: this.passwordArrayNumber?.join('') })
+              .draggable(false)
+              .onChange(async (value: string) => {
+                this.passwordArrayNumber = value?.replace(/[^\d]/g, '')?.split('');
+                this.textValue = this.passwordArrayNumber?.join('');
+                if (this.textValue?.length === MAX_LENGTH) {
+                  AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
+                }
+              })
+              .backgroundImageSize(ImageSize.Auto)
+              .enabled(this.isEdit)
+              .maxLength(MAX_LENGTH)
+              .visibility(Visibility.Visible)
+              .opacity(0)
+              .caretColor('transparent')
+              .id('pinSix')
           }
-          .listDirection(Axis.Horizontal)
-          .height($r('app.float.input_height'))
-
-          TextInput({ placeholder: '', text: this.passwordArrayNumber?.join('') })
-            .draggable(false)
-            .onChange(async (value: string) => {
-              this.passwordArrayNumber = value?.replace(/[^\d]/g, '')?.split('');
-              this.textValue = this.passwordArrayNumber?.join('');
-              if (this.textValue?.length === MAX_LENGTH) {
-                AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
-              }
-            })
-            .backgroundImageSize(ImageSize.Auto)
-            .enabled(this.isEdit)
-            .maxLength(MAX_LENGTH)
-            .visibility(Visibility.Visible)
-            .opacity(0)
-            .caretColor('transparent')
-            .id('pinSix')
         }
-      }
-      .margin({ top: $r('app.float.content_padding') })
+        .margin({ top: $r('app.float.content_padding') })
 
-      Text(this.inputValue)
-        .draggable(false)
-        .fontSize($r('sys.float.ohos_id_text_size_body2'))
-        .margin({ top: $r('app.float.element_margin') })
-        .fontColor($r('sys.color.ohos_id_color_warning'))
+        Text(this.inputValue)
+          .draggable(false)
+          .fontSize($r('sys.float.ohos_id_text_size_body2'))
+          .margin({ top: $r('app.float.element_margin') })
+          .fontColor($r('sys.color.ohos_id_color_warning'))
+      }
+
     }
   }
 }
