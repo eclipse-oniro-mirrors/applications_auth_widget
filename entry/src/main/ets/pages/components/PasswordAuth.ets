@@ -21,6 +21,7 @@ import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
 import Constants, { CmdType } from '../../common/vm/Constants';
+import { globalContext, globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
 
 const TAG = 'PasswordAuth';
 const INTERVAL = 1000;
@@ -29,7 +30,7 @@ const TEXT_LENGTH = 4;
 const MAX_FAIL_TIMES = 5;
 const HINT_TIMES_BY_FAIL_LESS = 3;
 
-let pinAuthManager;
+let pinAuthManager : account_osAccount.PINAuth;
 let pinData = '';
 
 @Component
@@ -52,15 +53,15 @@ export default struct PasswordAuth {
       const { type, remainAttempts, lockoutDuration, result } = item.payload;
       if (type === Constants.noticeTypePin) {
         if (remainAttempts && remainAttempts < MAX_FAIL_TIMES) {
-          this.inputValue = globalThis.context.resourceManager
+          this.inputValue = globalContext.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
           this.textValue = '';
 
           // pin auth Remaining number
           if (remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
-            this.inputValue = globalThis.context.resourceManager
+            this.inputValue = globalContext.resourceManager
               .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
-            + remainAttempts + globalThis.context.resourceManager
+            + remainAttempts + globalContext.resourceManager
               .getStringSync($r('app.string.unified_authwidget_frequency'));
           }
           if (num === 'first') {
@@ -76,7 +77,7 @@ export default struct PasswordAuth {
           return;
         }
         if (result === 0) {
-          globalThis.session?.terminateSelf();
+          globalSession?.terminateSelf();
         }
         this.inputValue = ' ';
         this.textValue = '';
@@ -101,7 +102,7 @@ export default struct PasswordAuth {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      globalSession?.terminateSelf?.();
     }
   }
 
@@ -111,12 +112,12 @@ export default struct PasswordAuth {
   }
 
   countTime(freezingTime): void {
-    const TRY_AGAIN = globalThis.context.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
+    const TRY_AGAIN = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalThis.context);
-      promptText = globalThis.context.resourceManager
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalContext);
+      promptText = globalContext.resourceManager
         .getStringSync($r('app.string.unified_authwidget_many_failures')) + promptText + TRY_AGAIN;
       setTimeout(this.countTime.bind(this), INTERVAL, freezingTime - INTERVAL);
     } else {
@@ -127,8 +128,9 @@ export default struct PasswordAuth {
   }
 
   handleCancel(): void {
-    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
-    globalThis.session?.terminateSelf?.();
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
+      globalWantParams?.type as string[]);
+    globalSession?.terminateSelf?.();
   }
 
   build() {

@@ -14,6 +14,7 @@
  */
 
 import userAuth from '@ohos.userIAM.userAuth';
+import { globalSession } from '../../extensionability/UserAuthAbility';
 import Constants from '../vm/Constants';
 import LogUtils from './LogUtils';
 
@@ -45,7 +46,7 @@ export default class AuthUtils {
       LogUtils.info(TAG, 'sendNotice success');
     } catch (error) {
       LogUtils.error(TAG, 'sendNotice catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      globalSession?.terminateSelf?.();
     }
   }
 }

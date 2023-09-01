@@ -14,6 +14,7 @@
  */
 
 import Constants from '../../common/vm/Constants';
+import { globalWantParams } from '../../extensionability/UserAuthAbility';
 
 const MAX_LENGTH = 32;
 
@@ -24,9 +25,9 @@ export default struct PassWord {
   @Link inputValue: string;
   @Link isEdit: boolean;
   @StorageLink('passwordArrayNumber') passwordArrNumber: string[] = [];
-  controller: CustomDialogController;
-  cancel: () => void;
-  confirm: () => void;
+  controller?: CustomDialogController;
+  cancel?: () => void;
+  confirm?: () => void;
 
   onTextValueChange(): void {
     this.passwordArrNumber = this.textValue.replace(/[^\d]/g, '').split('');
@@ -44,10 +45,10 @@ export default struct PassWord {
 
   build() {
     Column() {
-      if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+      if (AppStorage.Get('titleLength')  as number < (globalWantParams?.title as string).length) {
         Scroll() {
           Column() {
-            Text(globalThis.wantParams?.title)
+            Text(globalWantParams?.title as string)
               .draggable(false)
               .fontSize($r('sys.float.ohos_id_text_size_body1'))
               .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -95,7 +96,7 @@ export default struct PassWord {
         .scrollable(ScrollDirection.Vertical)
         .scrollBarColor(Color.Gray)
       } else {
-        Text(globalThis.wantParams?.title)
+        Text(globalWantParams?.title as string)
           .draggable(false)
           .margin({ top: $r('app.float.title_padding_top') })
           .fontSize($r('sys.float.ohos_id_text_size_body1'))

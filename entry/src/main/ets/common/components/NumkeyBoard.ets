@@ -25,7 +25,7 @@ const GO_BACK = -3;
 
 @Component
 export default struct NumKeyBoard {
-  private onKeyPress: (params, callback) => void;
+  private onKeyPress?: (params, callback) => void;
   @StorageLink('numKeyboard') numKeyboard: any[] = Constants.numKeyBoard;
 
   build() {
@@ -108,8 +108,10 @@ export default struct NumKeyBoard {
               }
             }
             .onClick(() => {
-              setTimeout(this.onKeyPress.bind(this), 0, item.index, () => {
-              });
+              if (this.onKeyPress !== undefined){
+                setTimeout(this.onKeyPress.bind(this), 0, item.index, () => {
+                });
+              }
             })
             .id('numKeyBordCustomPwd' + item.index)
           }
