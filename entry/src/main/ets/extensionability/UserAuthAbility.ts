@@ -16,6 +16,13 @@
 import LogUtils from '../common/utils/LogUtils';
 import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import WindowPrivacyUtils from '../common/utils/WindowPrivacyUtils';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import { CmdType } from '../common/vm/Constants';
+import common from '@ohos.app.ability.common';
+
+export let globalSession : UIExtensionContentSession;
+export let globalWantParams : {[key: string]: (string | CmdType[] | string[])};
+export let globalContext : common.UIExtensionContext;
 
 const TAG = 'UserAuthAbility';
 // The current interface only support string type
@@ -25,7 +32,7 @@ const MASK_THIN_COLOR = '#33182431';
 export default class UserAuthAbility extends UserAuthExtensionAbility {
   onCreate() {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onCreate');
-    globalThis.context = this.context;
+    globalContext = this.context;
   }
 
   onForeground(): void {
@@ -34,7 +41,7 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onBackground(): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onBackground');
-    globalThis.session?.terminateSelf();
+    globalSession?.terminateSelf();
   }
 
   onDestroy(): void | Promise<void> {
@@ -43,18 +50,18 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onSessionCreate(want, session): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionCreate');
-    globalThis.wantParams = want?.parameters?.useriamCmdData;
-    globalThis.session = session;
-    session?.loadContent('pages/Index');
+    globalWantParams = want?.parameters?.useriamCmdData;
+    globalSession = session;
+    (session as UIExtensionContentSession)?.loadContent('pages/Index');
     try {
-      if (globalThis.wantParams?.windowModeType === 'DIALOG_BOX') {
-        session?.setWindowBackgroundColor(MASK_THIN_COLOR);
+      if (globalWantParams?.windowModeType as string === 'DIALOG_BOX') {
+        (session as UIExtensionContentSession)?.setWindowBackgroundColor(MASK_THIN_COLOR);
       } else {
-        session?.setWindowBackgroundColor(TRANSPARENT_COLOR);
+        (session as UIExtensionContentSession)?.setWindowBackgroundColor(TRANSPARENT_COLOR);
       }
     } catch (error) {
       LogUtils.error(TAG, 'UserAuthExtensionAbility onSessionCreate error: ' + error?.code);
-      session?.terminateSelf();
+      (session as UIExtensionContentSession)?.terminateSelf();
     }
     WindowPrivacyUtils.setWindowPrivacyMode(session, true);
   }

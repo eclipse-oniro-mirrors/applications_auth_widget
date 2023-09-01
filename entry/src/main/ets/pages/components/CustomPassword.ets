@@ -20,6 +20,7 @@ import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import Constants from '../../common/vm/Constants';
 import AuthUtils from '../../common/utils/AuthUtils';
+import { globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
 
 const TAG = 'CustomPassword';
 const BLUR_OPACITY = 0.5;
@@ -60,7 +61,7 @@ export default struct CustomPassword {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      globalSession?.terminateSelf?.();
     }
   }
 
@@ -92,14 +93,16 @@ export default struct CustomPassword {
             .backgroundColor(this.isBackTouched
               ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
             .onClick(() => {
-              globalThis.session?.terminateSelf?.();
-              AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+              globalSession?.terminateSelf?.();
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
+                globalWantParams?.type as string[]);
             })
-            .onTouch((event: TouchEvent) => {
-              if (event.type === TouchType.Down) {
+            .onTouch((event?: TouchEvent) => {
+              if (event == undefined) {
+                return;
+              } else if (event.type === TouchType.Down) {
                 this.isBackTouched = true;
-              }
-              if (event.type === TouchType.Up) {
+              } else if (event.type === TouchType.Up) {
                 this.isBackTouched = false;
               }
             });

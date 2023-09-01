@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 import type UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import { globalSession } from '../../extensionability/UserAuthAbility';
 import LogUtils from './LogUtils';
 
 const TAG = 'WindowPrivacyUtils';
@@ -30,7 +31,7 @@ export class WindowPrivacyUtils {
       });
     } catch (error) {
       LogUtils.error(TAG, 'setWindowPrivacyMode catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      globalSession?.terminateSelf?.();
     }
   }
 }

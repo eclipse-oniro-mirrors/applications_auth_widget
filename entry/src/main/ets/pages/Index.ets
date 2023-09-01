@@ -19,6 +19,7 @@ import { DialogType } from '../common/module/DialogType';
 import FuncUtils from '../common/utils/FuncUtils';
 import LogUtils from '../common/utils/LogUtils';
 import Constants, { CmdType } from '../common/vm/Constants';
+import { globalContext, globalSession, globalWantParams } from '../extensionability/UserAuthAbility';
 import CustomPassword from './components/CustomPassword';
 import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
@@ -50,7 +51,7 @@ struct Index {
       screen.getAllScreens((err, data) => {
         if (err.code) {
           LogUtils.error(TAG, 'Failed to get all screens. err: ' + err.code);
-          globalThis.session?.terminateSelf();
+          globalSession?.terminateSelf();
           return;
         }
         LogUtils.debug(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
@@ -58,20 +59,20 @@ struct Index {
         || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
         AppStorage.SetOrCreate('titleLength', (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)))
         LogUtils.debug(TAG, 'titleLength: ' + (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)));
-        LogUtils.debug(TAG, 'title: ' + globalThis.wantParams?.title.length);
+        LogUtils.debug(TAG, 'title: ' + (globalWantParams?.title as string).length);
         AppStorage.SetOrCreate('IS_LANDSCAPE', this.isLandscape);
-        LogUtils.debug(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
-        if (globalThis.wantParams) {
-          this.getParams(globalThis.wantParams);
+        LogUtils.debug(TAG, 'WantParams： ' + JSON.stringify(globalWantParams));
+        if (globalWantParams) {
+          this.getParams(globalWantParams);
           this.handleAuthStart();
-          this.cmdData = globalThis.wantParams?.cmd;
+          this.cmdData = globalWantParams?.cmd as CmdType[];
         } else {
           LogUtils.error(TAG, 'aboutToAppear wantParams null');
-          globalThis.session?.terminateSelf();
+          globalSession?.terminateSelf();
         }
         if (this.isLandscape && this.underFingerPrint) {
           setTimeout(() => {
-            globalThis.session?.terminateSelf();
+            globalSession?.terminateSelf();
           }, FIVE_SECOND)
         } else {
           this.loadFlag = true;
@@ -79,7 +80,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getAllScreens catch error: ' + error?.code);
-      globalThis.session?.terminateSelf();
+      globalSession?.terminateSelf();
     }
   }
 
@@ -100,7 +101,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getUserAuthWidgetMgr catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      globalSession?.terminateSelf?.();
     }
   }
 
@@ -154,6 +155,8 @@ struct Index {
           return userAuth.UserAuthType.FINGERPRINT;
         case Constants.noticeTypeFace:
           return userAuth.UserAuthType.FACE;
+        default:
+          return userAuth.UserAuthType.PIN;
       }
     })
     globalThis.widgetContextId = widgetContextId;
@@ -170,7 +173,7 @@ struct Index {
       if (this.isLandscape && this.underFingerPrint) {
         Flex({ direction: FlexDirection.Row, justifyContent: FlexAlign.Center, alignItems: ItemAlign.End }) {
           Column() {
-            Text(globalThis.context.resourceManager
+            Text(globalContext.resourceManager
               .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode')))
               .draggable(false)
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
