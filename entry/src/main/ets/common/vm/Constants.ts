@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import resourceManager from '@ohos.resourceManager';
 
 export default class Constants {
   static deviceDpi = ['520vp', '840vp'];
@@ -42,91 +43,91 @@ export default class Constants {
   // event cancel
   static noticeEventCancel = 'EVENT_AUTH_USER_CANCEL';
 
-  static numKeyBoard = [
+  static numKeyBoard : NumKeyBoardItem[]= [
     {
       index: 0,
       row1: '1',
       row2: ' ',
       value: 1,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 1,
       row1: '2',
       row2: 'ABC',
       value: 2,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 2,
       row1: '3',
       row2: 'DEF',
       value: 3,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 3,
       row1: '4',
       row2: 'GHI',
       value: 4,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 4,
       row1: '5',
       row2: 'JKL',
       value: 5,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 5,
       row1: '6',
       row2: 'MNO',
       value: 6,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 6,
       row1: '7',
       row2: 'PQRS',
       value: 7,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 7,
       row1: '8',
       row2: 'TUV',
       value: 8,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 8,
       row1: '9',
       row2: 'WXYZ',
       value: 9,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 9,
       row1: $r('app.string.unified_authwidget_notarize'),
       row2: ' ',
       value: -1,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 10,
       row1: '0',
       row2: '+',
       value: 0,
       bkg: false
-    },
+    } as NumKeyBoardItem,
     {
       index: 11,
       row1: $r('app.string.unified_authwidget_back'),
       row2: ' ',
       value: -3,
       bkg: false
-    }];
+    } as NumKeyBoardItem];
 }
 
 export interface FingerPosition {
@@ -148,4 +149,22 @@ export interface CmdData {
 export interface CmdType {
   event: string,
   payload: CmdData,
+}
+
+export interface NumKeyBoardItem {
+  index: number,
+  row1: string | resourceManager.Resource,
+  row2: string,
+  value: number,
+  bkg: boolean
+}
+
+export interface WantParams {
+  widgetContextId: number,
+  type: string[],
+  title: string,
+  pinSubType: string,
+  navigationButtonText: string,
+  windowModeType: string,
+  cmd: CmdType[],
 }

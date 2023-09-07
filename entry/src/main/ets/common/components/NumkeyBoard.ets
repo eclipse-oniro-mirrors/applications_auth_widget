@@ -14,7 +14,7 @@
  */
 
 import deviceInfo from '@ohos.deviceInfo';
-import Constants from '../vm/Constants';
+import Constants, { NumKeyBoardItem } from '../vm/Constants';
 
 const DIGITAL_BUTTON_DIAMETER = 60;
 const DIGITAL_BUTTON_RECT_WH = 100;
@@ -25,13 +25,13 @@ const GO_BACK = -3;
 
 @Component
 export default struct NumKeyBoard {
-  private onKeyPress?: (params, callback) => void;
-  @StorageLink('numKeyboard') numKeyboard: any[] = Constants.numKeyBoard;
+  private onKeyPress?: (params: number, callback: Function) => void;
+  @StorageLink('numKeyboard') numKeyboard: NumKeyBoardItem[] = Constants.numKeyBoard;
 
   build() {
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
       Grid() {
-        ForEach(this.numKeyboard, (item: any) => {
+        ForEach(this.numKeyboard, (item: NumKeyBoardItem) => {
           GridItem() {
             Stack({ alignContent: Alignment.Center }) {
               Column({ space: 0 }) {
@@ -41,7 +41,7 @@ export default struct NumKeyBoard {
                   justifyContent: FlexAlign.Center
                 }) {
                   if (item.value === CALL_PHONE || item.value === GO_BACK || item.value === DEL_PASSWORD) {
-                    Text(item.row1)
+                    Text(item.row1 as Resource | string)
                       .draggable(false)
                       .id('textNumKeyBordCustomPwd' + item.index)
                       .fontSize(deviceInfo.deviceType === 'tablet'
@@ -54,7 +54,7 @@ export default struct NumKeyBoard {
                       .padding($r('app.float.numkeyBoard_rowsGap'))
                       .margin($r('app.float.numkeyBoard_rowsGap'))
                   } else {
-                    Text(item.row1)
+                    Text(item.row1 as Resource | string)
                       .draggable(false)
                       .id('textNumKeyBordCustomPwd' + item.index)
                       .fontSize(deviceInfo.deviceType === 'tablet'
@@ -108,10 +108,8 @@ export default struct NumKeyBoard {
               }
             }
             .onClick(() => {
-              if (this.onKeyPress !== undefined){
-                setTimeout(this.onKeyPress.bind(this), 0, item.index, () => {
+                setTimeout((index: number, callback: Function):void => this.onKeyPress?.(index, callback), 0, item.index, () => {
                 });
-              }
             })
             .id('numKeyBordCustomPwd' + item.index)
           }

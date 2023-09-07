@@ -17,12 +17,12 @@ import LogUtils from '../common/utils/LogUtils';
 import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import WindowPrivacyUtils from '../common/utils/WindowPrivacyUtils';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
-import { CmdType } from '../common/vm/Constants';
+import { WantParams } from '../common/vm/Constants';
 import common from '@ohos.app.ability.common';
 
-export let globalSession : UIExtensionContentSession;
-export let globalWantParams : {[key: string]: (string | CmdType[] | string[])};
-export let globalContext : common.UIExtensionContext;
+let globalSession: UIExtensionContentSession;
+let globalWantParams: WantParams;
+let globalContext: common.UIExtensionContext;
 
 const TAG = 'UserAuthAbility';
 // The current interface only support string type
@@ -71,3 +71,5 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
     WindowPrivacyUtils.setWindowPrivacyMode(session, false);
   }
 }
+
+export {globalSession, globalWantParams, globalContext}

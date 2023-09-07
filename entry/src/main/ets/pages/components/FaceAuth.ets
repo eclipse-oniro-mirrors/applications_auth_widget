@@ -22,12 +22,12 @@ import AuthUtils from '../../common/utils/AuthUtils';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
-import Constants, { CmdType, FingerPosition } from '../../common/vm/Constants';
+import Constants, { CmdData, CmdType, FingerPosition } from '../../common/vm/Constants';
 import { globalContext, globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
 
 const TAG = 'FaceAuth';
 
-let pinAuthManager : account_osAccount.PINAuth;
+let pinAuthManager: account_osAccount.PINAuth;
 const INTERVAL = 1000;
 const THOUSANDTH = 1000;
 const PADDING_24 = 24;
@@ -48,7 +48,7 @@ let pinData = '';
 @Component
 export default struct FaceAuth {
   @State prompt: string = globalContext.resourceManager
-    .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+    .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
   @State @Watch('onTextValueChange') textValue: string = '';
   @Link @Watch('onCmdDataChange') cmdData: Array<CmdType>;
   @StorageLink('IS_LANDSCAPE') IS_LANDSCAPE: boolean = false;
@@ -72,15 +72,15 @@ export default struct FaceAuth {
   @State isPinFaceFinger: boolean = false;
   @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
 
-  countTime(freezingTime): void {
-    const TRY_AGAIN = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
+  countTime(freezingTime: number): void {
+    const TRY_AGAIN = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
       promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalContext);
       promptText = globalContext.resourceManager
-        .getStringSync($r('app.string.unified_authwidget_many_failures')) + promptText + TRY_AGAIN;
-      setTimeout(this.countTime.bind(this), INTERVAL, freezingTime - INTERVAL);
+        .getStringSync($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
+      setTimeout((t: number):void => this.countTime(freezingTime), INTERVAL, freezingTime - INTERVAL);
     } else {
       promptText = ' ';
       this.isEdit = true;
@@ -113,7 +113,7 @@ export default struct FaceAuth {
       LogUtils.info(TAG, 'aboutToAppear this.fingerPositionY: ' + this.fingerPositionY);
       if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.FACE) {
         this.prompt = globalContext.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+          .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
         AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
       } else if (this.dialogType === DialogType.ALL) {
         AuthUtils.getInstance()
@@ -161,7 +161,7 @@ export default struct FaceAuth {
   sendFaceEvent(): void {
     if (!this.faceLock) {
       this.prompt = globalContext.resourceManager
-        .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+        .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
     }
   }
@@ -177,159 +177,146 @@ export default struct FaceAuth {
   }
 
   onFontColor(prompt: string, context: Context): Resource {
-    switch (prompt) {
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden')):
-        return $r('sys.color.ohos_id_color_warning');
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_recognition')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_recognize_success')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp')):
-        return $r('sys.color.ohos_id_color_text_secondary');
-      default:
-        return $r('sys.color.ohos_id_color_text_secondary');
+    if (prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id)) {
+      return $r('sys.color.ohos_id_color_warning');
+    } else if (prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognition').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp').id)) {
+      return $r('sys.color.ohos_id_color_text_secondary');
+    } else {
+      return $r('sys.color.ohos_id_color_text_secondary');
     }
   }
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map(async (item) => {
-      const { type, remainAttempts, lockoutDuration,sensorInfo, result} = item.payload;
-      switch (type) {
-        case Constants.noticeTypePin:
-          if (result === 0) {
-            globalSession?.terminateSelf();
-          } else {
-            if (remainAttempts) {
+      const payload: CmdData = item.payload;
+      if (payload.type === Constants.noticeTypePin) {
+        if (payload.result === 0) {
+          globalSession?.terminateSelf();
+        } else {
+          if (payload.remainAttempts) {
+            this.inputValue = globalContext.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
+            this.textValue = '';
+            if (num === 'first') {
+              this.inputValue = '';
+            }
+            if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
               this.inputValue = globalContext.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
-              this.textValue = '';
-              if (num === 'first') {
-                this.inputValue = '';
-              }
-              if (remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
-                this.inputValue = globalContext.resourceManager
-                  .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
-                + remainAttempts + globalContext.resourceManager
-                  .getStringSync($r('app.string.unified_authwidget_frequency'));
-              }
-            }
-            if (remainAttempts === 0 && lockoutDuration) {
-              this.countTime(lockoutDuration);
-              this.textValue = '';
-              this.toPin();
-              this.isEdit = false;
+                .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id)
+                + payload.remainAttempts + globalContext.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_frequency').id);
             }
           }
-          break;
-        case Constants.noticeTypeFace:
-          if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-            return;
+          if (payload.remainAttempts === 0 && payload.lockoutDuration) {
+            this.countTime(payload.lockoutDuration);
+            this.textValue = '';
+            this.toPin();
+            this.isEdit = false;
           }
-          if (remainAttempts && result !== 0) {
-            this.prompt = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'));
-            this.faceLock = false;
-          }
-          if (num === 'first') {
-            this.prompt = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
-          }
-          if (remainAttempts === 0) {
-            this.prompt = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden'));
-            this.faceLock = true;
-            if (this.dialogType === DialogType.ALL) {
-              if (this.fingerLock) {
-                this.toPin();
-              }
-            } else {
+        }
+      } else if (payload.type === Constants.noticeTypeFace) {
+        if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+          return;
+        }
+        if (payload.remainAttempts && payload.result !== 0) {
+          this.prompt = globalContext.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id);
+          this.faceLock = false;
+        }
+        if (num === 'first') {
+          this.prompt = globalContext.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
+        }
+        if (payload.remainAttempts === 0) {
+          this.prompt = globalContext.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id);
+          this.faceLock = true;
+          if (this.dialogType === DialogType.ALL) {
+            if (this.fingerLock) {
               this.toPin();
             }
+          } else {
+            this.toPin();
           }
-          if (result === 0) {
-            this.prompt = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
-            setTimeout(() => {
-              globalSession?.terminateSelf?.();
-            }, SECOND);
-          }
-          break;
-        case Constants.noticeTypeFinger:
-          if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-            return;
-          }
-          if (sensorInfo && JSON.stringify(sensorInfo) !== '{}') {
-            this.fingerPosition = JSON.parse(sensorInfo);
-            const displayClass = display.getDefaultDisplaySync();
-            this.screen = [displayClass.width, displayClass.height];
-            switch (JSON.parse(sensorInfo)?.sensorType) {
-              case 'NON_SENSOR':
-              case 'OUT_OF_SCREEN_SENSOR': {
-                this.dialogTypeFlag = PIN_FACE;
-                break;
-              }
-              default:
-                this.isPinFaceFinger = true;
-                let tempPositionLine = JSON.parse(sensorInfo).udSensorCenterYInThousandth / displayClass.height;
-                FuncUtils.judgmentOverflow(tempPositionLine);
-                if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
-                  if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-                    this.screenType = SCREEN_LAND;
-                  }
-                } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
-                  if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-                    this.screenType = SCREEN_PORTRAIT;
-                  }
+        }
+        if (payload.result === 0) {
+          this.prompt = globalContext.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
+          setTimeout(() => {
+            globalSession?.terminateSelf?.();
+          }, SECOND);
+        }
+      } else if (payload.type === Constants.noticeTypeFinger) {
+        if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+          return;
+        }
+        if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
+          this.fingerPosition = JSON.parse(payload.sensorInfo);
+          const displayClass = display.getDefaultDisplaySync();
+          this.screen = [displayClass.width, displayClass.height];
+          switch (JSON.parse(payload.sensorInfo)?.sensorType as string) {
+            case 'NON_SENSOR':
+            case 'OUT_OF_SCREEN_SENSOR': {
+              this.dialogTypeFlag = PIN_FACE;
+              break;
+            }
+            default:
+              this.isPinFaceFinger = true;
+              let tempPositionLine = JSON.parse(payload.sensorInfo).udSensorCenterYInThousandth / displayClass.height;
+              FuncUtils.judgmentOverflow(tempPositionLine);
+              if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
+                if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+                  this.screenType = SCREEN_LAND;
                 }
-                break;
-            }
-          }
-          if (remainAttempts && result !== 0) {
-            this.prompt = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
-            this.fingerLock = false;
-            if (num !== 'first' && remainAttempts > 0 && result !== 0) {
-              setTimeout(() => {
-                AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-              }, NOTICE_DELAY);
-            }
-          }
-          if (num === 'first') {
-            this.prompt = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_normal_fp_only'));
-          }
-          if (remainAttempts === 0) {
-            this.prompt = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
-            this.fingerLock = true;
-            if (this.dialogType === DialogType.ALL) {
-              if (this.faceLock) {
-                this.toPin();
+              } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
+                if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+                  this.screenType = SCREEN_PORTRAIT;
+                }
               }
-            } else {
+              break;
+          }
+        }
+        if (payload.remainAttempts && payload.result !== 0) {
+          this.prompt = globalContext.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
+          this.fingerLock = false;
+          if (num !== 'first' && payload.remainAttempts > 0 && payload.result !== 0) {
+            setTimeout(() => {
+              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+            }, NOTICE_DELAY);
+          }
+        }
+        if (num === 'first') {
+          this.prompt = globalContext.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_normal_fp_only').id);
+        }
+        if (payload.remainAttempts === 0) {
+          this.prompt = globalContext.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
+          this.fingerLock = true;
+          if (this.dialogType === DialogType.ALL) {
+            if (this.faceLock) {
               this.toPin();
             }
+          } else {
+            this.toPin();
           }
-          if (result === 0) {
-            this.prompt = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))
-            setTimeout(() => {
-              globalSession?.terminateSelf?.();
-            }, SECOND);
-          }
-          break;
-        default:
-          LogUtils.error(TAG, 'onCmdDataChange default');
-          globalSession?.terminateSelf?.();
-          break;
+        }
+        if (payload.result === 0) {
+          this.prompt = globalContext.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
+          setTimeout(() => {
+            globalSession?.terminateSelf?.();
+          }, SECOND);
+        }
+      } else {
+        LogUtils.error(TAG, 'onCmdDataChange default');
+        globalSession?.terminateSelf?.();
       }
     })
   }
@@ -483,7 +470,7 @@ export default struct FaceAuth {
                     })
                 }
 
-                if (AppStorage.Get('titleLength') as number < (globalWantParams?.title as string).length) {
+                if (AppStorage.Get('titleLength') as number < globalWantParams?.title.length) {
                   Scroll() {
                     Column() {
                       Image($r('app.media.error_faceID'))
@@ -496,7 +483,7 @@ export default struct FaceAuth {
                         .onClick(() => {
                           this.sendFaceEvent();
                         })
-                      Text(globalWantParams?.title as string)
+                      Text(globalWantParams?.title)
                         .draggable(false)
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -526,7 +513,7 @@ export default struct FaceAuth {
                     .onClick(() => {
                       this.sendFaceEvent();
                     })
-                  Text(globalWantParams?.title as string)
+                  Text(globalWantParams?.title)
                     .draggable(false)
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -566,7 +553,7 @@ export default struct FaceAuth {
             } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_LAND
                 && this.fingerPosition.udSensorRadiusInPx !== undefined) {
               Column() {
-                if (AppStorage.Get('titleLength') as number < (globalWantParams?.title as string).length) {
+                if (AppStorage.Get('titleLength') as number < globalWantParams?.title.length) {
                   Scroll() {
                     Column() {
                       // Facial fingerprint password, second form
@@ -580,7 +567,7 @@ export default struct FaceAuth {
                         .onClick(() => {
                           this.sendFaceEvent();
                         })
-                      Text(globalWantParams?.title as string)
+                      Text(globalWantParams?.title)
                         .draggable(false)
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -604,7 +591,7 @@ export default struct FaceAuth {
                     .onClick(() => {
                       this.sendFaceEvent();
                     })
-                  Text(globalWantParams?.title as string)
+                  Text(globalWantParams?.title)
                     .draggable(false)
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -630,7 +617,7 @@ export default struct FaceAuth {
                   .fontColor(this.onFontColor(this.prompt, globalContext))
                   .onClick(() => {
                     if (this.prompt === globalContext?.resourceManager
-                    ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'))) {
+                    ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id)) {
                       this.sendFaceEvent();
                     }
                   })
@@ -691,16 +678,16 @@ export default struct FaceAuth {
             Column() {
               if (this.dialogTypeFlag === PIN_FACE) {
                 // Pin FACE
-                if (AppStorage.Get('titleLength') as number < (globalWantParams?.title as string).length) {
+                if (AppStorage.Get('titleLength') as number < globalWantParams?.title.length) {
                   Scroll() {
                     Column() {
-                      Text(globalWantParams?.title as string)
+                      Text(globalWantParams?.title)
                         .draggable(false)
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
                         .fontWeight(FontWeight.Medium)
                       Image(this.prompt !== globalContext.resourceManager
-                        .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
+                        .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
                         ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
                         .draggable(false)
                         .margin({
@@ -728,7 +715,7 @@ export default struct FaceAuth {
                   .scrollable(ScrollDirection.Vertical)
                   .scrollBarColor(Color.Gray)
                 } else {
-                  Text(globalWantParams?.title as string)
+                  Text(globalWantParams?.title)
                     .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -736,7 +723,7 @@ export default struct FaceAuth {
                     .height($r('app.float.size_24'))
                     .fontWeight(FontWeight.Medium)
                   Image(this.prompt !== globalContext.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
+                    .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
                     ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
                     .draggable(false)
                     .margin({
@@ -874,17 +861,17 @@ export default struct FaceAuth {
               }
               if (this.dialogTypeFlag === SINGLE_FACE) {
                 // Single FACE
-                if (AppStorage.Get('titleLength') as number < (globalWantParams?.title as string).length) {
+                if (AppStorage.Get('titleLength') as number < globalWantParams?.title.length) {
                   Scroll() {
                     Column() {
-                      Text(globalWantParams?.title as string)
+                      Text(globalWantParams?.title)
                         .draggable(false)
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
                         .fontWeight(FontWeight.Medium)
                         .id('titleFaceAuth')
                       Image(this.prompt !== globalContext.resourceManager
-                        .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
+                        .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
                         ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
                         .draggable(false)
                         .id('imageFaceAuth')
@@ -915,7 +902,7 @@ export default struct FaceAuth {
                   .scrollable(ScrollDirection.Vertical)
                   .scrollBarColor(Color.Gray)
                 } else {
-                  Text(globalWantParams?.title as string)
+                  Text(globalWantParams?.title)
                     .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -924,7 +911,7 @@ export default struct FaceAuth {
                     .fontWeight(FontWeight.Medium)
                     .id('titleFaceAuth')
                   Image(this.prompt !== globalContext.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
+                    .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
                     ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
                     .draggable(false)
                     .id('imageFaceAuth')

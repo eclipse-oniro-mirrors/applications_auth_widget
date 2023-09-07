@@ -22,6 +22,7 @@ const TAG = 'AuthUtils';
 
 export default class AuthUtils {
   private static authUtilsInstance: AuthUtils;
+  private widgetContextId: number = -1;
 
   public static getInstance(): AuthUtils {
     if (!AuthUtils.authUtilsInstance) {
@@ -30,10 +31,14 @@ export default class AuthUtils {
     return AuthUtils.authUtilsInstance;
   }
 
+  setWidgetContextId(widgetContextId): void {
+    this.widgetContextId = widgetContextId;
+  }
+
   sendNotice(cmd: string, type: Array<string>): void {
     try {
       const eventData = {
-        widgetContextId: globalThis.widgetContextId,
+        widgetContextId: this.widgetContextId,
         event: cmd,
         version: Constants.noticeVersion,
         payload: {

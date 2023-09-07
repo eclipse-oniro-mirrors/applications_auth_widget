@@ -16,6 +16,7 @@
 import Constants from '../../common/vm/Constants';
 import { globalWantParams } from '../../extensionability/UserAuthAbility';
 import AuthUtils from '../utils/AuthUtils';
+import LogUtils from '../utils/LogUtils';
 
 const MAX_LENGTH = 6;
 
@@ -42,11 +43,11 @@ export default struct SixPassword {
 
   build() {
     Column() {
-      if (AppStorage.Get('titleLength') as number < (globalWantParams?.title as string).length) {
+      if (AppStorage.Get('titleLength') as number < globalWantParams?.title.length) {
         Scroll() {
           Column() {
-            Text(globalWantParams?.title as string)
-	      .draggable(false)
+            Text(globalWantParams?.title)
+	            .draggable(false)
               .fontSize($r('sys.float.ohos_id_text_size_body1'))
               .fontColor($r('sys.color.ohos_id_color_text_primary'))
               .fontWeight(FontWeight.Medium)
@@ -54,7 +55,7 @@ export default struct SixPassword {
             Column() {
               Stack() {
                 List({ space: 4 }) {
-                  ForEach(['', '', '', '', '', ''], (item, index) => {
+                  ForEach(['', '', '', '', '', ''], (item: string, index?: number) => {
                     if (index !== undefined) {
                       ListItem() {
                         Button()
@@ -73,11 +74,11 @@ export default struct SixPassword {
                             {
                               left: $r('app.float.input_btn_padding_around'),
                               top: $r('app.float.margin_12')
-                            } : { top: $r('app.float.margin_12') })
+                            }: { top: $r('app.float.margin_12') })
                           .focusable(true)
                       }
                     }
-                  }, item => item)
+                  }, (item: string)  => item)
                 }
                 .listDirection(Axis.Horizontal)
                 .height($r('app.float.input_height'))
@@ -116,7 +117,7 @@ export default struct SixPassword {
         .scrollable(ScrollDirection.Vertical)
         .scrollBarColor(Color.Gray)
       } else {
-        Text(globalWantParams?.title as string)
+        Text(globalWantParams?.title)
           .draggable(false)
           .margin({ top: $r('app.float.title_padding_top') })
           .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -126,7 +127,7 @@ export default struct SixPassword {
         Column() {
           Stack() {
             List({ space: 4 }) {
-              ForEach(['', '', '', '', '', ''], (item, index) => {
+              ForEach(['', '', '', '', '', ''], (item: string, index?: number) => {
                 if (index !== undefined) {
                   ListItem() {
                     Button()
@@ -145,11 +146,11 @@ export default struct SixPassword {
                         {
                           left: $r('app.float.input_btn_padding_around'),
                           top: $r('app.float.margin_12')
-                        } : { top: $r('app.float.margin_12') })
+                        }: { top: $r('app.float.margin_12') })
                       .focusable(true)
                   }
                 }
-              }, item => item)
+              }, (item: string) => item)
             }
             .listDirection(Axis.Horizontal)
             .height($r('app.float.input_height'))

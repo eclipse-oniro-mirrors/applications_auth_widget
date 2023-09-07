@@ -20,7 +20,7 @@ import AuthUtils from '../../common/utils/AuthUtils';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
-import Constants, { CmdType } from '../../common/vm/Constants';
+import Constants, { CmdData, CmdType } from '../../common/vm/Constants';
 import { globalContext, globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
 
 const TAG = 'PasswordAuth';
@@ -30,7 +30,7 @@ const TEXT_LENGTH = 4;
 const MAX_FAIL_TIMES = 5;
 const HINT_TIMES_BY_FAIL_LESS = 3;
 
-let pinAuthManager : account_osAccount.PINAuth;
+let pinAuthManager: account_osAccount.PINAuth;
 let pinData = '';
 
 @Component
@@ -50,19 +50,19 @@ export default struct PasswordAuth {
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
-      const { type, remainAttempts, lockoutDuration, result } = item.payload;
-      if (type === Constants.noticeTypePin) {
-        if (remainAttempts && remainAttempts < MAX_FAIL_TIMES) {
+      const payload: CmdData = item.payload;
+      if (payload.type === Constants.noticeTypePin) {
+        if (payload.remainAttempts && payload.remainAttempts < MAX_FAIL_TIMES) {
           this.inputValue = globalContext.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
+            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
           this.textValue = '';
 
           // pin auth Remaining number
-          if (remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
+          if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
             this.inputValue = globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
-            + remainAttempts + globalContext.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_frequency'));
+              .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id)
+            + payload.remainAttempts + globalContext.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_frequency').id);
           }
           if (num === 'first') {
             this.inputValue = ' ';
@@ -70,13 +70,13 @@ export default struct PasswordAuth {
           return;
         }
         // pin auth Remaining number
-        if (remainAttempts === 0 && lockoutDuration) {
-          this.countTime(lockoutDuration);
+        if (payload.remainAttempts === 0 && payload.lockoutDuration) {
+          this.countTime(payload.lockoutDuration);
           this.isEdit = false;
           this.textValue = '';
           return;
         }
-        if (result === 0) {
+        if (payload.result === 0) {
           globalSession?.terminateSelf();
         }
         this.inputValue = ' ';
@@ -111,15 +111,15 @@ export default struct PasswordAuth {
     pinAuthManager?.unregisterInputer?.();
   }
 
-  countTime(freezingTime): void {
-    const TRY_AGAIN = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
+  countTime(freezingTime: number): void {
+    const TRY_AGAIN = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
       promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalContext);
       promptText = globalContext.resourceManager
-        .getStringSync($r('app.string.unified_authwidget_many_failures')) + promptText + TRY_AGAIN;
-      setTimeout(this.countTime.bind(this), INTERVAL, freezingTime - INTERVAL);
+        .getStringSync($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
+      setTimeout((t: number):void => this.countTime(freezingTime), INTERVAL, freezingTime - INTERVAL);
     } else {
       promptText = ' ';
       this.isEdit = true;
@@ -168,7 +168,7 @@ export default struct PasswordAuth {
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
                         this.handleCancel();
-			this.textValue = ' ';
+                        this.textValue = ' ';
                         this.inputValue = ' ';
                       })
                       .id('cancelBtnDialogPwd')
