@@ -15,9 +15,9 @@
 
 export class TimeUtils {
   getFreezingTimeNm(freezingMillisecond: number, context: Context): string {
-    const HOUR_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hour'));
-    const MINUTE_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_minutes'));
-    const SECOND_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_seconds'));
+    const HOUR_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hour').id);
+    const MINUTE_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_minutes').id);
+    const SECOND_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_seconds').id);
     const ONE_MINUTE = 60;
     const RATE = 1000;
     let minute = Math.floor(freezingMillisecond / (ONE_MINUTE * RATE));

@@ -18,7 +18,7 @@ import userAuth from '@ohos.userIAM.userAuth';
 import FullScreen from '../../common/components/FullScreen';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
-import Constants from '../../common/vm/Constants';
+import Constants, { CmdType } from '../../common/vm/Constants';
 import AuthUtils from '../../common/utils/AuthUtils';
 import { globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
 
@@ -28,14 +28,14 @@ const SATURATE = 1.3;
 const BLUR_RADIUS = 242;
 const BACK_BLUR = 80;
 const PADDING_SIXTEEN = 16;
-let pinAuthManager;
+let pinAuthManager: account_osAccount.PINAuth;
 let pinData = '';
 
 @Component
 export default struct CustomPassword {
   @Link pinSubType: string;
   @Link authType: Array<userAuth.UserAuthType>;
-  @Link cmdData: [];
+  @Link cmdData: Array<CmdType>;
   @State isBackTouched: boolean = false;
   @State cancelImageShow: boolean = false;
   @State @Watch('onTextValueChange') textValue: string = '';
@@ -53,7 +53,7 @@ export default struct CustomPassword {
       pinAuthManager = new account_osAccount.PINAuth();
       // register input
       pinAuthManager.registerInputer({
-        onGetData: (authSubType, callback) => {
+        onGetData: (authSubType: account_osAccount.AuthSubType, callback: account_osAccount.IInputData) => {
           LogUtils.info(TAG, 'aboutToAppear registerInputer onGetData');
           const uint8PW = FuncUtils.getUint8PW(pinData);
           callback.onSetData(authSubType, uint8PW);
@@ -91,7 +91,7 @@ export default struct CustomPassword {
             .height($r('app.float.image_back_size'))
             .margin({ left: $r('sys.float.ohos_id_max_padding_start'), top: this.SYSTEM_STATUS_BAR_HEIGHT + PADDING_SIXTEEN })
             .backgroundColor(this.isBackTouched
-              ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
+              ? $r('sys.color.ohos_id_color_hover'): Color.Transparent)
             .onClick(() => {
               globalSession?.terminateSelf?.();
               AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||

@@ -15,6 +15,7 @@
 
 import Constants from '../../common/vm/Constants';
 import { globalWantParams } from '../../extensionability/UserAuthAbility';
+import LogUtils from '../utils/LogUtils';
 
 const MAX_LENGTH = 32;
 
@@ -45,10 +46,10 @@ export default struct PassWord {
 
   build() {
     Column() {
-      if (AppStorage.Get('titleLength')  as number < (globalWantParams?.title as string).length) {
+      if (AppStorage.Get('titleLength')  as number < globalWantParams?.title.length) {
         Scroll() {
           Column() {
-            Text(globalWantParams?.title as string)
+            Text(globalWantParams?.title)
               .draggable(false)
               .fontSize($r('sys.float.ohos_id_text_size_body1'))
               .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -96,7 +97,7 @@ export default struct PassWord {
         .scrollable(ScrollDirection.Vertical)
         .scrollBarColor(Color.Gray)
       } else {
-        Text(globalWantParams?.title as string)
+        Text(globalWantParams?.title)
           .draggable(false)
           .margin({ top: $r('app.float.title_padding_top') })
           .fontSize($r('sys.float.ohos_id_text_size_body1'))
