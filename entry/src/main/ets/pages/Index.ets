@@ -18,9 +18,9 @@ import userAuth from '@ohos.userIAM.userAuth';
 import { DialogType } from '../common/module/DialogType';
 import AuthUtils from '../common/utils/AuthUtils';
 import FuncUtils from '../common/utils/FuncUtils';
+import { GlobalObject } from '../common/utils/GlobalObject';
 import LogUtils from '../common/utils/LogUtils';
 import Constants, { CmdData, CmdType, FingerPosition, WantParams } from '../common/vm/Constants';
-import { globalContext, globalSession, globalWantParams } from '../extensionability/UserAuthAbility';
 import CustomPassword from './components/CustomPassword';
 import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
@@ -52,7 +52,7 @@ struct Index {
       screen.getAllScreens((err, data) => {
         if (err.code) {
           LogUtils.error(TAG, 'Failed to get all screens. err: ' + err.code);
-          globalSession?.terminateSelf();
+          GlobalObject.getObject().getSession()?.terminateSelf();
           return;
         }
         LogUtils.debug(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
@@ -60,20 +60,20 @@ struct Index {
         || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
         AppStorage.SetOrCreate('titleLength', (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)))
         LogUtils.debug(TAG, 'titleLength: ' + (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)));
-        LogUtils.debug(TAG, 'title: ' + globalWantParams?.title.length);
+        LogUtils.debug(TAG, 'title: ' + GlobalObject.getObject().getWantParams()?.title.length);
         AppStorage.SetOrCreate('IS_LANDSCAPE', this.isLandscape);
-        LogUtils.debug(TAG, 'WantParams： ' + JSON.stringify(globalWantParams));
-        if (globalWantParams) {
-          this.getParams(globalWantParams);
+        LogUtils.debug(TAG, 'WantParams： ' + JSON.stringify(GlobalObject.getObject().getWantParams()));
+        if (GlobalObject.getObject().getWantParams()) {
+          this.getParams(GlobalObject.getObject().getWantParams());
           this.handleAuthStart();
-          this.cmdData = globalWantParams?.cmd as CmdType[];
+          this.cmdData = GlobalObject.getObject().getWantParams()?.cmd as CmdType[];
         } else {
           LogUtils.error(TAG, 'aboutToAppear wantParams null');
-          globalSession?.terminateSelf();
+          GlobalObject.getObject().getSession()?.terminateSelf();
         }
         if (this.isLandscape && this.underFingerPrint) {
           setTimeout(() => {
-            globalSession?.terminateSelf();
+            GlobalObject.getObject().getSession()?.terminateSelf();
           }, FIVE_SECOND)
         } else {
           this.loadFlag = true;
@@ -81,7 +81,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getAllScreens catch error: ' + error?.code);
-      globalSession?.terminateSelf();
+      GlobalObject.getObject().getSession()?.terminateSelf();
     }
   }
 
@@ -102,7 +102,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getUserAuthWidgetMgr catch error: ' + error?.code);
-      globalSession?.terminateSelf?.();
+      GlobalObject.getObject().getSession()?.terminateSelf?.();
     }
   }
 
@@ -159,7 +159,7 @@ struct Index {
         return userAuth.UserAuthType.PIN;
       }
     })
-    AuthUtils.getInstance().setWidgetContextId(resultInfo.widgetContextId);
+    GlobalObject.getObject().setWidgetContextId(resultInfo.widgetContextId)
     this.authType = newType;
     this.type = resultInfo.type;
     this.windowModeType = resultInfo.windowModeType;
@@ -173,7 +173,7 @@ struct Index {
       if (this.isLandscape && this.underFingerPrint) {
         Flex({ direction: FlexDirection.Row, justifyContent: FlexAlign.Center, alignItems: ItemAlign.End }) {
           Column() {
-            Text(globalContext.resourceManager
+            Text(GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode').id))
               .draggable(false)
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))

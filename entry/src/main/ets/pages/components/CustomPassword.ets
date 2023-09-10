@@ -20,7 +20,7 @@ import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import Constants, { CmdType } from '../../common/vm/Constants';
 import AuthUtils from '../../common/utils/AuthUtils';
-import { globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
+import { GlobalObject } from '../../common/utils/GlobalObject';
 
 const TAG = 'CustomPassword';
 const BLUR_OPACITY = 0.5;
@@ -61,7 +61,7 @@ export default struct CustomPassword {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      globalSession?.terminateSelf?.();
+      GlobalObject.getObject().getSession()?.terminateSelf?.();
     }
   }
 
@@ -93,9 +93,9 @@ export default struct CustomPassword {
             .backgroundColor(this.isBackTouched
               ? $r('sys.color.ohos_id_color_hover'): Color.Transparent)
             .onClick(() => {
-              globalSession?.terminateSelf?.();
+              GlobalObject.getObject().getSession()?.terminateSelf?.();
               AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-                globalWantParams?.type as string[]);
+                GlobalObject.getObject().getWantParams()?.type as string[]);
             })
             .onTouch((event?: TouchEvent) => {
               if (event == undefined) {

@@ -17,12 +17,7 @@ import LogUtils from '../common/utils/LogUtils';
 import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import WindowPrivacyUtils from '../common/utils/WindowPrivacyUtils';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
-import { WantParams } from '../common/vm/Constants';
-import common from '@ohos.app.ability.common';
-
-let globalSession: UIExtensionContentSession;
-let globalWantParams: WantParams;
-let globalContext: common.UIExtensionContext;
+import { GlobalObject } from '../common/utils/GlobalObject';
 
 const TAG = 'UserAuthAbility';
 // The current interface only support string type
@@ -32,7 +27,7 @@ const MASK_THIN_COLOR = '#33182431';
 export default class UserAuthAbility extends UserAuthExtensionAbility {
   onCreate() {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onCreate');
-    globalContext = this.context;
+    GlobalObject.getObject().setContext(this.context);
   }
 
   onForeground(): void {
@@ -41,7 +36,7 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onBackground(): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onBackground');
-    globalSession?.terminateSelf();
+    GlobalObject.getObject().getSession()?.terminateSelf();
   }
 
   onDestroy(): void | Promise<void> {
@@ -50,11 +45,11 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onSessionCreate(want, session): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionCreate');
-    globalWantParams = want?.parameters?.useriamCmdData;
-    globalSession = session;
+    GlobalObject.getObject().setWantParams(want?.parameters?.useriamCmdData);
+    GlobalObject.getObject().setSession(session);
     (session as UIExtensionContentSession)?.loadContent('pages/Index');
     try {
-      if (globalWantParams?.windowModeType as string === 'DIALOG_BOX') {
+      if (GlobalObject.getObject().getWantParams().windowModeType as string === 'DIALOG_BOX') {
         (session as UIExtensionContentSession)?.setWindowBackgroundColor(MASK_THIN_COLOR);
       } else {
         (session as UIExtensionContentSession)?.setWindowBackgroundColor(TRANSPARENT_COLOR);
@@ -71,5 +66,3 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
     WindowPrivacyUtils.setWindowPrivacyMode(session, false);
   }
 }
-
-export {globalSession, globalWantParams, globalContext}

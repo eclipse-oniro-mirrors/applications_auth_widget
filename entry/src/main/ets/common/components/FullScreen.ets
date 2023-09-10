@@ -16,9 +16,9 @@
 import display from '@ohos.display';
 import userAuth from '@ohos.userIAM.userAuth';
 import Constants, { CmdData, CmdType, FingerPosition, NumKeyBoardItem } from '../../common/vm/Constants';
-import { globalContext, globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
 import AuthUtils from '../utils/AuthUtils';
 import FuncUtils from '../utils/FuncUtils';
+import { GlobalObject } from '../utils/GlobalObject';
 import LogUtils from '../utils/LogUtils';
 import TimeUtils from '../utils/TimeUtils';
 import NumKeyBoard from './NumkeyBoard';
@@ -42,7 +42,6 @@ const NOTICE_DELAY = 50;
 const FINGER_SENSOR_POSITION_LINE = 0.75;
 const RADIUS = 2;
 const PADDING_8 = 8;
-const ONE_SECOND = 1000;
 const CANCEL_HIGH = 40;
 const BOTTOM = 72;
 const MARGIN = 4;
@@ -76,9 +75,9 @@ export default struct FullScreen {
   @StorageLink('passwordArrayNumber') passwordArrayNumber: string[] = [];
   @State passwordObj: string = '';
   numKeyboard: NumKeyBoardItem[] = Constants.numKeyBoard;
-  @State prompt: string = globalContext.resourceManager
+  @State prompt: string = GlobalObject.getObject().getContext().resourceManager
     .getStringSync($r('app.string.unified_authwidget_use_pwd').id);
-  @State fingerText: string = globalContext.resourceManager
+  @State fingerText: string = GlobalObject.getObject().getContext().resourceManager
     .getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp').id);
   @StorageLink('screenLockDirection') screenLockDirection: number = 1;
   @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
@@ -104,18 +103,18 @@ export default struct FullScreen {
       if (payload.type === Constants.noticeTypePin) {
         this.clearPassword();
         if (payload.remainAttempts) {
-          this.prompt = globalContext.resourceManager
+          this.prompt = GlobalObject.getObject().getContext().resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
-          if (num === 'first' && this.prompt !== globalContext.resourceManager
+          if (num === 'first' && this.prompt !== GlobalObject.getObject().getContext().resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_recognition').id)) {
-            this.prompt = globalContext.resourceManager
+            this.prompt = GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_use_pwd').id);
           }
           // 3: pin Residual number
           if (payload.remainAttempts < 3 && num !== 'first') {
-            this.prompt = globalContext.resourceManager
+            this.prompt = GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id)
-              + payload.remainAttempts + globalContext.resourceManager
+              + payload.remainAttempts + GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_frequency').id);
           }
         }
@@ -130,12 +129,12 @@ export default struct FullScreen {
           this.pinLock = 1;
         }
         if (payload.result === 0) {
-          globalSession?.terminateSelf?.();
+          GlobalObject.getObject().getSession()?.terminateSelf?.();
         }
       } else if (payload.type === Constants.noticeTypeFace) {
         if (payload.remainAttempts < 5 && payload.remainAttempts > 0) {
           if (this.pinLock !== 1) {
-            this.prompt = globalContext.resourceManager
+            this.prompt = GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id);
             this.faceFingerLockArr[0] = false;
           }
@@ -145,20 +144,20 @@ export default struct FullScreen {
             this.controlType.isShowFace = false;
           } else {
             if (this.pinLock !== 1) {
-              this.prompt = globalContext.resourceManager
+              this.prompt = GlobalObject.getObject().getContext().resourceManager
                 .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
             }
           }
         }
         if (payload.remainAttempts === 0) {
           if (num !== 'first') {
-            this.prompt = globalContext.resourceManager
+            this.prompt = GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id);
           }
           this.faceFingerLockArr[0] = true;
         }
         if (payload.result === 0) {
-          globalSession?.terminateSelf?.();
+          GlobalObject.getObject().getSession()?.terminateSelf?.();
         }
       } else if (payload.type === Constants.noticeTypeFinger) {
         let sensor: FingerPosition =  { sensorType: '' };
@@ -168,7 +167,7 @@ export default struct FullScreen {
         }
         if (payload.remainAttempts && payload.result !== 0) {
           if (this.controlType.jumpFinger) {
-            this.fingerText = globalContext.resourceManager
+            this.fingerText = GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
           }
           if (sensor && this.fingerPosition.udSensorCenterYInThousandth !== undefined &&
@@ -180,7 +179,7 @@ export default struct FullScreen {
                 setTimeout(() => {
                   AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
                 }, NOTICE_DELAY);
-                this.prompt = globalContext.resourceManager
+                this.prompt = GlobalObject.getObject().getContext().resourceManager
                   .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
               }
 
@@ -200,9 +199,9 @@ export default struct FullScreen {
           if (num === 'first') {
             this.controlType.isShowFinger = false;
           } else {
-            this.prompt = globalContext.resourceManager
+            this.prompt = GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
-            this.fingerText = globalContext.resourceManager
+            this.fingerText = GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
           }
           this.faceFingerLockArr[1] = true;
@@ -210,11 +209,11 @@ export default struct FullScreen {
           this.cancelImage = false;
         }
         if (payload.result === 0) {
-          globalSession?.terminateSelf?.();
+          GlobalObject.getObject().getSession()?.terminateSelf?.();
         }
       } else {
         LogUtils.error(TAG, 'type: ' + payload.type);
-        globalSession?.terminateSelf?.();
+        GlobalObject.getObject().getSession()?.terminateSelf?.();
       }
     })
   }
@@ -254,7 +253,7 @@ export default struct FullScreen {
       }
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear catch error: ' + error?.code);
-      globalSession?.terminateSelf?.();
+      GlobalObject.getObject().getSession()?.terminateSelf?.();
     }
   }
 
@@ -264,7 +263,7 @@ export default struct FullScreen {
     this.passwordArray = ['', '', '', '', '', ''];
     this.passwordObj = '';
     this.numKeyboard[11].value = GO_BACK;
-    this.numKeyboard[11].row1 = globalContext.resourceManager
+    this.numKeyboard[11].row1 = GlobalObject.getObject().getContext().resourceManager
       .getStringSync($r('app.string.unified_authwidget_back').id);
     this.updateStorage(() => {
     })
@@ -275,16 +274,16 @@ export default struct FullScreen {
   }
 
   countdown(freezingTime: number): void {
-    const TRY_AGAIN = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
-    const PLEASE_TRY = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_pleaseretry').id);
+    const TRY_AGAIN = GlobalObject.getObject().getContext().resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
+    const PLEASE_TRY = GlobalObject.getObject().getContext().resourceManager.getStringSync($r('app.string.unified_authwidget_pleaseretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalContext);
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, GlobalObject.getObject().getContext());
       promptText =PLEASE_TRY + promptText + TRY_AGAIN;
       setTimeout((t: number):void => this.countdown(freezingTime), INTERVAL, freezingTime - INTERVAL);
     } else {
-      promptText = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_use_pwd').id);
+      promptText = GlobalObject.getObject().getContext().resourceManager.getStringSync($r('app.string.unified_authwidget_use_pwd').id);
       this.clearPassword();
       // 0: pin unlock
       this.pinLock = 0;
@@ -349,11 +348,11 @@ export default struct FullScreen {
                 .margin({ bottom: $r('app.float.content_padding') })
                 .onClick(() => {
                   if (!this.faceFingerLockArr[0]) {
-                    this.prompt = globalContext.resourceManager
+                    this.prompt = GlobalObject.getObject().getContext().resourceManager
                       .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
                     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                   } else {
-                    this.prompt = globalContext.resourceManager
+                    this.prompt = GlobalObject.getObject().getContext().resourceManager
                       .getStringSync($r('app.string.unified_authwidget_title_face_forbidden').id);
                   }
                 })
@@ -376,9 +375,9 @@ export default struct FullScreen {
               .textOverflow({ overflow: TextOverflow.None })
               .height($r('app.float.size_24'))
               .onClick(() => {
-                if (this.prompt === globalContext.resourceManager
+                if (this.prompt === GlobalObject.getObject().getContext().resourceManager
                   .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id)) {
-                  this.prompt = globalContext.resourceManager
+                  this.prompt = GlobalObject.getObject().getContext().resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
                   AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                 }
@@ -434,7 +433,7 @@ export default struct FullScreen {
                       TextInput({ placeholder: '', text: this.passwordArray?.join('') })
                         .draggable(false)
                         .onChange(async (value: string) => {
-                          const arr = value?.replace(/[^\d]/g, '')?.split('');
+                          const arr = value?.replace(new RegExp('[^\\d]', 'g'), '')?.split('');
                           arr?.map((item, index) => {
                             this.passwordArray[index] = item;
                           });
@@ -456,7 +455,7 @@ export default struct FullScreen {
                       .draggable(false)
                       .onChange(async (value: string) => {
                         // Removes non-numeric characters from a string
-                        this.passwordArrayNumber = value.replace(/[^\d]/g, '').split('');
+                        this.passwordArrayNumber = value.replace(new RegExp('[^\\d]', 'g'), '').split('');
                       })
                       .id('pinInputNumber')
                       .onSubmit(async (enterKey: EnterKeyType) => {
@@ -570,7 +569,7 @@ export default struct FullScreen {
                       } else if (index === 1) {
                         this.passwordArray[index - 1] = '';
                         this.numKeyboard[11].value = GO_BACK;
-                        this.numKeyboard[11].row1 = globalContext.resourceManager
+                        this.numKeyboard[11].row1 = GlobalObject.getObject().getContext().resourceManager
                           .getStringSync($r('app.string.unified_authwidget_back').id);
                       } else {
                         this.passwordArray[index - 1] = '';
@@ -580,9 +579,9 @@ export default struct FullScreen {
                       // 0: pin unlock
                       this.pinLock = 0;
                       this.clearPassword();
-                      globalSession?.terminateSelf?.();
+                      GlobalObject.getObject().getSession()?.terminateSelf?.();
                       AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-                        globalWantParams?.type as string[]);
+                      GlobalObject.getObject().getWantParams()?.type as string[]);
                     } else if (keyValue === CALL_PHONE) {
                       if (this.passwordArray.join('').length < PASSWORD_ARRAY_LENGTH) {
                         return;
@@ -630,7 +629,7 @@ export default struct FullScreen {
                       } else if (index === 1) {
                         this.passwordArray[index - 1] = '';
                         this.numKeyboard[11].value = GO_BACK;
-                        this.numKeyboard[11].row1 = globalContext.resourceManager
+                        this.numKeyboard[11].row1 = GlobalObject.getObject().getContext().resourceManager
                           .getStringSync($r('app.string.unified_authwidget_back').id);
                       } else {
                         this.passwordArray[index - 1] = '';
@@ -640,9 +639,9 @@ export default struct FullScreen {
                       // 0: pin unlock
                       this.pinLock = 0;
                       this.clearPassword();
-                      globalSession?.terminateSelf?.();
+                      GlobalObject.getObject().getSession()?.terminateSelf?.();
                       AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-                        globalWantParams?.type as string[]);
+                        GlobalObject.getObject().getWantParams()?.type as string[]);
                     } else if (keyValue === CALL_PHONE) {
                       if (this.passwordArray.join('').length < PASSWORD_ARRAY_LENGTH) {
                         return;
@@ -688,7 +687,7 @@ export default struct FullScreen {
                     } else if (index === 1) {
                       this.passwordArray[index - 1] = '';
                       this.numKeyboard[11].value = GO_BACK;
-                      this.numKeyboard[11].row1 = globalContext.resourceManager
+                      this.numKeyboard[11].row1 = GlobalObject.getObject().getContext().resourceManager
                         .getStringSync($r('app.string.unified_authwidget_back').id);
                     } else {
                       this.passwordArray[index - 1] = '';
@@ -698,9 +697,9 @@ export default struct FullScreen {
                     // 0: pin unlock
                     this.pinLock = 0;
                     this.clearPassword();
-                    globalSession?.terminateSelf?.();
+                    GlobalObject.getObject().getSession()?.terminateSelf?.();
                     AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-                      globalWantParams?.type as string[]);
+                      GlobalObject.getObject().getWantParams()?.type as string[]);
                   } else if (keyValue === CALL_PHONE) {
                     if (this.passwordArray.join('').length < PASSWORD_ARRAY_LENGTH) {
                       return;
@@ -782,10 +781,10 @@ export default struct FullScreen {
       .width(Constants.fullContainerWidth)
     } else if (!this.controlType.isLandscape && this.fingerPosition.udSensorRadiusInPx !== undefined) {
       Column() {
-        if (AppStorage.Get('titleLength') as number < globalWantParams?.title.length) {
+        if (AppStorage.Get('titleLength') as number < GlobalObject.getObject().getWantParams()?.title.length) {
           Scroll() {
             Column() {
-              Text(globalWantParams?.title)
+              Text(GlobalObject.getObject().getWantParams()?.title)
               .draggable(false)
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_sub_title2'))
@@ -809,7 +808,7 @@ export default struct FullScreen {
           .scrollable(ScrollDirection.Vertical)
           .scrollBarColor('sys.color.ohos_id_color_foreground')
         } else {
-          Text(globalWantParams?.title)
+          Text(GlobalObject.getObject().getWantParams()?.title)
             .draggable(false)
             .height($r('app.float.text_high'))
             .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
@@ -861,7 +860,7 @@ export default struct FullScreen {
             this.controlType.jumpFinger = false;
             this.cancelImage = false;
             AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
-            this.prompt = globalContext.resourceManager
+            this.prompt = GlobalObject.getObject().getContext().resourceManager
               .getStringSync($r('app.string.unified_authwidget_use_pwd').id);
           })
       }

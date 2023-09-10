@@ -18,7 +18,7 @@ import userAuth from '@ohos.userIAM.userAuth';
 import { DialogType } from '../module/DialogType';
 import LogUtils from './LogUtils';
 import window from '@ohos.window';
-import { globalSession } from '../../extensionability/UserAuthAbility';
+import { GlobalObject } from './GlobalObject';
 
 const TAG = 'FuncUtils';
 
@@ -79,7 +79,7 @@ export class FuncUtils {
   judgmentOverflow(value: number): void {
     if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
       LogUtils.error(TAG, 'judgmentOverflow spill code value: ' + value);
-      globalSession?.terminateSelf?.();
+      GlobalObject.getObject().getSession()?.terminateSelf?.();
     }
   }
 }

@@ -14,15 +14,14 @@
  */
 
 import userAuth from '@ohos.userIAM.userAuth';
-import { globalSession } from '../../extensionability/UserAuthAbility';
 import Constants from '../vm/Constants';
+import { GlobalObject } from './GlobalObject';
 import LogUtils from './LogUtils';
 
 const TAG = 'AuthUtils';
 
 export default class AuthUtils {
   private static authUtilsInstance: AuthUtils;
-  private widgetContextId: number = -1;
 
   public static getInstance(): AuthUtils {
     if (!AuthUtils.authUtilsInstance) {
@@ -31,14 +30,10 @@ export default class AuthUtils {
     return AuthUtils.authUtilsInstance;
   }
 
-  setWidgetContextId(widgetContextId): void {
-    this.widgetContextId = widgetContextId;
-  }
-
   sendNotice(cmd: string, type: Array<string>): void {
     try {
       const eventData = {
-        widgetContextId: this.widgetContextId,
+        widgetContextId: GlobalObject.getObject().getWidgetContextId(),
         event: cmd,
         version: Constants.noticeVersion,
         payload: {
@@ -51,7 +46,7 @@ export default class AuthUtils {
       LogUtils.info(TAG, 'sendNotice success');
     } catch (error) {
       LogUtils.error(TAG, 'sendNotice catch error: ' + error?.code);
-      globalSession?.terminateSelf?.();
+      GlobalObject.getObject().getSession()?.terminateSelf?.();
     }
   }
 }
