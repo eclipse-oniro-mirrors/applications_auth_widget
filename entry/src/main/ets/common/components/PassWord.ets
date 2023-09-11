@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-import Constants from '../../common/vm/Constants';
-import { globalWantParams } from '../../extensionability/UserAuthAbility';
-import LogUtils from '../utils/LogUtils';
+import Constants, { WantParams } from '../../common/vm/Constants';
 
 const MAX_LENGTH = 32;
 
@@ -31,7 +29,7 @@ export default struct PassWord {
   confirm?: () => void;
 
   onTextValueChange(): void {
-    this.passwordArrNumber = this.textValue.replace(/[^\d]/g, '').split('');
+    this.passwordArrNumber = this.textValue.replace(new RegExp('[^\\d]', 'g'), '').split('');
   }
 
   clearPassword(): void {
@@ -46,10 +44,10 @@ export default struct PassWord {
 
   build() {
     Column() {
-      if (AppStorage.Get('titleLength')  as number < globalWantParams?.title.length) {
+      if (AppStorage.Get('titleLength')  as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
         Scroll() {
           Column() {
-            Text(globalWantParams?.title)
+            Text((AppStorage.get("wantParams") as WantParams)?.title)
               .draggable(false)
               .fontSize($r('sys.float.ohos_id_text_size_body1'))
               .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -78,7 +76,7 @@ export default struct PassWord {
               })
               .onChange((value: string) => {
                 if (this.pinSubType === Constants.pinNumber) {
-                  this.passwordArrNumber = value.replace(/[^\d]/g, '').split('');
+                  this.passwordArrNumber = value.replace(new RegExp('[^\\d]', 'g'), '').split('');
                 }
                 this.textValue = value;
               })
@@ -97,7 +95,7 @@ export default struct PassWord {
         .scrollable(ScrollDirection.Vertical)
         .scrollBarColor(Color.Gray)
       } else {
-        Text(globalWantParams?.title)
+        Text((AppStorage.get("wantParams") as WantParams)?.title)
           .draggable(false)
           .margin({ top: $r('app.float.title_padding_top') })
           .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -127,7 +125,7 @@ export default struct PassWord {
           })
           .onChange((value: string) => {
             if (this.pinSubType === Constants.pinNumber) {
-              this.passwordArrNumber = value.replace(/[^\d]/g, '').split('');
+              this.passwordArrNumber = value.replace(new RegExp('[^\\d]', 'g'), '').split('');
             }
             this.textValue = value;
           })

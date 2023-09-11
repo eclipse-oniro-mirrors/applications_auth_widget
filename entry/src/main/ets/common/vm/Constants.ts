@@ -168,3 +168,11 @@ export interface WantParams {
   windowModeType: string,
   cmd: CmdType[],
 }
+
+export interface CommandResultInfo {
+  cmdData:string
+}
+export interface WidgetCommand {
+  cmd:Array<CmdType>,
+  pinSubType:string
+}

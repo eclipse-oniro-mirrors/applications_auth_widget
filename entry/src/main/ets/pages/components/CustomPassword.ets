@@ -18,9 +18,9 @@ import userAuth from '@ohos.userIAM.userAuth';
 import FullScreen from '../../common/components/FullScreen';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
-import Constants, { CmdType } from '../../common/vm/Constants';
+import Constants, { CmdType, WantParams } from '../../common/vm/Constants';
 import AuthUtils from '../../common/utils/AuthUtils';
-import { globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 
 const TAG = 'CustomPassword';
 const BLUR_OPACITY = 0.5;
@@ -61,7 +61,7 @@ export default struct CustomPassword {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      globalSession?.terminateSelf?.();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -93,9 +93,9 @@ export default struct CustomPassword {
             .backgroundColor(this.isBackTouched
               ? $r('sys.color.ohos_id_color_hover'): Color.Transparent)
             .onClick(() => {
-              globalSession?.terminateSelf?.();
+              (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
               AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-                globalWantParams?.type as string[]);
+                (AppStorage.get("wantParams") as WantParams)?.type as string[]);
             })
             .onTouch((event?: TouchEvent) => {
               if (event == undefined) {

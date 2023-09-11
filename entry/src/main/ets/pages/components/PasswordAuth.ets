@@ -14,14 +14,15 @@
  */
 
 import account_osAccount from '@ohos.account.osAccount';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import common from '@ohos.app.ability.common';
 import PassWord from '../../common/components/PassWord';
 import SixPassword from '../../common/components/SixPassword';
 import AuthUtils from '../../common/utils/AuthUtils';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
-import Constants, { CmdData, CmdType } from '../../common/vm/Constants';
-import { globalContext, globalSession, globalWantParams } from '../../extensionability/UserAuthAbility';
+import Constants, { CmdData, CmdType, WantParams } from '../../common/vm/Constants';
 
 const TAG = 'PasswordAuth';
 const INTERVAL = 1000;
@@ -53,15 +54,15 @@ export default struct PasswordAuth {
       const payload: CmdData = item.payload;
       if (payload.type === Constants.noticeTypePin) {
         if (payload.remainAttempts && payload.remainAttempts < MAX_FAIL_TIMES) {
-          this.inputValue = globalContext.resourceManager
+          this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
           this.textValue = '';
 
           // pin auth Remaining number
           if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
-            this.inputValue = globalContext.resourceManager
+            this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
               .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id)
-            + payload.remainAttempts + globalContext.resourceManager
+            + payload.remainAttempts + (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
               .getStringSync($r('app.string.unified_authwidget_frequency').id);
           }
           if (num === 'first') {
@@ -77,7 +78,7 @@ export default struct PasswordAuth {
           return;
         }
         if (payload.result === 0) {
-          globalSession?.terminateSelf();
+          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
         }
         this.inputValue = ' ';
         this.textValue = '';
@@ -102,7 +103,7 @@ export default struct PasswordAuth {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      globalSession?.terminateSelf?.();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -112,12 +113,12 @@ export default struct PasswordAuth {
   }
 
   countTime(freezingTime: number): void {
-    const TRY_AGAIN = globalContext.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
+    const TRY_AGAIN = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalContext);
-      promptText = globalContext.resourceManager
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get("context") as common.ExtensionContext));
+      promptText = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
         .getStringSync($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
       setTimeout((t: number):void => this.countTime(freezingTime), INTERVAL, freezingTime - INTERVAL);
     } else {
@@ -129,8 +130,8 @@ export default struct PasswordAuth {
 
   handleCancel(): void {
     AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-      globalWantParams?.type as string[]);
-    globalSession?.terminateSelf?.();
+      (AppStorage.get("wantParams") as WantParams)?.type as string[]);
+    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
   }
 
   build() {
