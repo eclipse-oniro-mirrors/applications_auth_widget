@@ -17,7 +17,7 @@ import LogUtils from '../common/utils/LogUtils';
 import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import WindowPrivacyUtils from '../common/utils/WindowPrivacyUtils';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
-import { GlobalObject } from '../common/utils/GlobalObject';
+import { WantParams } from '../common/vm/Constants';
 
 const TAG = 'UserAuthAbility';
 // The current interface only support string type
@@ -27,7 +27,7 @@ const MASK_THIN_COLOR = '#33182431';
 export default class UserAuthAbility extends UserAuthExtensionAbility {
   onCreate() {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onCreate');
-    GlobalObject.getObject().setContext(this.context);
+    AppStorage.setOrCreate("context", this.context);
   }
 
   onForeground(): void {
@@ -36,7 +36,7 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onBackground(): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onBackground');
-    GlobalObject.getObject().getSession()?.terminateSelf();
+    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
   }
 
   onDestroy(): void | Promise<void> {
@@ -45,11 +45,11 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onSessionCreate(want, session): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionCreate');
-    GlobalObject.getObject().setWantParams(want?.parameters?.useriamCmdData);
-    GlobalObject.getObject().setSession(session);
+    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
+    AppStorage.setOrCreate("session", session);
     (session as UIExtensionContentSession)?.loadContent('pages/Index');
     try {
-      if (GlobalObject.getObject().getWantParams().windowModeType as string === 'DIALOG_BOX') {
+      if ((AppStorage.get("wantParams") as WantParams)?.windowModeType === 'DIALOG_BOX') {
         (session as UIExtensionContentSession)?.setWindowBackgroundColor(MASK_THIN_COLOR);
       } else {
         (session as UIExtensionContentSession)?.setWindowBackgroundColor(TRANSPARENT_COLOR);

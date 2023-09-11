@@ -15,16 +15,16 @@
 
 import screen from '@ohos.screen';
 import userAuth from '@ohos.userIAM.userAuth';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 import { DialogType } from '../common/module/DialogType';
-import AuthUtils from '../common/utils/AuthUtils';
 import FuncUtils from '../common/utils/FuncUtils';
-import { GlobalObject } from '../common/utils/GlobalObject';
 import LogUtils from '../common/utils/LogUtils';
 import Constants, { CmdData, CmdType, FingerPosition, WantParams } from '../common/vm/Constants';
 import CustomPassword from './components/CustomPassword';
 import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
 import PasswordAuth from './components/PasswordAuth';
+import common from '@ohos.app.ability.common';
 
 const DEFAULT_SIZE = 72;
 const FIVE_SECOND = 5000;
@@ -52,7 +52,7 @@ struct Index {
       screen.getAllScreens((err, data) => {
         if (err.code) {
           LogUtils.error(TAG, 'Failed to get all screens. err: ' + err.code);
-          GlobalObject.getObject().getSession()?.terminateSelf();
+          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
           return;
         }
         LogUtils.debug(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
@@ -60,20 +60,20 @@ struct Index {
           || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
         AppStorage.SetOrCreate('titleLength', (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)))
         LogUtils.debug(TAG, 'titleLength: ' + (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)));
-        LogUtils.debug(TAG, 'title: ' + GlobalObject.getObject().getWantParams()?.title.length);
+        LogUtils.debug(TAG, 'title: ' + (AppStorage.get("wantParams") as WantParams)?.title.length);
         AppStorage.SetOrCreate('IS_LANDSCAPE', this.isLandscape);
-        LogUtils.debug(TAG, 'WantParams： ' + JSON.stringify(GlobalObject.getObject().getWantParams()));
-        if (GlobalObject.getObject().getWantParams()) {
-          this.getParams(GlobalObject.getObject().getWantParams());
+        LogUtils.debug(TAG, 'WantParams： ' + JSON.stringify(AppStorage.get("wantParams") as WantParams));
+        if ((AppStorage.get("wantParams") as WantParams)) {
+          this.getParams((AppStorage.get("wantParams") as WantParams));
           this.handleAuthStart();
-          this.cmdData = GlobalObject.getObject().getWantParams()?.cmd as CmdType[];
+          this.cmdData = (AppStorage.get("wantParams") as WantParams)?.cmd as CmdType[];
         } else {
           LogUtils.error(TAG, 'aboutToAppear wantParams null');
-          GlobalObject.getObject().getSession()?.terminateSelf();
+          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
         }
         if (this.isLandscape && this.underFingerPrint) {
           setTimeout(() => {
-            GlobalObject.getObject().getSession()?.terminateSelf();
+            (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
           }, FIVE_SECOND)
         } else {
           this.loadFlag = true;
@@ -81,7 +81,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getAllScreens catch error: ' + error?.code);
-      GlobalObject.getObject().getSession()?.terminateSelf();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -102,7 +102,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getUserAuthWidgetMgr catch error: ' + error?.code);
-      GlobalObject.getObject().getSession()?.terminateSelf?.();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -147,8 +147,8 @@ struct Index {
   getParams(result: WantParams): void {
     LogUtils.info(TAG, 'getParams');
     const resultInfo: WantParams = result;
-    this.pinSubType = resultInfo.pinSubType;
-    const newType = resultInfo.type && resultInfo.type.map(item => {
+    this.pinSubType = resultInfo?.pinSubType;
+    const newType = resultInfo?.type && resultInfo?.type.map(item => {
       if (item === Constants.noticeTypePin) {
         return userAuth.UserAuthType.PIN;
       } else if (item === Constants.noticeTypeFinger) {
@@ -159,13 +159,13 @@ struct Index {
         return userAuth.UserAuthType.PIN;
       }
     })
-    GlobalObject.getObject().setWidgetContextId(resultInfo.widgetContextId);
+    AppStorage.setOrCreate("widgetContextId", resultInfo?.widgetContextId);
     this.authType = newType;
-    this.type = resultInfo.type;
-    this.windowModeType = resultInfo.windowModeType;
+    this.type = resultInfo?.type;
+    this.windowModeType = resultInfo?.windowModeType;
     this.dialogType = FuncUtils.getDialogType(newType);
-    this.cmdData = resultInfo.cmd || [];
-    this.handleIsUnder(resultInfo.cmd || []);
+    this.cmdData = resultInfo?.cmd || [];
+    this.handleIsUnder(resultInfo?.cmd || []);
   }
 
   build() {
@@ -173,7 +173,7 @@ struct Index {
       if (this.isLandscape && this.underFingerPrint) {
         Flex({ direction: FlexDirection.Row, justifyContent: FlexAlign.Center, alignItems: ItemAlign.End }) {
           Column() {
-            Text(GlobalObject.getObject().getContext().resourceManager
+            Text((AppStorage.get("context") as common.ExtensionContext)?.resourceManager
               .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode').id))
               .draggable(false)
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))

@@ -14,8 +14,7 @@
  */
 
 import AuthUtils from '../utils/AuthUtils';
-import { GlobalObject } from '../utils/GlobalObject';
-import Constants from '../vm/Constants';
+import Constants, { WantParams } from '../vm/Constants';
 
 const MAX_LENGTH = 6;
 
@@ -42,10 +41,10 @@ export default struct SixPassword {
 
   build() {
     Column() {
-      if (AppStorage.Get('titleLength') as number < GlobalObject.getObject().getWantParams()?.title.length) {
+      if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
         Scroll() {
           Column() {
-            Text(GlobalObject.getObject().getWantParams()?.title)
+            Text((AppStorage.get("wantParams") as WantParams)?.title)
 	            .draggable(false)
               .fontSize($r('sys.float.ohos_id_text_size_body1'))
               .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -85,7 +84,7 @@ export default struct SixPassword {
                 TextInput({ placeholder: '', text: this.passwordArrayNumber?.join('') })
                   .draggable(false)
                   .onChange(async (value: string) => {
-                    this.passwordArrayNumber = value?.replace(new RegExp('[^\\d]', 'g'), '')?.split('');
+                    this.passwordArrayNumber = value.replace(new RegExp('[^\\d]', 'g'), '').split('');
                     this.textValue = this.passwordArrayNumber?.join('');
                     if (this.textValue?.length === MAX_LENGTH) {
                       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
@@ -116,7 +115,7 @@ export default struct SixPassword {
         .scrollable(ScrollDirection.Vertical)
         .scrollBarColor(Color.Gray)
       } else {
-        Text(GlobalObject.getObject().getWantParams()?.title)
+        Text((AppStorage.get("wantParams") as WantParams)?.title)
           .draggable(false)
           .margin({ top: $r('app.float.title_padding_top') })
           .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -157,7 +156,7 @@ export default struct SixPassword {
             TextInput({ placeholder: '', text: this.passwordArrayNumber?.join('') })
               .draggable(false)
               .onChange(async (value: string) => {
-                this.passwordArrayNumber = value?.replace(new RegExp('[^\\d]', 'g'), '')?.split('');
+                this.passwordArrayNumber = value.replace(new RegExp('[^\\d]', 'g'), '').split('');
                 this.textValue = this.passwordArrayNumber?.join('');
                 if (this.textValue?.length === MAX_LENGTH) {
                   AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypePin]);
