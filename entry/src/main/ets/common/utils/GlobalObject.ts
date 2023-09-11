@@ -15,6 +15,7 @@
 import common from '@ohos.app.ability.common';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 import { WantParams } from '../vm/Constants';
+import LogUtils from './LogUtils';
 
 export class GlobalObject {
   private constructor() {};
@@ -32,14 +33,23 @@ export class GlobalObject {
   }
 
   getContext(): common.UIExtensionContext {
+    if(!this.context) {
+      LogUtils.error("LIUZIWEI", 'getContext context null');
+    }
     return this.context;
   }
 
   getWantParams(): WantParams {
+    if(!this.wantParams) {
+      LogUtils.error("LIUZIWEI", 'getWantParams wantParams null');
+    }
     return this.wantParams;
   }
 
   getSession(): UIExtensionContentSession {
+    if(!this.session) {
+      LogUtils.error("LIUZIWEI", 'getSession session null');
+    }
     return this.session;
   }
 
@@ -48,15 +58,27 @@ export class GlobalObject {
   }
 
   setContext(context: common.UIExtensionContext): void {
+    LogUtils.error("LIUZIWEI", 'setContext');
     this.context = context;
+    if (this.context){
+      LogUtils.error("LIUZIWEI", 'setContext is not null');
+    }
   }
 
   setWantParams(wantParams: WantParams): void {
+    LogUtils.error("LIUZIWEI", 'setWantParams');
     this.wantParams = wantParams;
+    if (this.wantParams) {
+      LogUtils.error("LIUZIWEI", 'setWantParams is not null');
+    }
   }
 
   setSession(session: UIExtensionContentSession): void {
+    LogUtils.error("LIUZIWEI", 'setSession');
     this.session = session;
+    if (this.session) {
+      LogUtils.error("LIUZIWEI", 'setSession is not null');
+    }
   }
 
   setWidgetContextId(widgetContextId: number): void{

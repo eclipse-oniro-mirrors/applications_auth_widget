@@ -20,8 +20,7 @@ import AuthUtils from '../common/utils/AuthUtils';
 import FuncUtils from '../common/utils/FuncUtils';
 import { GlobalObject } from '../common/utils/GlobalObject';
 import LogUtils from '../common/utils/LogUtils';
-import Constants, { CmdData, CmdType, CommandResultInfo, FingerPosition, WantParams,
-  WidgetCommand } from '../common/vm/Constants';
+import Constants, { CmdData, CmdType, FingerPosition, WantParams } from '../common/vm/Constants';
 import CustomPassword from './components/CustomPassword';
 import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
@@ -31,7 +30,7 @@ const DEFAULT_SIZE = 72;
 const FIVE_SECOND = 5000;
 const LANDSCAPE = 2;
 const TAG = 'Index';
-let userAuthWidgetMgr: userAuth.UserAuthWidgetMgr;
+let userAuthWidgetMgr;
 
 @Entry
 @Component
@@ -58,7 +57,7 @@ struct Index {
         }
         LogUtils.debug(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
         this.isLandscape = data[0]?.orientation === LANDSCAPE
-        || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
+          || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
         AppStorage.SetOrCreate('titleLength', (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)))
         LogUtils.debug(TAG, 'titleLength: ' + (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)));
         LogUtils.debug(TAG, 'title: ' + GlobalObject.getObject().getWantParams()?.title.length);
@@ -93,10 +92,9 @@ struct Index {
       LogUtils.info(TAG, 'getUserAuthWidgetMgr success');
       let that = this;
       userAuthWidgetMgr.on('command', {
-        sendCommand(result): void {
+        callback: function (result) {
           LogUtils.info(TAG, 'userAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
-          const commandResultInfo: CommandResultInfo = JSON.parse(result);
-          const cmdDataObj: WidgetCommand = JSON.parse(commandResultInfo?.cmdData || '{}');
+          const cmdDataObj = JSON.parse(result?.cmdData || '{}');
           that.cmdData = cmdDataObj?.cmd || [];
           that.pinSubType = cmdDataObj?.pinSubType;
           that.handleIsUnder(cmdDataObj?.cmd || []);
@@ -117,8 +115,8 @@ struct Index {
           if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
             const fingerPosition: FingerPosition = JSON.parse(payload.sensorInfo);
             if (fingerPosition?.sensorType === 'UNDER_SCREEN_SENSOR' ||
-            fingerPosition?.sensorType === 'BOTH_SENSOR' ||
-            fingerPosition?.sensorType === 'SensorType1') {
+              fingerPosition?.sensorType === 'BOTH_SENSOR' ||
+              fingerPosition?.sensorType === 'SensorType1') {
               this.underFingerPrint = true;
             }
           }
@@ -139,7 +137,7 @@ struct Index {
     LogUtils.info(TAG, 'aboutToDisappear');
     if (userAuthWidgetMgr) {
       userAuthWidgetMgr.off('command', {
-        sendCommand (result): void {
+        callback: function (result) {
           LogUtils.info(TAG, 'aboutToDisappear userAuthWidgetMgr offCommand result: ' + JSON.stringify(result));
         }
       });
@@ -161,7 +159,7 @@ struct Index {
         return userAuth.UserAuthType.PIN;
       }
     })
-    GlobalObject.getObject().setWidgetContextId(resultInfo.widgetContextId)
+    GlobalObject.getObject().setWidgetContextId(resultInfo.widgetContextId);
     this.authType = newType;
     this.type = resultInfo.type;
     this.windowModeType = resultInfo.windowModeType;
