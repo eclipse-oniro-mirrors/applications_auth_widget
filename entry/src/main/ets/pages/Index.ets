@@ -30,7 +30,7 @@ const DEFAULT_SIZE = 72;
 const FIVE_SECOND = 5000;
 const LANDSCAPE = 2;
 const TAG = 'Index';
-let userAuthWidgetMgr;
+let userAuthWidgetMgr: userAuth.UserAuthWidgetMgr;
 
 @Entry
 @Component
@@ -92,14 +92,14 @@ struct Index {
       LogUtils.info(TAG, 'getUserAuthWidgetMgr success');
       let that = this;
       userAuthWidgetMgr.on('command', {
-        callback: function (result) {
-          LogUtils.info(TAG, 'userAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
-          const cmdDataObj = JSON.parse(result?.cmdData || '{}');
+        sendCommand: (result) => {
+          LogUtils.info(TAG, 'sendCommand result: ' + result);
+          const cmdDataObj = JSON.parse(result || '{}');
+          LogUtils.info(TAG, 'cmdDataObj: ' + JSON.stringify(cmdDataObj));
           that.cmdData = cmdDataObj?.cmd || [];
           that.pinSubType = cmdDataObj?.pinSubType;
           that.handleIsUnder(cmdDataObj?.cmd || []);
-        }
-      });
+      }});
     } catch (error) {
       LogUtils.error(TAG, 'getUserAuthWidgetMgr catch error: ' + error?.code);
       (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
@@ -137,7 +137,7 @@ struct Index {
     LogUtils.info(TAG, 'aboutToDisappear');
     if (userAuthWidgetMgr) {
       userAuthWidgetMgr.off('command', {
-        callback: function (result) {
+        sendCommand : (result) => {
           LogUtils.info(TAG, 'aboutToDisappear userAuthWidgetMgr offCommand result: ' + JSON.stringify(result));
         }
       });
