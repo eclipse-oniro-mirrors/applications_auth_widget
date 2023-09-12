@@ -282,7 +282,7 @@ export default struct FullScreen {
     if (freezingMillisecond > 0) {
       promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get("context") as common.ExtensionContext));
       promptText =PLEASE_TRY + promptText + TRY_AGAIN;
-      setTimeout((t: number):void => this.countdown(freezingTime), INTERVAL, freezingTime - INTERVAL);
+      setTimeout((t: number):void => this.countdown(t), INTERVAL, freezingTime - INTERVAL);
     } else {
       promptText = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_use_pwd').id);
       this.clearPassword();
