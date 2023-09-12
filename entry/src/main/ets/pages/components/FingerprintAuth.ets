@@ -224,7 +224,7 @@ export default struct FingerprintAuth {
       promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get("context") as common.ExtensionContext));
       promptText = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
         .getStringSync($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
-      setTimeout((t: number):void => this.countTime(freezingTime), INTERVAL, freezingTime - INTERVAL);
+      setTimeout((t: number):void => this.countTime(t), INTERVAL, freezingTime - INTERVAL);
     } else {
       promptText = ' ';
       this.isEdit = true;
