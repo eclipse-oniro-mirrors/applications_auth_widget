@@ -98,8 +98,7 @@ struct Index {
           that.cmdData = cmdDataObj?.cmd || [];
           that.pinSubType = cmdDataObj?.pinSubType;
           that.handleIsUnder(cmdDataObj?.cmd || []);
-        }
-      });
+        }});
     } catch (error) {
       LogUtils.error(TAG, 'getUserAuthWidgetMgr catch error: ' + error?.code);
       (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
