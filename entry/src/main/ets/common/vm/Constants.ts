@@ -169,9 +169,6 @@ export interface WantParams {
   cmd: CmdType[],
 }
 
-export interface CommandResultInfo {
-  cmdData:string
-}
 export interface WidgetCommand {
   cmd:Array<CmdType>,
   pinSubType:string

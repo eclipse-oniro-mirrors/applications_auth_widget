@@ -19,7 +19,7 @@ import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSessi
 import { DialogType } from '../common/module/DialogType';
 import FuncUtils from '../common/utils/FuncUtils';
 import LogUtils from '../common/utils/LogUtils';
-import Constants, { CmdData, CmdType, FingerPosition, WantParams } from '../common/vm/Constants';
+import Constants, { CmdData, CmdType, FingerPosition, WantParams, WidgetCommand } from '../common/vm/Constants';
 import CustomPassword from './components/CustomPassword';
 import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
@@ -30,7 +30,7 @@ const DEFAULT_SIZE = 72;
 const FIVE_SECOND = 5000;
 const LANDSCAPE = 2;
 const TAG = 'Index';
-let userAuthWidgetMgr;
+let userAuthWidgetMgr: userAuth.UserAuthWidgetMgr;
 
 @Entry
 @Component
@@ -92,9 +92,9 @@ struct Index {
       LogUtils.info(TAG, 'getUserAuthWidgetMgr success');
       let that = this;
       userAuthWidgetMgr.on('command', {
-        callback: function (result) {
-          LogUtils.info(TAG, 'userAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
-          const cmdDataObj = JSON.parse(result?.cmdData || '{}');
+        sendCommand(result) {
+          LogUtils.info(TAG, 'sendCommand result: ' + result);
+          const cmdDataObj: WidgetCommand = JSON.parse(result || '{}');
           that.cmdData = cmdDataObj?.cmd || [];
           that.pinSubType = cmdDataObj?.pinSubType;
           that.handleIsUnder(cmdDataObj?.cmd || []);
@@ -137,7 +137,7 @@ struct Index {
     LogUtils.info(TAG, 'aboutToDisappear');
     if (userAuthWidgetMgr) {
       userAuthWidgetMgr.off('command', {
-        callback: function (result) {
+        sendCommand(result) {
           LogUtils.info(TAG, 'aboutToDisappear userAuthWidgetMgr offCommand result: ' + JSON.stringify(result));
         }
       });
