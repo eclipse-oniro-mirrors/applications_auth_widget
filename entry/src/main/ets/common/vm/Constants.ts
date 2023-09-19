@@ -149,3 +149,8 @@ export interface CmdType {
   event: string,
   payload: CmdData,
 }
+
+export interface WidgetCommand {
+  cmd:Array<CmdType>,
+  pinSubType:string
+}
