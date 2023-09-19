@@ -18,7 +18,7 @@ import userAuth from '@ohos.userIAM.userAuth';
 import { DialogType } from '../common/module/DialogType';
 import FuncUtils from '../common/utils/FuncUtils';
 import LogUtils from '../common/utils/LogUtils';
-import Constants, { CmdType } from '../common/vm/Constants';
+import Constants, { CmdType, WidgetCommand } from '../common/vm/Constants';
 import CustomPassword from './components/CustomPassword';
 import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
@@ -90,9 +90,9 @@ struct Index {
       LogUtils.info(TAG, 'getUserAuthWidgetMgr success');
       let that = this;
       userAuthWidgetMgr.on('command', {
-        callback: function (result) {
-          LogUtils.info(TAG, 'userAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
-          const cmdDataObj = JSON.parse(result?.cmdData || '{}');
+        sendCommand (result) {
+          LogUtils.info(TAG, 'sendCommand result: ' + result);
+          const cmdDataObj: WidgetCommand = JSON.parse(result || '{}');
           that.cmdData = cmdDataObj?.cmd || [];
           that.pinSubType = cmdDataObj?.pinSubType;
           that.handleIsUnder(cmdDataObj?.cmd || []);
@@ -135,7 +135,7 @@ struct Index {
     LogUtils.info(TAG, 'aboutToDisappear');
     if (userAuthWidgetMgr) {
       userAuthWidgetMgr.off('command', {
-        callback: function (result) {
+        sendCommand (result) {
           LogUtils.info(TAG, 'aboutToDisappear userAuthWidgetMgr offCommand result: ' + JSON.stringify(result));
         }
       });
