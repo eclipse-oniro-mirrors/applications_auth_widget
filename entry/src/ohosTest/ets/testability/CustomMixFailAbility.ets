@@ -13,16 +13,21 @@
 * limitations under the License.
 */
 
-import UIAbility from '@ohos.app.ability.UIAbility';
 import window from '@ohos.window';
+import Want from '@ohos.app.ability.Want';
+import AbilityConstant from '@ohos.app.ability.AbilityConstant';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
+import common from '@ohos.app.ability.common';
 
-export default class CustomMixFailAbility extends UIAbility {
-  onCreate(want, launchParam) {
-    globalThis.context = this.context;
-    globalThis.session = {};
+export default class CustomMixFailAbility extends UserAuthExtensionAbility {
+  onCreate() {
+    AppStorage.setOrCreate("context", this.context);
   }
 
-  onDestroy() {
+  onSessionCreate(want, session): void {
+    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
+    AppStorage.setOrCreate("session", session);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage) {

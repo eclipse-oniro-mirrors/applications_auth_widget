@@ -397,6 +397,10 @@
       "value": "16vp"
     },
     {
+      "name": "margin_36",
+      "value": "36vp"
+    },
+    {
       "name": "margin_64",
       "value": "64vp"
     },
@@ -406,7 +410,7 @@
     },
     {
       "name": "textArea_height",
-      "value": "44vp"
+      "value": "36vp"
     },
     {
       "name": "numKeyBoard_row1_16",
@@ -421,7 +425,7 @@
       "value": "12vp"
     },
     {
-      "name": "keyBoard_key_high_phone",
+      "name": "keyboard_key_high_phone",
       "value": "54vp"
     },
     {

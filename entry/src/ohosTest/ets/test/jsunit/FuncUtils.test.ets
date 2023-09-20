@@ -20,33 +20,37 @@ import FuncUtils from '../../../../main/ets/common/utils/FuncUtils';
 import LogUtils from '../../../../main/ets/common/utils/LogUtils';
 import TimeUtils from '../../../../main/ets/common/utils/TimeUtils';
 import WindowPrivacyUtils from '../../../../main/ets/common/utils/WindowPrivacyUtils';
+import common from '@ohos.app.ability.common';
 
 const TAG = 'FuncUtilsTest';
 
 export default function FuncUtilsTest() {
-  describe('FuncUtilsTest', function () {
-    beforeAll(async function () {
-      let userAuthInstance = null;
-      const authParam = {
+  describe('FuncUtilsTest', () => {
+    beforeAll(async () => {
+      const authParam : userAuth.AuthParam = {
         challenge: new Uint8Array([49, 49, 49, 49, 49, 49]),
         authType: [1],
         authTrustLevel: 10000,
       };
-      const widgetParam = {
+      const widgetParam : userAuth.WidgetParam = {
         title: '',
         windowMode: 1,
         navigationButtonText: '',
       };
-      userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
+      let userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
+      if (userAuthInstance === null) {
+        LogUtils.error(TAG, 'userAuthInstance is null');
+        return;
+      }
       userAuthInstance.on('result', {
-        callback: function (result) {
+        onResult (result) {
           LogUtils.info(TAG, 'userAuthInstance callback result = ' + JSON.stringify(result));
         }
       });
       userAuthInstance.start();
     })
 
-    it('getUint8PWFunc_test', 0, function (done) {
+    it('getUint8PWFunc_test', 0, (done: Function) => {
       const data1 = FuncUtils.getUint8PW('111111');
       const data2 = FuncUtils.getUint8PW('11111111');
       FuncUtils.getWindowHeight();
@@ -55,12 +59,10 @@ export default function FuncUtilsTest() {
       done();
     })
 
-    it('getDialogTypeFunc_test', 0, function (done) {
+    it('getDialogTypeFunc_test', 0, (done: Function) => {
       const data1 = FuncUtils.getDialogType([1]);
       const data2 = FuncUtils.getDialogType([1, 2, 4]);
       const data3 = FuncUtils.getDialogType([]);
-      const data4 = FuncUtils.getDialogType(null);
-      const data5 = FuncUtils.getDialogType(undefined);
       const data6 = FuncUtils.getDialogType([1, 2]);
       const data7 = FuncUtils.getDialogType([1, 4]);
       const data8 = FuncUtils.getDialogType([2]);
@@ -68,8 +70,6 @@ export default function FuncUtilsTest() {
       expect(data1).assertEqual(1);
       expect(data2).assertEqual(10);
       expect(data3).assertEqual(1);
-      expect(data4).assertEqual(1);
-      expect(data5).assertEqual(1);
       expect(data6).assertEqual(6);
       expect(data7).assertEqual(7);
       expect(data8).assertEqual(2);
@@ -77,7 +77,7 @@ export default function FuncUtilsTest() {
       done();
     })
 
-    it('getWindowHeightFunc_test', 0, function (done) {
+    it('getWindowHeightFunc_test', 0, (done: Function) => {
       FuncUtils.getWindowHeight();
       done();
     })
@@ -94,7 +94,7 @@ export default function FuncUtilsTest() {
       done();
     })
 
-    it('logFunc_test', 0, async function (done) {
+    it('logFunc_test', 0, async (done: Function) => {
       LogUtils.debug(TAG, 'debug log test');
       LogUtils.info(TAG, 'info log test');
       LogUtils.warn(TAG, 'warning log test');
@@ -109,7 +109,7 @@ export default function FuncUtilsTest() {
       done();
     })
 
-    it('setWindowPrivacyModeFunc_test', 0, async function (done) {
+    it('setWindowPrivacyModeFunc_test', 0, async (done: Function) => {
       WindowPrivacyUtils.setWindowPrivacyMode(null, false);
       done();
     })

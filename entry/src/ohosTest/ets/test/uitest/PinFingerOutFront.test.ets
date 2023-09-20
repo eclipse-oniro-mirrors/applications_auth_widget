@@ -16,6 +16,8 @@
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import Want from '@ohos.app.ability.Want';
+import { WantParams } from '../../../../main/ets/common/vm/Constants';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -23,28 +25,31 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delayTime: number = 1000;
 
 export default function PinFingerOutFrontTest() {
-  describe('PinFingerOutFrontTest', function () {
+  describe('PinFingerOutFrontTest', () => {
 
-    function sleep(ms) {
+    let sleep: (ms: number) => Promise<Function> = (ms: number): Promise<Function> => {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    beforeAll(async function () {
-      const data = {
+    beforeAll(async () => {
+      const data: WantParams = {
         "cmd": [{
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
             "lockoutDuration": 0,
             "remainAttempts": 5,
-            "type": "pin"
-          }, "version": "1"
+            "type": "pin",
+            "result": 0
+          },
         },
           {
             "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 1123,
             "remainAttempts": 0,
             "sensorInfo": "{\"sensorType\":\"OUT_OF_SCREEN_SENSOR\",\"outOfScreenSensorType\":\"FRONT\"}",
-            "type": "fingerprint"
-          }, "version": "1"
+            "type": "fingerprint",
+            "result": 0
+          },
           }],
         "pinSubType": "PIN_NUMBER",
         "title": "请输入密码",
@@ -52,18 +57,20 @@ export default function PinFingerOutFrontTest() {
         "widgetContextId": 10234972526197798021,
         "windowModeType": "DIALOG_BOX"
       }
-      globalThis.wantParams = data;
       sleep(delayTime);
 
-      let want = {
+      let want: Want = {
         bundleName: bundleName,
-        abilityName: 'PinFingerOutFrontAbility'
+        abilityName: 'PinFingerOutFrontAbility',
+        parameters: {
+          useriamCmdData: data
+        }
       }
       await delegator.startAbility(want);
       sleep(delayTime);
     })
 
-    it('cancel_pinFingerOutFront_test', 0, async function (done) {
+    it('cancel_pinFingerOutFront_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('cancelStateMultiFingerprintAuth'));

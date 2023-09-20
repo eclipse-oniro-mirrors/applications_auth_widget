@@ -13,13 +13,19 @@
 * limitations under the License.
 */
 
-import UIAbility from '@ohos.app.ability.UIAbility';
+import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import window from '@ohos.window';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import common from '@ohos.app.ability.common';
 
-export default class FaceFingerFailNonAbility extends UIAbility {
-  onCreate(want, launchParam) {
-    globalThis.context = this.context;
-    globalThis.session = {};
+export default class FaceFingerFailNonAbility extends UserAuthExtensionAbility {
+  onCreate() {
+    AppStorage.setOrCreate("context", this.context);
+  }
+
+  onSessionCreate(want, session): void {
+    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
+    AppStorage.setOrCreate("session", session);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage) {

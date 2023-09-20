@@ -16,6 +16,7 @@
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import Want from '@ohos.app.ability.Want';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -23,24 +24,24 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delayTime: number = 1000;
 
 export default function CustomPasswordFingerTimesTest() {
-  describe('CustomPasswordFingerTimesTest', function () {
-    beforeAll(async function () {
+  describe('CustomPasswordFingerTimesTest', () => {
+    beforeAll(async () => {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 0, "remainAttempts": 2, "type": "pin", "sensorInfo": ""
-          }, "version": "1"
+          },
         }, {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 0, "remainAttempts": 1, "type": "face", "sensorInfo": ""
-          }, "version": "1"
+          },
         }, {
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
             "lockoutDuration": 0,
             "remainAttempts": 1,
             "sensorInfo": "{\"sensorType\":\"SensorType1\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
             "type": "fingerprint"
-          }, "version": "1"
+          },
         }],
         "pinSubType": "PIN_MIXED",
         "title": "",
@@ -48,16 +49,18 @@ export default function CustomPasswordFingerTimesTest() {
         "widgetContextId": 6711153399710207000,
         "windowModeType": "FULLSCREEN"
       };
-      globalThis.wantParams = data;
 
-      let want = {
+      let want: Want = {
         bundleName: bundleName,
-        abilityName: 'FingerprintAbility'
+        abilityName: 'FingerprintAbility',
+        parameters: {
+          useriamCmdData: data
+        }
       }
       await delegator.startAbility(want);
     })
 
-    it('pinInput_full_customPwd_test', 0, async function (done) {
+    it('pinInput_full_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('pinInput'));
