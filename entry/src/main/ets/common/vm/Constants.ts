@@ -164,7 +164,7 @@ export interface WantParams {
   type: string[],
   title: string,
   pinSubType: string,
-  navigationButtonText: string,
+  navigationButtonText?: string,
   windowModeType: string,
   cmd: CmdType[],
 }

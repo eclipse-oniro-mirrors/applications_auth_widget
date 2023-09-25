@@ -1,6 +1,18 @@
 {
   "string": [
     {
+      "name": "module_test_desc",
+      "value": "test ability description"
+    },
+    {
+      "name": "TestAbility_desc",
+      "value": "the test ability"
+    },
+    {
+      "name": "TestAbility_label",
+      "value": "test label"
+    },
+    {
       "name": "module_desc",
       "value": "module description"
     },
@@ -86,7 +98,7 @@
     },
     {
       "name": "unified_authwidget_hint_recognizing",
-      "value": "Scanning"
+      "value": "Scanning…"
     },
     {
       "name": "unified_authwidget_hint_recognize_success",
@@ -146,7 +158,7 @@
     },
     {
       "name": "unified_authwidget_hint_recognition",
-      "value": "Face Scanning"
+      "value": "Face Scanning…"
     },
     {
       "name": "unified_authwidget_title_number_failed_fp_forbidden",

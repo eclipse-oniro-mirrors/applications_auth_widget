@@ -187,7 +187,7 @@ export default struct FullScreen {
               this.fingerButtonPositionY = px2vp(this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH * this.screen[1]);
               FuncUtils.judgmentOverflow(this.fingerButtonPositionY);
               this.fingerPositionY = this.fingerButtonPositionY - this.SYSTEM_STATUS_BAR_HEIGHT
-                - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS);
+                - this.SYSTEM_STATUS_BAR_HEIGHT - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS) - PADDING_8;
               this.fingerPositionLine = this.fingerPositionY / px2vp(this.screen[1]);
               FuncUtils.judgmentOverflow(this.fingerPositionLine);
               if (num === 'first' && this.fingerPositionLine > FINGER_SENSOR_POSITION_LINE && payload.result != 0) {

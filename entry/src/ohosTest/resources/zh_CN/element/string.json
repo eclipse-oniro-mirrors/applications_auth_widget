@@ -1,8 +1,20 @@
 {
   "string": [
     {
+      "name": "module_test_desc",
+      "value": "测试模块描述"
+    },
+    {
+      "name": "TestAbility_desc",
+      "value": "the test ability"
+    },
+    {
+      "name": "TestAbility_label",
+      "value": "test label"
+    },
+    {
       "name": "module_desc",
-      "value": "module description"
+      "value": "模块描述"
     },
     {
       "name": "EntryAbility_desc",
@@ -14,191 +26,191 @@
     },
     {
       "name": "unified_authwidget_forgotpwd",
-      "value": "Forgot password"
+      "value": "忘记密码"
     },
     {
       "name": "unified_authwidget_locked",
-      "value": "Locked"
+      "value": "已锁定"
     },
     {
       "name": "unified_authwidget_confirm",
-      "value": "OK"
+      "value": "确定"
     },
     {
       "name": "unified_authwidget_cancel",
-      "value": "Cancel"
+      "value": "取消"
     },
     {
       "name": "unified_authwidget_delete",
-      "value": "Delete"
+      "value": "删除"
     },
     {
       "name": "unified_authwidget_back",
-      "value": "Back"
+      "value": "返回"
     },
     {
       "name": "unified_authwidget_usepwd",
-      "value": "Use password"
+      "value": "使用密码"
     },
     {
       "name": "unified_authwidget_hint_pwd_error",
-      "value": "Incorrect password"
+      "value": "密码错误"
     },
     {
       "name": "fingerprint_matching_failed",
-      "value": "Fingerprint matching failed"
+      "value": "指纹匹配失败"
     },
     {
       "name": "unified_authwidget_hint_inscreen_fp",
-      "value": "Press the fingerprint sensor to verify your fingerprint."
+      "value": "请按压屏内指纹感应区验证指纹"
     },
     {
       "name": "unified_authwidget_hint_normal_fp_only",
-      "value": "Press the fingerprint sensor to verify your fingerprint."
+      "value": "请轻触感应器验证指纹"
     },
     {
       "name": "unified_authwidget_hint_fp_verify_success",
-      "value": "Verification successful."
+      "value": "指纹识别成功"
     },
     {
       "name": "unified_authwidget_hint_fp_retry_s1",
-      "value": "Fingerprint not recognized. Make sure your finger and the sensor are clean."
+      "value": "指纹不匹配，请保持手指和感应器清洁"
     },
     {
       "name": "unified_authwidget_title_fp_forbidden_enter_pwd",
-      "value": "Fingerprint ID disabled. Enter your password."
+      "value": "指纹已禁用，请输入密码"
     },
     {
       "name": "unified_authwidget_title_fp_forbidden_enter_pin",
-      "value": "Fingerprint ID disabled. Enter your PIN."
+      "value": "指纹已禁用，请输入密码"
     },
     {
       "name": "unified_authwidget_title_fp_forbidden_use_face_pattern",
-      "value": "Fingerprint ID disabled. Use Face Recognition or your pattern."
+      "value": "指纹已禁用，请使用人脸或图案"
     },
     {
       "name": "unified_authwidget_title_fp_forbidden_use_face_pwd",
-      "value": "Fingerprint ID disabled. Use Face Recognition or your password."
+      "value": "指纹已禁用，请使用人脸或密码"
     },
     {
       "name": "unified_authwidget_title_fp_forbidden_use_face_pin",
-      "value": "Fingerprint ID disabled. Use Face Recognition or your PIN."
+      "value": "指纹已禁用，请使用人脸或密码"
     },
     {
       "name": "unified_authwidget_hint_recognizing",
-      "value": "Scanning"
+      "value": "正在识别中"
     },
     {
       "name": "unified_authwidget_hint_recognize_success",
-      "value": "Verification successful."
+      "value": "人脸识别成功"
     },
     {
       "name": "unified_authwidget_hint_face_verify_fail_click_retry_s1",
-      "value": "Face not recognized. Touch here to try again."
+      "value": "未识别成功，点击此处重试"
     },
     {
       "name": "unified_authwidget_hint_face_verify_fail_click_retry_s2",
-      "value": "Face not recognized. Double-tap to try again."
+      "value": "未识别成功，双击屏幕重试"
     },
     {
       "name": "unified_authwidget_title_face_forbidden_use_pwd",
-      "value": "Face Recognition disabled. Enter your password."
+      "value": "人脸已禁用，请输入密码"
     },
     {
       "name": "unified_authwidget_title_face_forbidden_use_pin",
-      "value": "Face Recognition disabled. Enter your PIN."
+      "value": "人脸已禁用，请输入密码"
     },
     {
       "name": "unified_authwidget_title_face_forbidden_use_fp_pwd",
-      "value": "Face Recognition disabled. Use your fingerprint or password."
+      "value": "人脸已禁用，请使用指纹或密码"
     },
     {
       "name": "unified_authwidget_title_face_fp_forbidden_use_pwd",
-      "value": "Face Recognition and Fingerprint ID disabled. Enter your password."
+      "value": "人脸和指纹已禁用，请输入密码"
     },
     {
       "name": "unified_authwidget_title_face_fp_forbidden_use_pin",
-      "value": "Face Recognition and Fingerprint ID disabled. Enter your PIN."
+      "value": "人脸和指纹已禁用，请输入密码"
     },
     {
       "name": "unified_authwidget_title_face_fp_forbidden_use_pattern",
-      "value": "Face Recognition and Fingerprint ID disabled. Draw your pattern."
+      "value": "人脸和指纹已禁用，请绘制图案"
     },
     {
       "name": "unified_authwidget_hint_pin_error",
-      "value": "Incorrect PIN"
+      "value": "密码错误"
     },
     {
       "name": "unified_authwidget_use_pwd",
-      "value": "Enter password"
+      "value": "请输入密码"
     },
     {
       "name": "unified_authwidget_title_face_forbidden",
-      "value": "Face Recognition disabled."
+      "value": "人脸已禁用"
     },
     {
       "name": "unified_authwidget_hint_fp_retry_s2",
-      "value": "Fingerprint not recognized. Press down a little longer."
+      "value": "指纹不匹配，请稍许用力并适当停留"
     },
     {
       "name": "unified_authwidget_title_fp_forbidden",
-      "value": "Fingerprint ID disabled."
+      "value": "指纹已禁用"
     },
     {
       "name": "unified_authwidget_hint_recognition",
-      "value": "Face Scanning"
+      "value": "人脸识别中"
     },
     {
       "name": "unified_authwidget_title_number_failed_fp_forbidden",
-      "value": "Excessive failure, fingerprint is disabled"
+      "value": "失败次数过多，指纹已禁用"
     },
     {
       "name": "unified_authwidget_tip_verify_in_portrait_mode",
-      "value": "Verify in portrait mode"
+      "value": "请在竖屏状态下进行验证"
     },
     {
       "name": "unified_authwidget_pwd_error_can_try_frequency",
-      "value": "Password error, can still try %d frequency"
+      "value": "密码错误，还可尝试%d次"
     },
     {
       "name": "unified_authwidget_pwd_error_can_try",
-      "value": "Password error, can still try "
+      "value": "密码错误，还可尝试"
     },
     {
       "name": "unified_authwidget_frequency",
-      "value": " frequency"
+      "value": "次"
     },
     {
       "name": "unified_authwidget_many_failures",
-      "value": "Too many failures, please "
+      "value": "失败次数过多，请"
     },
     {
       "name": "unified_authwidget_pleaseretry",
-      "value": "Please"
+      "value": "请"
     },
     {
       "name": "unified_authwidget_postretry",
-      "value": "retry"
+      "value": "后重试"
     },
     {
       "name": "unified_authwidget_hour",
-      "value": "hour"
+      "value": "小时"
     },
     {
       "name": "unified_authwidget_minutes",
-      "value": "minutes "
+      "value": "分钟"
     },
     {
       "name": "unified_authwidget_seconds",
-      "value": "seconds "
+      "value": "秒"
     },
     {
       "name": "unified_authwidget_notarize",
-      "value": "OK"
+      "value": "确认"
     },
     {
       "name": "unified_authwidget_title_number_failed_face_forbidden",
-      "value": "Excessive failure, face is disabled"
+      "value": "失败次数过多，人脸已禁用"
     }
   ]
 }

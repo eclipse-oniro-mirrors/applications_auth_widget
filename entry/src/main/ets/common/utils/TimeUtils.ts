@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
+import common from '@ohos.app.ability.common';
+
 export class TimeUtils {
-  getFreezingTimeNm(freezingMillisecond: number, context: Context): string {
+  getFreezingTimeNm(freezingMillisecond: number, context: common.ExtensionContext): string {
     const HOUR_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hour').id);
     const MINUTE_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_minutes').id);
     const SECOND_NM = context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_seconds').id);
