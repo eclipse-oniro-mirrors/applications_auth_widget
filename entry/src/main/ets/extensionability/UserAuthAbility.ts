@@ -47,7 +47,8 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionCreate');
     AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
     AppStorage.setOrCreate("session", session);
-    (session as UIExtensionContentSession)?.loadContent('pages/Index');
+    // (session as UIExtensionContentSession)?.loadContent('pages/Index');
+    (session as UIExtensionContentSession)?.loadContent('pages/PanelExample');
     try {
       if ((AppStorage.get("wantParams") as WantParams)?.windowModeType === 'DIALOG_BOX') {
         (session as UIExtensionContentSession)?.setWindowBackgroundColor(MASK_THIN_COLOR);
