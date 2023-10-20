@@ -17,7 +17,8 @@ import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import userAuth from '@ohos.userIAM.userAuth';
-import Constants from '../../../../main/ets/common/vm/Constants';
+import Constants, { CmdData, WantParams } from '../../../../main/ets/common/vm/Constants';
+import Want from '@ohos.app.ability.Want';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -25,44 +26,51 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delayTime: number = 1000;
 
 export default function CustomPasswordNumberTest() {
-  describe('CustomPasswordNumberTest', function () {
-    beforeAll(async function () {
-      let userAuthInstance = null;
-      const authParam = {
+  describe('CustomPasswordNumberTest', () => {
+    beforeAll(async () => {
+      const authParam : userAuth.AuthParam = {
         challenge: new Uint8Array([49, 49, 49, 49, 49, 49]),
         authType: [1],
         authTrustLevel: 10000,
       };
-      const widgetParam = {
+      const widgetParam : userAuth.WidgetParam = {
         title: '使用密码验证',
         windowMode: 2,
         navigationButtonText: '确认',
       };
-      userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
+      let userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
       userAuthInstance.start();
 
-      const data = {
+      const data :WantParams = {
         "cmd": [{
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 5, "type": "pin", "sensorInfo": ""
-          }, "version": "1"
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
+            "lockoutDuration": 0,
+            "remainAttempts": 5,
+            "type": "pin",
+            "sensorInfo": "",
+            "result": 1
+          },
         }],
         "pinSubType": "PIN_SIX",
         "title": "",
         "type": ["pin"],
         "widgetContextId": 7932856209793250000,
+        "navigationButtonText": "返回",
         "windowModeType": "FULLSCREEN",
       };
-      globalThis.wantParams = data;
 
-      let want = {
+      let want: Want = {
         bundleName: bundleName,
-        abilityName: 'CustomPwdNumberAbility'
+        abilityName: 'CustomPwdNumberAbility',
+        parameters: {
+          useriamCmdData: data
+        }
       }
       await delegator.startAbility(want);
     })
 
-    it('numKeyBord0_customPwd_test', 0, async function (done) {
+    it('numKeyBord0_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd0'));
@@ -70,7 +78,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord1_customPwd_test', 0, async function (done) {
+    it('numKeyBord1_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd1'));
@@ -78,7 +86,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord2_customPwd_test', 0, async function (done) {
+    it('numKeyBord2_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd2'));
@@ -86,7 +94,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord3_customPwd_test', 0, async function (done) {
+    it('numKeyBord3_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd3'));
@@ -94,7 +102,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord4_customPwd_test', 0, async function (done) {
+    it('numKeyBord4_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd4'));
@@ -102,7 +110,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord5_customPwd_test', 0, async function (done) {
+    it('numKeyBord5_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd5'));
@@ -110,7 +118,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord6_customPwd_test', 0, async function (done) {
+    it('numKeyBord6_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd6'));
@@ -118,7 +126,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord7_customPwd_test', 0, async function (done) {
+    it('numKeyBord7_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd7'));
@@ -126,7 +134,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord8_customPwd_test', 0, async function (done) {
+    it('numKeyBord8_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd8'));
@@ -134,7 +142,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord10_customPwd_test', 0, async function (done) {
+    it('numKeyBord10_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd10'));
@@ -142,7 +150,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord9_customPwd_test', 0, async function (done) {
+    it('numKeyBord9_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd9'));
@@ -150,7 +158,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('numKeyBord11_customPwd_test', 0, async function (done) {
+    it('numKeyBord11_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('numKeyBordCustomPwd11'));
@@ -158,7 +166,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord0_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord0_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd0'));
@@ -166,7 +174,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord1_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord1_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd1'));
@@ -174,7 +182,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('teNtnumKeyBord2_customPwd_test', 0, async function (done) {
+    it('teNtnumKeyBord2_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd2'));
@@ -182,7 +190,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord3_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord3_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd3'));
@@ -190,7 +198,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord4_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord4_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd4'));
@@ -198,7 +206,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord5_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord5_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd5'));
@@ -206,7 +214,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord6_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord6_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd6'));
@@ -214,7 +222,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord7_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord7_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd7'));
@@ -222,7 +230,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord8_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord8_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd8'));
@@ -230,7 +238,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord10_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord10_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd10'));
@@ -238,7 +246,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord9_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord9_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd9'));
@@ -246,7 +254,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textNumKeyBord11_customPwd_test', 0, async function (done) {
+    it('textNumKeyBord11_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('textNumKeyBordCustomPwd11'));
@@ -254,7 +262,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('textPrompt_customPwd_test', 0, async function (done) {
+    it('textPrompt_customPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('cancelIconCustomPwd'));
@@ -262,7 +270,7 @@ export default function CustomPasswordNumberTest() {
       done();
     })
 
-    it('clickEventCancal_Input', 0, async function (done) {
+    it('clickEventCancal_Input', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('pinSix'));

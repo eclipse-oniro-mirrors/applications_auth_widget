@@ -15,20 +15,22 @@
 
 import screen from '@ohos.screen';
 import userAuth from '@ohos.userIAM.userAuth';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 import { DialogType } from '../common/module/DialogType';
 import FuncUtils from '../common/utils/FuncUtils';
 import LogUtils from '../common/utils/LogUtils';
-import Constants, { CmdType, WidgetCommand } from '../common/vm/Constants';
+import Constants, { CmdData, CmdType, FingerPosition, WantParams, WidgetCommand } from '../common/vm/Constants';
 import CustomPassword from './components/CustomPassword';
 import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
 import PasswordAuth from './components/PasswordAuth';
+import common from '@ohos.app.ability.common';
 
 const DEFAULT_SIZE = 72;
 const FIVE_SECOND = 5000;
 const LANDSCAPE = 2;
 const TAG = 'Index';
-let userAuthWidgetMgr;
+let userAuthWidgetMgr: userAuth.UserAuthWidgetMgr;
 
 @Entry
 @Component
@@ -50,28 +52,28 @@ struct Index {
       screen.getAllScreens((err, data) => {
         if (err.code) {
           LogUtils.error(TAG, 'Failed to get all screens. err: ' + err.code);
-          globalThis.session?.terminateSelf();
+          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
           return;
         }
         LogUtils.debug(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
         this.isLandscape = data[0]?.orientation === LANDSCAPE
-        || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
+          || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
         AppStorage.SetOrCreate('titleLength', (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)))
         LogUtils.debug(TAG, 'titleLength: ' + (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)));
-        LogUtils.debug(TAG, 'title: ' + globalThis.wantParams?.title.length);
+        LogUtils.debug(TAG, 'title: ' + (AppStorage.get("wantParams") as WantParams)?.title.length);
         AppStorage.SetOrCreate('IS_LANDSCAPE', this.isLandscape);
-        LogUtils.debug(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
-        if (globalThis.wantParams) {
-          this.getParams(globalThis.wantParams);
+        LogUtils.debug(TAG, 'WantParams： ' + JSON.stringify(AppStorage.get("wantParams") as WantParams));
+        if ((AppStorage.get("wantParams") as WantParams)) {
+          this.getParams((AppStorage.get("wantParams") as WantParams));
           this.handleAuthStart();
-          this.cmdData = globalThis.wantParams?.cmd;
+          this.cmdData = (AppStorage.get("wantParams") as WantParams)?.cmd as CmdType[];
         } else {
           LogUtils.error(TAG, 'aboutToAppear wantParams null');
-          globalThis.session?.terminateSelf();
+          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
         }
         if (this.isLandscape && this.underFingerPrint) {
           setTimeout(() => {
-            globalThis.session?.terminateSelf();
+            (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
           }, FIVE_SECOND)
         } else {
           this.loadFlag = true;
@@ -79,7 +81,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getAllScreens catch error: ' + error?.code);
-      globalThis.session?.terminateSelf();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -90,7 +92,7 @@ struct Index {
       LogUtils.info(TAG, 'getUserAuthWidgetMgr success');
       let that = this;
       userAuthWidgetMgr.on('command', {
-        sendCommand (result) {
+        sendCommand(result) {
           LogUtils.info(TAG, 'sendCommand result: ' + result);
           const cmdDataObj: WidgetCommand = JSON.parse(result || '{}');
           that.cmdData = cmdDataObj?.cmd || [];
@@ -100,7 +102,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getUserAuthWidgetMgr catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -108,13 +110,13 @@ struct Index {
     try {
       LogUtils.info(TAG, 'handleIsUnder');
       cmd?.length > 0 && cmd.map((item) => {
-        const { type, sensorInfo } = item?.payload;
-        if (type === Constants.noticeTypeFinger) {
-          if (sensorInfo && JSON.stringify(sensorInfo) !== '{}') {
-            const fingerPosition = JSON.parse(sensorInfo);
+        const payload: CmdData = item?.payload;
+        if (payload.type === Constants.noticeTypeFinger) {
+          if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
+            const fingerPosition: FingerPosition = JSON.parse(payload.sensorInfo);
             if (fingerPosition?.sensorType === 'UNDER_SCREEN_SENSOR' ||
-            fingerPosition?.sensorType === 'BOTH_SENSOR' ||
-            fingerPosition?.sensorType === 'SensorType1') {
+              fingerPosition?.sensorType === 'BOTH_SENSOR' ||
+              fingerPosition?.sensorType === 'SensorType1') {
               this.underFingerPrint = true;
             }
           }
@@ -135,34 +137,35 @@ struct Index {
     LogUtils.info(TAG, 'aboutToDisappear');
     if (userAuthWidgetMgr) {
       userAuthWidgetMgr.off('command', {
-        sendCommand (result) {
+        sendCommand(result) {
           LogUtils.info(TAG, 'aboutToDisappear userAuthWidgetMgr offCommand result: ' + JSON.stringify(result));
         }
       });
     }
   }
 
-  getParams(result): void {
+  getParams(result: WantParams): void {
     LogUtils.info(TAG, 'getParams');
-    const { pinSubType, windowModeType, cmd, type, widgetContextId } = result;
-    this.pinSubType = pinSubType;
-    const newType = type && type.map(item => {
-      switch (item) {
-        case Constants.noticeTypePin:
-          return userAuth.UserAuthType.PIN;
-        case Constants.noticeTypeFinger:
-          return userAuth.UserAuthType.FINGERPRINT;
-        case Constants.noticeTypeFace:
-          return userAuth.UserAuthType.FACE;
+    const resultInfo: WantParams = result;
+    this.pinSubType = resultInfo?.pinSubType;
+    const newType = resultInfo?.type && resultInfo?.type.map(item => {
+      if (item === Constants.noticeTypePin) {
+        return userAuth.UserAuthType.PIN;
+      } else if (item === Constants.noticeTypeFinger) {
+        return userAuth.UserAuthType.FINGERPRINT;
+      } else if (item === Constants.noticeTypeFace) {
+        return userAuth.UserAuthType.FACE;
+      } else {
+        return userAuth.UserAuthType.PIN;
       }
     })
-    globalThis.widgetContextId = widgetContextId;
+    AppStorage.setOrCreate("widgetContextId", resultInfo?.widgetContextId);
     this.authType = newType;
-    this.type = type;
-    this.windowModeType = windowModeType;
+    this.type = resultInfo?.type;
+    this.windowModeType = resultInfo?.windowModeType;
     this.dialogType = FuncUtils.getDialogType(newType);
-    this.cmdData = cmd || [];
-    this.handleIsUnder(cmd || []);
+    this.cmdData = resultInfo?.cmd || [];
+    this.handleIsUnder(resultInfo?.cmd || []);
   }
 
   build() {
@@ -170,8 +173,8 @@ struct Index {
       if (this.isLandscape && this.underFingerPrint) {
         Flex({ direction: FlexDirection.Row, justifyContent: FlexAlign.Center, alignItems: ItemAlign.End }) {
           Column() {
-            Text(globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode')))
+            Text((AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode').id))
               .draggable(false)
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_body2'))

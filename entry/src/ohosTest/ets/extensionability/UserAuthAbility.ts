@@ -16,6 +16,9 @@
 import LogUtils from '../../../main/ets/common/utils/LogUtils';
 import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import WindowPrivacyUtils from '../../../main/ets/common/utils/WindowPrivacyUtils';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import { WantParams } from '../../../main/ets/common/vm/Constants';
+import common from '@ohos.app.ability.common';
 
 const TAG = 'UserAuthAbility';
 // The current interface only support string type
@@ -24,43 +27,44 @@ const MASK_THIN_COLOR = '#33182431';
 
 export default class UserAuthAbility extends UserAuthExtensionAbility {
   onCreate() {
-    LogUtils.info(TAG, 'UserAuthExtensionAbility onCreate');
-    globalThis.context = this.context;
+    LogUtils.info(TAG, 'onCreate');
+    AppStorage.setOrCreate("context", this.context as common.ExtensionContext);
+
   }
 
   onForeground(): void {
-    LogUtils.info(TAG, 'UserAuthExtensionAbility onForeground');
+    LogUtils.info(TAG, 'onForeground');
   }
 
   onBackground(): void {
-    LogUtils.info(TAG, 'UserAuthExtensionAbility onBackground');
-    globalThis.session?.terminateSelf();
+    LogUtils.info(TAG, 'onBackground');
+    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
   }
 
   onDestroy(): void | Promise<void> {
-    LogUtils.info(TAG, 'UserAuthExtensionAbility onDestroy');
+    LogUtils.info(TAG, 'onDestroy');
   }
 
   onSessionCreate(want, session): void {
-    LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionCreate');
-    globalThis.wantParams = want?.parameters?.useriamCmdData;
-    globalThis.session = session;
+    LogUtils.info(TAG, 'onSessionCreate');
+    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
+
     session?.loadContent('pages/Index');
     try {
-      if (globalThis.wantParams?.windowModeType === 'DIALOG_BOX') {
+      if ((AppStorage.get("wantParams") as WantParams)?.windowModeType === 'DIALOG_BOX') {
         session?.setWindowBackgroundColor(MASK_THIN_COLOR);
       } else {
         session?.setWindowBackgroundColor(TRANSPARENT_COLOR);
       }
     } catch (error) {
-      LogUtils.error(TAG, 'UserAuthExtensionAbility onSessionCreate error: ' + error?.code);
+      LogUtils.error(TAG, 'onSessionCreate error: ' + error?.code);
       session?.terminateSelf();
     }
     WindowPrivacyUtils.setWindowPrivacyMode(session, true);
   }
 
   onSessionDestroy(session): void {
-    LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionDestroy');
+    LogUtils.info(TAG, 'onSessionDestroy');
     WindowPrivacyUtils.setWindowPrivacyMode(session, false);
   }
 }

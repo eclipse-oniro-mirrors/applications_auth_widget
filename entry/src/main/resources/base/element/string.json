@@ -86,7 +86,7 @@
     },
     {
       "name": "unified_authwidget_hint_recognizing",
-      "value": "Scanning…"
+      "value": "Scanning"
     },
     {
       "name": "unified_authwidget_hint_recognize_success",
@@ -146,7 +146,7 @@
     },
     {
       "name": "unified_authwidget_hint_recognition",
-      "value": "Face Scanning…"
+      "value": "Face Scanning"
     },
     {
       "name": "unified_authwidget_title_number_failed_fp_forbidden",
@@ -171,6 +171,10 @@
     {
       "name": "unified_authwidget_many_failures",
       "value": "Too many failures, please "
+    },
+    {
+      "name": "unified_authwidget_pleaseretry",
+      "value": "Please"
     },
     {
       "name": "unified_authwidget_postretry",

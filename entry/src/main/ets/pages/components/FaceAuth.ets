@@ -14,7 +14,7 @@
  */
 import account_osAccount from '@ohos.account.osAccount';
 import display from '@ohos.display';
-import util from '@ohos.util';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 import PassWord from '../../common/components/PassWord';
 import SixPassword from '../../common/components/SixPassword';
 import { DialogType } from '../../common/module/DialogType';
@@ -22,11 +22,12 @@ import AuthUtils from '../../common/utils/AuthUtils';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
-import Constants, { CmdType, FingerPosition } from '../../common/vm/Constants';
+import Constants, { CmdData, CmdType, FingerPosition, WantParams } from '../../common/vm/Constants';
+import common from '@ohos.app.ability.common';
 
 const TAG = 'FaceAuth';
 
-let pinAuthManager;
+let pinAuthManager: account_osAccount.PINAuth;
 const INTERVAL = 1000;
 const THOUSANDTH = 1000;
 const PADDING_24 = 24;
@@ -46,8 +47,8 @@ let pinData = '';
 
 @Component
 export default struct FaceAuth {
-  @State prompt: string = globalThis.context.resourceManager
-    .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+  @State prompt: string = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+    .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
   @State @Watch('onTextValueChange') textValue: string = '';
   @Link @Watch('onCmdDataChange') cmdData: Array<CmdType>;
   @StorageLink('IS_LANDSCAPE') IS_LANDSCAPE: boolean = false;
@@ -71,15 +72,15 @@ export default struct FaceAuth {
   @State isPinFaceFinger: boolean = false;
   @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
 
-  countTime(freezingTime): void {
-    const TRY_AGAIN = globalThis.context.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
+  countTime(freezingTime: number): void {
+    const TRY_AGAIN = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalThis.context);
-      promptText = globalThis.context.resourceManager
-        .getStringSync($r('app.string.unified_authwidget_many_failures')) + promptText + TRY_AGAIN;
-      setTimeout(this.countTime.bind(this), INTERVAL, freezingTime - INTERVAL);
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get("context") as common.ExtensionContext));
+      promptText = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
+      setTimeout((t: number):void => this.countTime(t), INTERVAL, freezingTime - INTERVAL);
     } else {
       promptText = ' ';
       this.isEdit = true;
@@ -94,7 +95,8 @@ export default struct FaceAuth {
         this.onCmdDataChange('first');
       }
 
-      if (this.isPinFaceFinger) {
+      if (this.isPinFaceFinger && this.fingerPosition.udSensorCenterYInThousandth !== undefined &&
+          this.fingerPosition.udSensorRadiusInPx !== undefined) {
         let tempPosition = this.fingerPosition.udSensorCenterYInThousandth / this.screen[1];
         FuncUtils.judgmentOverflow(tempPosition);
         let tempFingerPositionY = px2vp(this.screen[1]) * this.fingerPosition.udSensorCenterYInThousandth;
@@ -110,15 +112,15 @@ export default struct FaceAuth {
       }
       LogUtils.info(TAG, 'aboutToAppear this.fingerPositionY: ' + this.fingerPositionY);
       if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.FACE) {
-        this.prompt = globalThis.context.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+        this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+          .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
         AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
       } else if (this.dialogType === DialogType.ALL) {
         AuthUtils.getInstance()
           .sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
       } else {
         LogUtils.error(TAG, 'aboutToAppear not support type');
-        globalThis.session?.terminateSelf?.();
+        (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
       }
       pinAuthManager = new account_osAccount.PINAuth();
       pinAuthManager.registerInputer({
@@ -130,7 +132,7 @@ export default struct FaceAuth {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -158,8 +160,8 @@ export default struct FaceAuth {
 
   sendFaceEvent(): void {
     if (!this.faceLock) {
-      this.prompt = globalThis.context.resourceManager
-        .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
+      this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
     }
   }
@@ -175,157 +177,146 @@ export default struct FaceAuth {
   }
 
   onFontColor(prompt: string, context: Context): Resource {
-    switch (prompt) {
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden')):
-        return $r('sys.color.ohos_id_color_warning');
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_recognition')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_recognize_success')):
-      case context?.resourceManager
-      ?.getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp')):
-        return $r('sys.color.ohos_id_color_text_secondary');
+    if (prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id)) {
+      return $r('sys.color.ohos_id_color_warning');
+    } else if (prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognition').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp').id)) {
+      return $r('sys.color.ohos_id_color_text_secondary');
+    } else {
+      return $r('sys.color.ohos_id_color_text_secondary');
     }
   }
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map(async (item) => {
-      const { type, remainAttempts, lockoutDuration,sensorInfo, result} = item.payload;
-      switch (type) {
-        case Constants.noticeTypePin:
-          if (result === 0) {
-            globalThis.session?.terminateSelf();
+      const payload: CmdData = item.payload;
+      if (payload.type === Constants.noticeTypePin) {
+        if (payload.result === 0) {
+          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+        } else {
+          if (payload.remainAttempts) {
+            this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
+            this.textValue = '';
+            if (num === 'first') {
+              this.inputValue = '';
+            }
+            if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
+              this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id)
+                + payload.remainAttempts + (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                .getStringSync($r('app.string.unified_authwidget_frequency').id);
+            }
+          }
+          if (payload.remainAttempts === 0 && payload.lockoutDuration) {
+            this.countTime(payload.lockoutDuration);
+            this.textValue = '';
+            this.toPin();
+            this.isEdit = false;
+          }
+        }
+      } else if (payload.type === Constants.noticeTypeFace) {
+        if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+          return;
+        }
+        if (payload.remainAttempts && payload.result !== 0) {
+          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id);
+          this.faceLock = false;
+        }
+        if (num === 'first') {
+          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
+        }
+        if (payload.remainAttempts === 0) {
+          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id);
+          this.faceLock = true;
+          if (this.dialogType === DialogType.ALL) {
+            if (this.fingerLock) {
+              this.toPin();
+            }
           } else {
-            if (remainAttempts) {
-              this.inputValue = globalThis.context.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
-              this.textValue = '';
-              if (num === 'first') {
-                this.inputValue = '';
-              }
-              if (remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
-                this.inputValue = globalThis.context.resourceManager
-                  .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
-                + remainAttempts + globalThis.context.resourceManager
-                  .getStringSync($r('app.string.unified_authwidget_frequency'));
-              }
+            this.toPin();
+          }
+        }
+        if (payload.result === 0) {
+          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
+          setTimeout(() => {
+            (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+          }, SECOND);
+        }
+      } else if (payload.type === Constants.noticeTypeFinger) {
+        if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+          return;
+        }
+        if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
+          this.fingerPosition = JSON.parse(payload.sensorInfo);
+          const displayClass = display.getDefaultDisplaySync();
+          this.screen = [displayClass.width, displayClass.height];
+          switch (JSON.parse(payload.sensorInfo)?.sensorType as string) {
+            case 'NON_SENSOR':
+            case 'OUT_OF_SCREEN_SENSOR': {
+              this.dialogTypeFlag = PIN_FACE;
+              break;
             }
-            if (remainAttempts === 0 && lockoutDuration) {
-              this.countTime(lockoutDuration);
-              this.textValue = '';
-              this.toPin();
-              this.isEdit = false;
-            }
-          }
-          break;
-        case Constants.noticeTypeFace:
-          if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-            return;
-          }
-          if (remainAttempts && result !== 0) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'));
-            this.faceLock = false;
-          }
-          if (num === 'first') {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_recognition'));
-          }
-          if (remainAttempts === 0) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden'));
-            this.faceLock = true;
-            if (this.dialogType === DialogType.ALL) {
-              if (this.fingerLock) {
-                this.toPin();
-              }
-            } else {
-              this.toPin();
-            }
-          }
-          if (result === 0) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
-            setTimeout(() => {
-              globalThis.session?.terminateSelf?.();
-            }, SECOND);
-          }
-          break;
-        case Constants.noticeTypeFinger:
-          if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-            return;
-          }
-          if (sensorInfo && JSON.stringify(sensorInfo) !== '{}') {
-            this.fingerPosition = JSON.parse(sensorInfo);
-            const displayClass = display.getDefaultDisplaySync();
-            this.screen = [displayClass.width, displayClass.height];
-            switch (JSON.parse(sensorInfo)?.sensorType) {
-              case 'NON_SENSOR':
-              case 'OUT_OF_SCREEN_SENSOR': {
-                this.dialogTypeFlag = PIN_FACE;
-                break;
-              }
-              default:
-                this.isPinFaceFinger = true;
-                let tempPositionLine = JSON.parse(sensorInfo).udSensorCenterYInThousandth / displayClass.height;
-                FuncUtils.judgmentOverflow(tempPositionLine);
-                if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
-                  if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-                    this.screenType = SCREEN_LAND;
-                  }
-                } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
-                  if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-                    this.screenType = SCREEN_PORTRAIT;
-                  }
+            default:
+              this.isPinFaceFinger = true;
+              let tempPositionLine = JSON.parse(payload.sensorInfo).udSensorCenterYInThousandth / displayClass.height;
+              FuncUtils.judgmentOverflow(tempPositionLine);
+              if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
+                if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+                  this.screenType = SCREEN_LAND;
                 }
-                break;
-            }
-          }
-          if (remainAttempts && result !== 0) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2'));
-            this.fingerLock = false;
-            if (num !== 'first' && remainAttempts > 0 && result !== 0) {
-              setTimeout(() => {
-                AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-              }, NOTICE_DELAY);
-            }
-          }
-          if (num === 'first') {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_normal_fp_only'));
-          }
-          if (remainAttempts === 0) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden'));
-            this.fingerLock = true;
-            if (this.dialogType === DialogType.ALL) {
-              if (this.faceLock) {
-                this.toPin();
+              } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
+                if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+                  this.screenType = SCREEN_PORTRAIT;
+                }
               }
-            } else {
+              break;
+          }
+        }
+        if (payload.remainAttempts && payload.result !== 0) {
+          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
+          this.fingerLock = false;
+          if (num !== 'first' && payload.remainAttempts > 0 && payload.result !== 0) {
+            setTimeout(() => {
+              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
+            }, NOTICE_DELAY);
+          }
+        }
+        if (num === 'first') {
+          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_normal_fp_only').id);
+        }
+        if (payload.remainAttempts === 0) {
+          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
+          this.fingerLock = true;
+          if (this.dialogType === DialogType.ALL) {
+            if (this.faceLock) {
               this.toPin();
             }
+          } else {
+            this.toPin();
           }
-          if (result === 0) {
-            this.prompt = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success'))
-            setTimeout(() => {
-              globalThis.session?.terminateSelf?.();
-            }, SECOND);
-          }
-          break;
-        default:
-          LogUtils.error(TAG, 'onCmdDataChange default');
-          globalThis.session?.terminateSelf?.();
-          break;
+        }
+        if (payload.result === 0) {
+          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
+          setTimeout(() => {
+            (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+          }, SECOND);
+        }
+      } else {
+        LogUtils.error(TAG, 'onCmdDataChange default');
+        (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
       }
     })
   }
@@ -334,9 +325,10 @@ export default struct FaceAuth {
     if (this.dialogTypeFlag === SIX_PIN || this.dialogTypeFlag === MULTI_PIN) {
       AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypePin]);
     } else {
-      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
+        (AppStorage.get("wantParams") as WantParams)?.type as string[]);
     }
-    globalThis.session?.terminateSelf?.();
+    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
   }
 
   build() {
@@ -442,7 +434,8 @@ export default struct FaceAuth {
                 right: ($r('sys.float.ohos_id_dialog_margin_end')),
                 bottom: this.IS_LANDSCAPE ? '0' : ($r('sys.float.ohos_id_dialog_margin_bottom'))
               })
-            } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_PORTRAIT) {
+            } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_PORTRAIT &&
+            this.fingerPosition.udSensorRadiusInPx  !== undefined) {
               Column() {
                 // The first form of facial fingerprint password
                 Flex({ justifyContent: FlexAlign.SpaceBetween }) {
@@ -477,43 +470,63 @@ export default struct FaceAuth {
                     })
                 }
 
-                Image($r('app.media.error_faceID'))
-                  .draggable(false)
-                  .id('imgAllFaceAuth')
-                  .width($r('app.float.image_small'))
-                  .height($r('app.float.image_small'))
-                  .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
-                  .colorBlend($r('sys.color.ohos_id_color_activated'))
-                  .onClick(() => {
-                    this.sendFaceEvent();
-                  })
-                if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+                if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
                   Scroll() {
-                    Text(globalThis.wantParams?.title)
-                      .draggable(false)
-                      .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                      .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                      .fontWeight(FontWeight.Medium)
+                    Column() {
+                      Image($r('app.media.error_faceID'))
+                        .draggable(false)
+                        .id('imgAllFaceAuth')
+                        .width($r('app.float.image_small'))
+                        .height($r('app.float.image_small'))
+                        .margin({ bottom: $r('app.float.content_padding') })
+                        .colorBlend($r('sys.color.ohos_id_color_activated'))
+                        .onClick(() => {
+                          this.sendFaceEvent();
+                        })
+                      Text((AppStorage.get("wantParams") as WantParams)?.title)
+                        .draggable(false)
+                        .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                        .fontWeight(FontWeight.Medium)
+                      Text(this.prompt)
+                        .draggable(false)
+                        .id('resetPromptTextAllFaceAuth')
+                        .margin({ top: $r('app.float.element_margin') })
+                        .height($r('app.float.size_24'))
+                        .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                        .fontColor(this.onFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                    }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                   }
-                  .width('80%')
-                  .height($r('app.float.textArea_height'))
+                  .width('100%')
+                  .height($r('app.float.scroll_height_122'))
+                  .margin({top: $r('app.float.content_padding')})
                   .scrollable(ScrollDirection.Vertical)
                   .scrollBarColor(Color.Gray)
                 } else {
-                  Text(globalThis.wantParams?.title)
+                  Image($r('app.media.error_faceID'))
+                    .draggable(false)
+                    .id('imgAllFaceAuth')
+                    .width($r('app.float.image_small'))
+                    .height($r('app.float.image_small'))
+                    .margin({ top: $r('app.float.content_padding'), bottom: $r('app.float.content_padding') })
+                    .colorBlend($r('sys.color.ohos_id_color_activated'))
+                    .onClick(() => {
+                      this.sendFaceEvent();
+                    })
+                  Text((AppStorage.get("wantParams") as WantParams)?.title)
                     .draggable(false)
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
                     .height($r('app.float.size_24'))
                     .fontWeight(FontWeight.Medium)
+                  Text(this.prompt)
+                    .draggable(false)
+                    .id('resetPromptTextAllFaceAuth')
+                    .margin({ top: $r('app.float.element_margin') })
+                    .height($r('app.float.size_24'))
+                    .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                    .fontColor(this.onFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
                 }
-                Text(this.prompt)
-                  .draggable(false)
-                  .id('resetPromptTextAllFaceAuth')
-                  .margin({ top: $r('app.float.element_margin') })
-                  .height($r('app.float.size_24'))
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  .fontColor(this.onFontColor(this.prompt, globalThis.context))
                 Image($r('app.media.ic_blue_fingerprint'))
                   .draggable(false)
                   .id('blueFingerprintImgAllFaceAuth')
@@ -537,40 +550,54 @@ export default struct FaceAuth {
                 right: ($r('sys.float.ohos_id_dialog_margin_end')),
                 bottom: ($r('sys.float.ohos_id_dialog_margin_bottom'))
               })
-            } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_LAND) {
+            } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_LAND
+                && this.fingerPosition.udSensorRadiusInPx !== undefined) {
               Column() {
-                // Facial fingerprint password, second form
-                Image($r('app.media.error_faceID'))
-                  .draggable(false)
-                  .id('errFaceImgFaceAuth')
-                  .width($r('app.float.image_small'))
-                  .height($r('app.float.image_small'))
-                  .margin({ top: $r('app.float.content_padding_top'), bottom: $r('app.float.content_padding') })
-                  .colorBlend($r('sys.color.ohos_id_color_activated'))
-                  .onClick(() => {
-                    this.sendFaceEvent();
-                  })
-                if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+                if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
                   Scroll() {
-                    Text(globalThis.wantParams?.title)
-                      .draggable(false)
-                      .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                      .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                      .fontWeight(FontWeight.Medium)
+                    Column() {
+                      // Facial fingerprint password, second form
+                      Image($r('app.media.error_faceID'))
+                        .draggable(false)
+                        .id('errFaceImgFaceAuth')
+                        .width($r('app.float.image_small'))
+                        .height($r('app.float.image_small'))
+                        .margin({bottom: $r('app.float.content_padding') })
+                        .colorBlend($r('sys.color.ohos_id_color_activated'))
+                        .onClick(() => {
+                          this.sendFaceEvent();
+                        })
+                      Text((AppStorage.get("wantParams") as WantParams)?.title)
+                        .draggable(false)
+                        .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                        .fontWeight(FontWeight.Medium)
+                    }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                   }
-                  .width('80%')
-                  .height($r('app.float.textArea_height'))
+                  .width('100%')
+                  .height($r('app.float.scroll_height_90'))
+                  .margin({ top: $r('app.float.content_padding_top')})
                   .scrollable(ScrollDirection.Vertical)
                   .scrollBarColor(Color.Gray)
                 } else {
-                  Text(globalThis.wantParams?.title)
+                  // Facial fingerprint password, second form
+                  Image($r('app.media.error_faceID'))
+                    .draggable(false)
+                    .id('errFaceImgFaceAuth')
+                    .width($r('app.float.image_small'))
+                    .height($r('app.float.image_small'))
+                    .margin({ top: $r('app.float.content_padding_top'), bottom: $r('app.float.content_padding') })
+                    .colorBlend($r('sys.color.ohos_id_color_activated'))
+                    .onClick(() => {
+                      this.sendFaceEvent();
+                    })
+                  Text((AppStorage.get("wantParams") as WantParams)?.title)
                     .draggable(false)
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
                     .height($r('app.float.size_24'))
                     .fontWeight(FontWeight.Medium)
                 }
-
                 Image($r('app.media.ic_blue_fingerprint'))
                   .draggable(false)
                   .id('blueFingerprintImgFaceAuth')
@@ -587,10 +614,10 @@ export default struct FaceAuth {
                   .margin({ top: $r('app.float.content_padding') })
                   .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   .height($r('app.float.size_24'))
-                  .fontColor(this.onFontColor(this.prompt, globalThis.context))
+                  .fontColor(this.onFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
                   .onClick(() => {
-                    if (this.prompt === globalThis?.context?.resourceManager
-                    ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1'))) {
+                    if (this.prompt === (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                    ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id)) {
                       this.sendFaceEvent();
                     }
                   })
@@ -651,49 +678,72 @@ export default struct FaceAuth {
             Column() {
               if (this.dialogTypeFlag === PIN_FACE) {
                 // Pin FACE
-                if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+                if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
                   Scroll() {
-                    Text(globalThis.wantParams?.title)
-                      .draggable(false)
-                      .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                      .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                      .fontWeight(FontWeight.Medium)
+                    Column() {
+                      Text((AppStorage.get("wantParams") as WantParams)?.title)
+                        .draggable(false)
+                        .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                        .fontWeight(FontWeight.Medium)
+                      Image(this.prompt !== (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                        .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
+                        ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
+                        .draggable(false)
+                        .margin({
+                          top: $r('app.float.digital_password_mask_height'),
+                          bottom: $r('app.float.digital_password_mask_height')
+                        })
+                        .width($r('app.float.image_size'))
+                        .height($r('app.float.image_size'))
+                        .colorBlend($r('sys.color.ohos_id_color_activated'))
+                        .onClick(() => {
+                          this.sendFaceEvent();
+                        })
+                      Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
+                        .draggable(false)
+                        .fontColor(this.onFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                        .height($r('app.float.size_24'))
+                        .onClick(() => {
+                          this.sendFaceEvent();
+                        })
+                    }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                   }
-                  .width('80%')
-                  .height($r('app.float.textArea_height'))
+                  .width('100%')
+                  .height($r('app.float.scroll_height_182'))
                   .margin({ top: $r('app.float.title_padding_top') })
                   .scrollable(ScrollDirection.Vertical)
                   .scrollBarColor(Color.Gray)
                 } else {
-                  Text(globalThis.wantParams?.title)
+                  Text((AppStorage.get("wantParams") as WantParams)?.title)
                     .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
                     .fontColor($r('sys.color.ohos_id_color_text_primary'))
                     .height($r('app.float.size_24'))
                     .fontWeight(FontWeight.Medium)
+                  Image(this.prompt !== (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                    .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
+                    ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
+                    .draggable(false)
+                    .margin({
+                      top: $r('app.float.digital_password_mask_height'),
+                      bottom: $r('app.float.digital_password_mask_height')
+                    })
+                    .width($r('app.float.image_size'))
+                    .height($r('app.float.image_size'))
+                    .colorBlend($r('sys.color.ohos_id_color_activated'))
+                    .onClick(() => {
+                      this.sendFaceEvent();
+                    })
+                  Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
+                    .draggable(false)
+                    .fontColor(this.onFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                    .height($r('app.float.size_24'))
+                    .onClick(() => {
+                      this.sendFaceEvent();
+                    })
                 }
-                Image(this.prompt !== globalThis.context.resourceManager
-                  .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
-                  ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
-                  .draggable(false)
-                  .margin({
-                    top: $r('app.float.digital_password_mask_height'),
-                    bottom: $r('app.float.digital_password_mask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-                  .colorBlend($r('sys.color.ohos_id_color_activated'))
-                  .onClick(() => {
-                    this.sendFaceEvent();
-                  })
-                Text(this.prompt).fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  .draggable(false)
-                  .fontColor(this.onFontColor(this.prompt, globalThis.context))
-                  .height($r('app.float.size_24'))
-                  .onClick(() => {
-                    this.sendFaceEvent();
-                  })
                 Row() {
                   Column() {
                     Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
@@ -811,22 +861,48 @@ export default struct FaceAuth {
               }
               if (this.dialogTypeFlag === SINGLE_FACE) {
                 // Single FACE
-                if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+                if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
                   Scroll() {
-                    Text(globalThis.wantParams?.title)
-                      .draggable(false)
-                      .fontSize($r('sys.float.ohos_id_text_size_body1'))
-                      .fontColor($r('sys.color.ohos_id_color_text_primary'))
-                      .fontWeight(FontWeight.Medium)
-                      .id('titleFaceAuth')
+                    Column() {
+                      Text((AppStorage.get("wantParams") as WantParams)?.title)
+                        .draggable(false)
+                        .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                        .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                        .fontWeight(FontWeight.Medium)
+                        .id('titleFaceAuth')
+                      Image(this.prompt !== (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                        .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
+                        ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
+                        .draggable(false)
+                        .id('imageFaceAuth')
+                        .margin({
+                          top: $r('app.float.digital_password_mask_height'),
+                          bottom: $r('app.float.digital_password_mask_height')
+                        })
+                        .width($r('app.float.image_size'))
+                        .height($r('app.float.image_size'))
+                        .colorBlend($r('sys.color.ohos_id_color_activated'))
+                        .onClick(() => {
+                          this.sendFaceEvent();
+                        })
+                      Text(this.prompt)
+                        .draggable(false)
+                        .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                        .id('textFaceAuth')
+                        .height($r('app.float.size_24'))
+                        .fontColor(this.onFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                        .onClick(() => {
+                          this.sendFaceEvent();
+                        })
+                    }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                   }
-                  .width('80%')
-                  .height($r('app.float.textArea_height'))
+                  .width('100%')
+                  .height($r('app.float.scroll_height_182'))
                   .margin({ top: $r('app.float.title_padding_top') })
                   .scrollable(ScrollDirection.Vertical)
                   .scrollBarColor(Color.Gray)
                 } else {
-                  Text(globalThis.wantParams?.title)
+                  Text((AppStorage.get("wantParams") as WantParams)?.title)
                     .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -834,32 +910,32 @@ export default struct FaceAuth {
                     .height($r('app.float.size_24'))
                     .fontWeight(FontWeight.Medium)
                     .id('titleFaceAuth')
+                  Image(this.prompt !== (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                    .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
+                    ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
+                    .draggable(false)
+                    .id('imageFaceAuth')
+                    .margin({
+                      top: $r('app.float.digital_password_mask_height'),
+                      bottom: $r('app.float.digital_password_mask_height')
+                    })
+                    .width($r('app.float.image_size'))
+                    .height($r('app.float.image_size'))
+                    .colorBlend($r('sys.color.ohos_id_color_activated'))
+                    .onClick(() => {
+                      this.sendFaceEvent();
+                    })
+                  Text(this.prompt)
+                    .draggable(false)
+                    .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                    .id('textFaceAuth')
+                    .height($r('app.float.size_24'))
+                    .fontColor(this.onFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                    .onClick(() => {
+                      this.sendFaceEvent();
+                    })
                 }
-                Image(this.prompt !== globalThis.context.resourceManager
-                  .getStringSync($r('app.string.unified_authwidget_hint_recognize_success'))
-                  ? $r('app.media.error_faceID') : $r('app.media.right_faceID'))
-                  .id('imageFaceAuth')
-                  .draggable(false)
-                  .margin({
-                    top: $r('app.float.digital_password_mask_height'),
-                    bottom: $r('app.float.digital_password_mask_height')
-                  })
-                  .width($r('app.float.image_size'))
-                  .height($r('app.float.image_size'))
-                  .colorBlend($r('sys.color.ohos_id_color_activated'))
-                  .onClick(() => {
-                    this.sendFaceEvent();
-                  })
-                Text(this.prompt)
-                  .draggable(false)
-                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  .id('textFaceAuth')
-                  .height($r('app.float.size_24'))
-                  .fontColor(this.onFontColor(this.prompt, globalThis.context))
-                  .onClick(() => {
-                    this.sendFaceEvent();
-                  })
-                if (!globalThis.wantParams?.navigationButtonText) {
+                if (!((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string)) {
                   Row() {
                     Column() {
                       Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
@@ -900,10 +976,10 @@ export default struct FaceAuth {
                       .color($r('sys.color.ohos_id_color_list_separator'))
                       .width($r('app.float.divider_width'))
                     Column() {
-                      Button(globalThis.wantParams?.navigationButtonText)
+                      Button((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string)
                         .onClick(() => {
                           AuthUtils.getInstance().sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFace]);
-                          globalThis.session?.terminateSelf?.();
+                          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
                         })
                         .margin({ right: $r('app.float.content_padding') })
                         .width(Constants.ninetyPercentWidth)

@@ -17,8 +17,8 @@ import { describe, expect, it } from '@ohos/hypium';
 import Constants from '../../../../main/ets/common/vm/Constants';
 
 export default function ConstantsTest() {
-  describe('ConstantsTest', function () {
-    it('constants_test', 0, function (done) {
+  describe('ConstantsTest', () => {
+    it('constants_test', 0, (done: Function) => {
       expect(Constants.pinSix).assertEqual('PIN_SIX');
       expect(Constants.pinNumber).assertEqual('PIN_NUMBER');
       expect(Constants.pinMixed).assertEqual('PIN_MIXED');

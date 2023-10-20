@@ -14,7 +14,7 @@
  */
 
 import deviceInfo from '@ohos.deviceInfo';
-import Constants from '../vm/Constants';
+import Constants, { NumKeyBoardItem } from '../vm/Constants';
 
 const DIGITAL_BUTTON_DIAMETER = 60;
 const DIGITAL_BUTTON_RECT_WH = 100;
@@ -25,13 +25,13 @@ const GO_BACK = -3;
 
 @Component
 export default struct NumKeyBoard {
-  private onKeyPress: (params, callback) => void;
-  @StorageLink('numKeyboard') numKeyboard: any[] = Constants.numKeyBoard;
+  private onKeyPress?: (params: number, callback: Function) => void;
+  @StorageLink('numKeyboard') numKeyboard: NumKeyBoardItem[] = Constants.numKeyBoard;
 
   build() {
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
       Grid() {
-        ForEach(this.numKeyboard, (item: any) => {
+        ForEach(this.numKeyboard, (item: NumKeyBoardItem) => {
           GridItem() {
             Stack({ alignContent: Alignment.Center }) {
               Column({ space: 0 }) {
@@ -41,10 +41,12 @@ export default struct NumKeyBoard {
                   justifyContent: FlexAlign.Center
                 }) {
                   if (item.value === CALL_PHONE || item.value === GO_BACK || item.value === DEL_PASSWORD) {
-                    Text(item.row1)
+                    Text(item.row1 as Resource | string)
                       .draggable(false)
                       .id('textNumKeyBordCustomPwd' + item.index)
-                      .fontSize($r('app.float.digital_password_prompt_font_size'))
+                      .fontSize(deviceInfo.deviceType === 'tablet'
+                        ? $r('app.float.digital_password_prompt_font_size')
+                        : $r('app.float.numKeyBoard_row1_16'))
                       .fontWeight(FontWeight.Medium)
                       .fontColor(Color.White)
                       .textAlign(TextAlign.Center)
@@ -52,10 +54,12 @@ export default struct NumKeyBoard {
                       .padding($r('app.float.numkeyBoard_rowsGap'))
                       .margin($r('app.float.numkeyBoard_rowsGap'))
                   } else {
-                    Text(item.row1)
+                    Text(item.row1 as Resource | string)
                       .draggable(false)
                       .id('textNumKeyBordCustomPwd' + item.index)
-                      .fontSize($r('app.float.digital_password_row1_font_size'))
+                      .fontSize(deviceInfo.deviceType === 'tablet'
+                        ? $r('app.float.digital_password_prompt_font_size')
+                        : $r('app.float.numKeyBoard_row1_28'))
                       .fontWeight(FontWeight.Medium)
                       .fontColor(Color.White)
                       .textAlign(TextAlign.Center)
@@ -66,7 +70,9 @@ export default struct NumKeyBoard {
                   if (!!item.row2) {
                     Text(item.row2)
                       .draggable(false)
-                      .fontSize($r('app.float.digital_password_row2_font_size'))
+                      .fontSize(deviceInfo.deviceType === 'tablet'
+                        ? $r('app.float.digital_password_row2_font_size')
+                        : $r('app.float.numKeyBoard_row2'))
                       .fontWeight(FontWeight.Regular)
                       .fontColor(Color.White)
                       .opacity($r('app.float.numkeyBoard_text_opacity'))
@@ -78,6 +84,9 @@ export default struct NumKeyBoard {
                 }
                 .width(Constants.fullContainerWidth)
                 .height($r('app.float.keyboard_key_high'))
+                .height(deviceInfo.deviceType === 'tablet'
+                  ? $r('app.float.keyboard_key_high')
+                  : $r('app.float.keyboard_key_high_phone'))
               }
 
               if (deviceInfo.deviceType === 'tablet') {
@@ -99,8 +108,8 @@ export default struct NumKeyBoard {
               }
             }
             .onClick(() => {
-              setTimeout(this.onKeyPress.bind(this), 0, item.index, () => {
-              });
+                setTimeout((index: number, callback: Function):void => this.onKeyPress?.(index, callback), 0, item.index, () => {
+                });
             })
             .id('numKeyBordCustomPwd' + item.index)
           }

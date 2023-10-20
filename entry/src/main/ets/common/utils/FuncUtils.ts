@@ -18,6 +18,7 @@ import userAuth from '@ohos.userIAM.userAuth';
 import { DialogType } from '../module/DialogType';
 import LogUtils from './LogUtils';
 import window from '@ohos.window';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 
 const TAG = 'FuncUtils';
 
@@ -59,11 +60,12 @@ export class FuncUtils {
         JSON.stringify(data));
         for (let i = 0; i < data.regionTint.length; i++) {
           let regionData = data.regionTint[i];
-          if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
+          if (regionData.region == undefined) {
+            continue;
+          } else if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
             AppStorage.SetOrCreate('SYSTEM_STATUS_BAR_HEIGHT', px2vp(regionData.region.height));
             continue;
-          }
-          if (regionData.type === window.WindowType.TYPE_NAVIGATION_BAR) {
+          } else if (regionData.type === window.WindowType.TYPE_NAVIGATION_BAR) {
             AppStorage.SetOrCreate('SYSTEM_NAVIGATION_BAR_HEIGHT', px2vp(regionData.region.height));
             continue;
           }
@@ -76,8 +78,8 @@ export class FuncUtils {
 
   judgmentOverflow(value: number): void {
     if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
-      LogUtils.error(TAG, 'judgmentOverflow spill code value： ' + value);
-      globalThis.session?.terminateSelf?.();
+      LogUtils.error(TAG, 'judgmentOverflow spill code value: ' + value);
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 }

@@ -14,20 +14,28 @@
  */
 
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
-import UIAbility from '@ohos.app.ability.UIAbility';
+import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import window from '@ohos.window';
 import { Hypium } from '@ohos/hypium';
+import { WantParams } from '../../../main/ets/common/vm/Constants';
 import testsuite from '../test/List.test';
+import Want from '@ohos.app.ability.Want';
+import AbilityConstant from '@ohos.app.ability.AbilityConstant';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 
-export default class TestAbility extends UIAbility {
-  onCreate(want, launchParam) {
-    var abilityDelegator: any;
+export default class TestAbility extends UserAuthExtensionAbility {
+  onCreate() {
+    let  abilityDelegator: AbilityDelegatorRegistry.AbilityDelegator;
     abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
-    var abilityDelegatorArguments: any;
+    let abilityDelegatorArguments: AbilityDelegatorRegistry.AbilityDelegatorArgs;
     abilityDelegatorArguments = AbilityDelegatorRegistry.getArguments();
     Hypium.hypiumTest(abilityDelegator, abilityDelegatorArguments, testsuite);
-    globalThis.context = this.context;
-    globalThis.session = {};
+    AppStorage.setOrCreate("context", this.context);
+  }
+
+  onSessionCreate(want, session): void {
+    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
+    AppStorage.setOrCreate("session", session);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage) {

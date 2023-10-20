@@ -16,6 +16,8 @@
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import { WantParams } from '../../../../main/ets/common/vm/Constants';
+import Want from '@ohos.app.ability.Want';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -23,13 +25,17 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delayTime: number = 1000;
 
 export default function PinTest() {
-  describe('PinTest', function () {
-    beforeAll(async function () {
-      const data = {
+  describe('PinTest', () => {
+    beforeAll(async () => {
+      const data: WantParams = {
         "cmd": [{
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 1123, "remainAttempts": 0, "type": "pin"
-          }, "version": "1"
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
+            "lockoutDuration": 1123,
+            "remainAttempts": 0,
+            "type": "pin",
+            "result": 1,
+          },
         }],
         "pinSubType": "PIN_SIX",
         "title": "",
@@ -37,16 +43,18 @@ export default function PinTest() {
         "widgetContextId": 17202660292065450000,
         "windowModeType": "DIALOG_BOX"
       }
-      globalThis.wantParams = data;
 
-      let want = {
+      let want: Want = {
         bundleName: bundleName,
-        abilityName: "PasswordSixAbility"
+        abilityName: "PasswordSixAbility",
+        parameters: {
+          useriamCmdData: data
+        }
       }
       await delegator.startAbility(want);
     })
 
-    it('pinSix_test', 0, async function (done) {
+    it('pinSix_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('pinSix'));
@@ -54,7 +62,7 @@ export default function PinTest() {
       done();
     })
 
-    it('cancelBtn_dialog_sixPwd_test', 0, async function (done) {
+    it('cancelBtn_dialog_sixPwd_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('cancelBtnDialogSixPwd'));

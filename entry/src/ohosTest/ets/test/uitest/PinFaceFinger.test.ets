@@ -16,6 +16,7 @@
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import Want from '@ohos.app.ability.Want';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -23,8 +24,8 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delayTime: number = 1000;
 
 export default function FaceFingerFailTest() {
-  describe('FaceFingerFailTest', function () {
-    beforeAll(async function () {
+  describe('FaceFingerFailTest', () => {
+    beforeAll(async () => {
       const data = {
         "cmd": [{
           "event": "CMD_NOTIFY_AUTH_START", "payload": {
@@ -44,16 +45,18 @@ export default function FaceFingerFailTest() {
         "widgetContextId": 7728484037972500000,
         "windowModeType": "DIALOG_BOX"
       }
-      globalThis.wantParams = data;
 
-      let want = {
+      let want: Want = {
         bundleName: bundleName,
-        abilityName: 'FaceMixTimesAbility'
+        abilityName: 'FaceMixTimesAbility',
+        parameters: {
+          useriamCmdData: data
+        }
       }
       await delegator.startAbility(want);
     })
 
-    it('cancelImg_allFaceAuth_test', 0, async function (done) {
+    it('cancelImg_allFaceAuth_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('cancelImgAllFaceAuth'));
