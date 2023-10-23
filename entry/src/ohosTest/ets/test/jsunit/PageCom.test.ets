@@ -20,22 +20,21 @@ import LogUtils from '../../../../main/ets/common/utils/LogUtils';
 const TAG = 'PageComTest';
 
 export default function PageComTest() {
-  describe('PageComTest', function () {
-    it('clickEventOk_Input', 0, async function (done) {
-      let userAuthInstance = null;
-      const authParam = {
+  describe('PageComTest', () => {
+    it('clickEventOk_Input', 0, async (done: Function) => {
+      const authParam : userAuth.AuthParam = {
         challenge: new Uint8Array([49, 49, 49, 49, 49, 49]),
         authType: [1, 2, 4],
         authTrustLevel: 10000,
       };
-      const widgetParam = {
+      const widgetParam : userAuth.WidgetParam = {
         title: '使用密码验证',
         windowMode: 1,
         navigationButtonText: '确认',
       };
-      userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
+      let userAuthInstance = await userAuth.getUserAuthInstance(authParam, widgetParam);
       userAuthInstance.on('result', {
-        callback: function (result) {
+        onResult (result) {
           LogUtils.info(TAG, 'userAuthInstance onResult: ' + JSON.stringify(result));
         }
       });

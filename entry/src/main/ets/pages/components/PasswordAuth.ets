@@ -14,13 +14,15 @@
  */
 
 import account_osAccount from '@ohos.account.osAccount';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import common from '@ohos.app.ability.common';
 import PassWord from '../../common/components/PassWord';
 import SixPassword from '../../common/components/SixPassword';
 import AuthUtils from '../../common/utils/AuthUtils';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
-import Constants, { CmdType } from '../../common/vm/Constants';
+import Constants, { CmdData, CmdType, WantParams } from '../../common/vm/Constants';
 
 const TAG = 'PasswordAuth';
 const INTERVAL = 1000;
@@ -29,7 +31,7 @@ const TEXT_LENGTH = 4;
 const MAX_FAIL_TIMES = 5;
 const HINT_TIMES_BY_FAIL_LESS = 3;
 
-let pinAuthManager;
+let pinAuthManager: account_osAccount.PINAuth;
 let pinData = '';
 
 @Component
@@ -49,34 +51,34 @@ export default struct PasswordAuth {
 
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
-      const { type, remainAttempts, lockoutDuration, result } = item.payload;
-      if (type === Constants.noticeTypePin) {
-        if (remainAttempts && remainAttempts < MAX_FAIL_TIMES) {
-          this.inputValue = globalThis.context.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error'));
+      const payload: CmdData = item.payload;
+      if (payload.type === Constants.noticeTypePin) {
+        if (payload.remainAttempts && payload.remainAttempts < MAX_FAIL_TIMES) {
+          this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
           this.textValue = '';
 
           // pin auth Remaining number
-          if (remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
-            this.inputValue = globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try'))
-            + remainAttempts + globalThis.context.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_frequency'));
+          if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
+            this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id)
+            + payload.remainAttempts + (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_frequency').id);
           }
           if (num === 'first') {
-            this.inputValue = '';
+            this.inputValue = ' ';
           }
           return;
         }
         // pin auth Remaining number
-        if (remainAttempts === 0 && lockoutDuration) {
-          this.countTime(lockoutDuration);
+        if (payload.remainAttempts === 0 && payload.lockoutDuration) {
+          this.countTime(payload.lockoutDuration);
           this.isEdit = false;
           this.textValue = '';
           return;
         }
-        if (result === 0) {
-          globalThis.session?.terminateSelf();
+        if (payload.result === 0) {
+          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
         }
         this.inputValue = ' ';
         this.textValue = '';
@@ -101,7 +103,7 @@ export default struct PasswordAuth {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -110,15 +112,15 @@ export default struct PasswordAuth {
     pinAuthManager?.unregisterInputer?.();
   }
 
-  countTime(freezingTime): void {
-    const TRY_AGAIN = globalThis.context.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry'));
+  countTime(freezingTime: number): void {
+    const TRY_AGAIN = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, globalThis.context);
-      promptText = globalThis.context.resourceManager
-        .getStringSync($r('app.string.unified_authwidget_many_failures')) + promptText + TRY_AGAIN;
-      setTimeout(this.countTime.bind(this), INTERVAL, freezingTime - INTERVAL);
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get("context") as common.ExtensionContext));
+      promptText = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
+      setTimeout((t: number):void => this.countTime(t), INTERVAL, freezingTime - INTERVAL);
     } else {
       promptText = ' ';
       this.isEdit = true;
@@ -127,8 +129,9 @@ export default struct PasswordAuth {
   }
 
   handleCancel(): void {
-    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
-    globalThis.session?.terminateSelf?.();
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
+      (AppStorage.get("wantParams") as WantParams)?.type as string[]);
+    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
   }
 
   build() {
@@ -166,7 +169,7 @@ export default struct PasswordAuth {
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
                         this.handleCancel();
-			this.textValue = ' ';
+                        this.textValue = ' ';
                         this.inputValue = ' ';
                       })
                       .id('cancelBtnDialogPwd')

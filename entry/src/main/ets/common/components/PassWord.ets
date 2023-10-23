@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import Constants from '../../common/vm/Constants';
+import Constants, { WantParams } from '../../common/vm/Constants';
 
 const MAX_LENGTH = 32;
 
@@ -24,12 +24,12 @@ export default struct PassWord {
   @Link inputValue: string;
   @Link isEdit: boolean;
   @StorageLink('passwordArrayNumber') passwordArrNumber: string[] = [];
-  controller: CustomDialogController;
-  cancel: () => void;
-  confirm: () => void;
+  controller?: CustomDialogController;
+  cancel?: () => void;
+  confirm?: () => void;
 
   onTextValueChange(): void {
-    this.passwordArrNumber = this.textValue.replace(/[^\d]/g, '').split('');
+    this.passwordArrNumber = this.textValue.replace(new RegExp('[^\\d]', 'g'), '').split('');
   }
 
   clearPassword(): void {
@@ -44,22 +44,58 @@ export default struct PassWord {
 
   build() {
     Column() {
-      if (AppStorage.Get('titleLength') < globalThis.wantParams?.title.length) {
+      if (AppStorage.Get('titleLength')  as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
         Scroll() {
-          Text(globalThis.wantParams?.title)
-            .draggable(false)
-            .fontSize($r('sys.float.ohos_id_text_size_body1'))
-            .fontColor($r('sys.color.ohos_id_color_text_primary'))
-            .fontWeight(FontWeight.Medium)
-            .id('titlePwdAuth')
+          Column() {
+            Text((AppStorage.get("wantParams") as WantParams)?.title)
+              .draggable(false)
+              .fontSize($r('sys.float.ohos_id_text_size_body1'))
+              .fontColor($r('sys.color.ohos_id_color_text_primary'))
+              .fontWeight(FontWeight.Medium)
+              .id('titlePwdAuth')
+
+            TextInput({
+              placeholder: '',
+              text: this.pinSubType === Constants.pinNumber ? this.passwordArrNumber.join('') : this.textValue
+            })
+              .draggable(false)
+              .maxLength(MAX_LENGTH)
+              .enabled(this.isEdit)
+              .height($r('app.float.input_height'))
+              .type(InputType.Password)
+              .margin({
+                top: $r('app.float.content_padding'),
+                left: $r('app.float.digital_password_mask_height'),
+                right: $r('app.float.digital_password_mask_height')
+              })
+              .textAlign(TextAlign.Start)
+              .fontColor($r('sys.color.ohos_id_color_text_primary'))
+              .border({
+                width: this.inputValue === ' ' ? '' : $r('app.float.input_border'),
+                color: this.inputValue === ' ' ? '' : ($r('sys.color.ohos_id_color_warning'))
+              })
+              .onChange((value: string) => {
+                if (this.pinSubType === Constants.pinNumber) {
+                  this.passwordArrNumber = value.replace(new RegExp('[^\\d]', 'g'), '').split('');
+                }
+                this.textValue = value;
+              })
+              .id('pinInputMix')
+            Text(this.inputValue)
+              .draggable(false)
+              .fontSize($r('sys.float.ohos_id_text_size_body2'))
+              .margin({ top: $r('app.float.element_margin') })
+              .fontColor($r('sys.color.ohos_id_color_warning'))
+          }
+          .margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
         }
-        .width('80%')
-        .height($r('app.float.textArea_height'))
+        .width('100%')
+        .height($r('app.float.scroll_height_88'))
         .margin({ top: $r('app.float.title_padding_top') })
         .scrollable(ScrollDirection.Vertical)
         .scrollBarColor(Color.Gray)
       } else {
-        Text(globalThis.wantParams?.title)
+        Text((AppStorage.get("wantParams") as WantParams)?.title)
           .draggable(false)
           .margin({ top: $r('app.float.title_padding_top') })
           .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -67,40 +103,40 @@ export default struct PassWord {
           .height($r('app.float.size_24'))
           .fontWeight(FontWeight.Medium)
           .id('titlePwdAuth')
+        TextInput({
+          placeholder: '',
+          text: this.pinSubType === Constants.pinNumber ? this.passwordArrNumber.join('') : this.textValue
+        })
+          .draggable(false)
+          .maxLength(MAX_LENGTH)
+          .enabled(this.isEdit)
+          .height($r('app.float.input_height'))
+          .type(InputType.Password)
+          .margin({
+            top: $r('app.float.content_padding'),
+            left: $r('app.float.digital_password_mask_height'),
+            right: $r('app.float.digital_password_mask_height')
+          })
+          .textAlign(TextAlign.Start)
+          .fontColor($r('sys.color.ohos_id_color_text_primary'))
+          .border({
+            width: this.inputValue === ' ' ? '' : $r('app.float.input_border'),
+            color: this.inputValue === ' ' ? '' : ($r('sys.color.ohos_id_color_warning'))
+          })
+          .onChange((value: string) => {
+            if (this.pinSubType === Constants.pinNumber) {
+              this.passwordArrNumber = value.replace(new RegExp('[^\\d]', 'g'), '').split('');
+            }
+            this.textValue = value;
+          })
+          .id('pinInputMix')
+        Text(this.inputValue)
+          .draggable(false)
+          .fontSize($r('sys.float.ohos_id_text_size_body2'))
+          .margin({ top: $r('app.float.element_margin') })
+          .fontColor($r('sys.color.ohos_id_color_warning'))
       }
 
-      TextInput({
-        placeholder: '',
-        text: this.pinSubType === Constants.pinNumber ? this.passwordArrNumber.join('') : this.textValue
-      })
-        .draggable(false)
-        .maxLength(MAX_LENGTH)
-        .enabled(this.isEdit)
-        .height($r('app.float.input_height'))
-        .type(InputType.Password)
-        .margin({
-          top: $r('app.float.content_padding'),
-          left: $r('app.float.digital_password_mask_height'),
-          right: $r('app.float.digital_password_mask_height')
-        })
-        .textAlign(TextAlign.Start)
-        .fontColor($r('sys.color.ohos_id_color_text_primary'))
-        .border({
-          width: this.inputValue === ' ' ? '' : $r('app.float.input_border'),
-          color: this.inputValue === ' ' ? '' : ($r('sys.color.ohos_id_color_warning'))
-        })
-        .onChange((value: string) => {
-          if (this.pinSubType === Constants.pinNumber) {
-            this.passwordArrNumber = value.replace(/[^\d]/g, '').split('');
-          }
-          this.textValue = value;
-        })
-        .id('pinInputMix')
-      Text(this.inputValue)
-        .draggable(false)
-        .fontSize($r('sys.float.ohos_id_text_size_body2'))
-        .margin({ top: $r('app.float.element_margin') })
-        .fontColor($r('sys.color.ohos_id_color_warning'))
     }
   }
 }

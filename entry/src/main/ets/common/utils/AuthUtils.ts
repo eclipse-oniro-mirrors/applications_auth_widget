@@ -14,6 +14,7 @@
  */
 
 import userAuth from '@ohos.userIAM.userAuth';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 import Constants from '../vm/Constants';
 import LogUtils from './LogUtils';
 
@@ -32,7 +33,7 @@ export default class AuthUtils {
   sendNotice(cmd: string, type: Array<string>): void {
     try {
       const eventData = {
-        widgetContextId: globalThis.widgetContextId,
+        widgetContextId: AppStorage.get("widgetContextId"),
         event: cmd,
         version: Constants.noticeVersion,
         payload: {
@@ -45,7 +46,7 @@ export default class AuthUtils {
       LogUtils.info(TAG, 'sendNotice success');
     } catch (error) {
       LogUtils.error(TAG, 'sendNotice catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 }

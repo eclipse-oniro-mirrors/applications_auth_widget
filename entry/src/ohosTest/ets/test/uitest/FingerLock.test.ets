@@ -16,6 +16,8 @@
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import { WantParams } from '../../../../main/ets/common/vm/Constants';
+import Want from '@ohos.app.ability.Want';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -23,24 +25,34 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delayTime: number = 1000;
 
 export default function FingerLock() {
-  describe('FingerLock', function () {
-    beforeAll(async function () {
-      const data = {
+  describe('FingerLock', () => {
+    beforeAll(async () => {
+      const data: WantParams = {
         "cmd": [{
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 0, "type": "PIN_NUM"
-          }, "version": "1"
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
+            "lockoutDuration": 0,
+            "remainAttempts": 0,
+            "type": "PIN_NUM",
+            "result": 0
+          },
         }, {
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 0, "type": "123"
-          }, "version": "1"
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
+            "lockoutDuration": 0,
+            "remainAttempts": 0,
+            "type": "123",
+            "result": 0
+          },
         }, {
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
             "lockoutDuration": 0,
             "remainAttempts": 0,
             "sensorInfo": "{\"sensorType\":\"OUT_OF_SCREEN_SENSOR\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
-            "type": "fingerprint"
-          }, "version": "1"
+            "type": "fingerprint",
+            "result": 0
+          },
         }],
         "pinSubType": "PIN_SIX",
         "title": "",
@@ -48,16 +60,18 @@ export default function FingerLock() {
         "widgetContextId": 10234972519197798000,
         "windowModeType": "DIALOG_BOX"
       }
-      globalThis.wantParams = data;
 
-      let want = {
+      let want: Want = {
         bundleName: bundleName,
-        abilityName: 'FingerprintLockAbility'
+        abilityName: 'FingerprintLockAbility',
+        parameters: {
+          useriamCmdData: data
+        }
       }
       await delegator.startAbility(want);
     })
 
-    it('cancelBth_state3_fingerprintLock_test', 0, async function (done) {
+    it('cancelBth_state3_fingerprintLock_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('cancelBthState3FingerprintLock'));

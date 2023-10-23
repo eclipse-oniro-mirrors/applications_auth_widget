@@ -16,6 +16,8 @@
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import { WantParams } from '../../../../main/ets/common/vm/Constants';
+import Want from '@ohos.app.ability.Want';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -23,19 +25,25 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delayTime: number = 1000;
 
 export default function FacePinFailTimesTest() {
-  describe('FacePinFailTimesTest', function () {
-    beforeAll(async function () {
-      const data = {
+  describe('FacePinFailTimesTest', () => {
+    beforeAll(async () => {
+      const data : WantParams = {
         "cmd": [{
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 0, "remainAttempts": 2, "type": "pin"
-          }, "version": "1"
-        }, {
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
             "lockoutDuration": 0,
             "remainAttempts": 2,
-            "type": "face"
-          }, "version": "1"
+            "type": "pin",
+            "result": 0
+          },
+        }, {
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
+            "lockoutDuration": 0,
+            "remainAttempts": 2,
+            "type": "face",
+            "result": 0
+          },
         }],
         "pinSubType": "PIN_SIX",
         "title": "",
@@ -43,16 +51,18 @@ export default function FacePinFailTimesTest() {
         "widgetContextId": 7728484037972500000,
         "windowModeType": "DIALOG_BOX"
       }
-      globalThis.wantParams = data;
 
-      let want = {
+      let want: Want = {
         bundleName: bundleName,
-        abilityName: 'FacePinFailTimesAbility'
+        abilityName: 'FacePinFailTimesAbility',
+        parameters: {
+          useriamCmdData: data
+        }
       }
       await delegator.startAbility(want);
     })
 
-    it('cancelImg_allFaceAuth_test', 0, async function (done) {
+    it('cancelImg_allFaceAuth_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('cancelImgAllFaceAuth'));

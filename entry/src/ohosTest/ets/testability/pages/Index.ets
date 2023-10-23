@@ -18,15 +18,17 @@ import window from '@ohos.window';
 import { DialogType } from '../../../../main/ets/common/module/DialogType';
 import FuncUtils from '../../../../main/ets/common/utils/FuncUtils';
 import LogUtils from '../../../../main/ets/common/utils/LogUtils';
-import Constants, { CmdType } from '../../../../main/ets/common/vm/Constants';
+import Constants, { CmdType, WantParams, WidgetCommand } from '../../../../main/ets/common/vm/Constants';
 import CustomPassword from '../../../../main/ets/pages/components/CustomPassword';
 import FaceAuth from '../../../../main/ets/pages/components/FaceAuth';
 import FingerprintAuth from '../../../../main/ets/pages/components/FingerprintAuth';
 import PasswordAuth from '../../../../main/ets/pages/components/PasswordAuth';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import { DEFAULT } from '@ohos/hypium';
 
 const TAG = 'Index';
 const defaultSize = 72;
-let userAuthWidgetMgr;
+let userAuthWidgetMgr: userAuth.UserAuthWidgetMgr;
 
 @Entry
 @Component
@@ -44,7 +46,7 @@ struct Index {
 
   onCancel(): void {
     LogUtils.debug(TAG, 'Callback when the first button is clicked');
-    globalThis.session?.terminateSelf();
+    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
   }
 
   onAccept(): void {
@@ -53,7 +55,7 @@ struct Index {
 
   existApp(): void {
     LogUtils.debug(TAG, 'Click the callback in the blank area');
-    globalThis.session?.terminateSelf();
+    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
   }
 
   handleAuthStart(): void {
@@ -62,9 +64,9 @@ struct Index {
       LogUtils.info(TAG, 'getUserAuthWidgetMgr success');
       let that = this;
       userAuthWidgetMgr.on('command', {
-        callback: function (result) {
-          LogUtils.info(TAG, 'userAuthWidgetMgr onCommand result: ' + JSON.stringify(result));
-          const cmdDataObj = JSON.parse(result?.cmdData || '{}');
+        sendCommand (result) {
+          LogUtils.info(TAG, 'sendCommand result: ' + result);
+          const cmdDataObj: WidgetCommand = JSON.parse(result || '{}');
           if (cmdDataObj?.cmd?.[0]?.payload?.result === Constants.userAuthWidgetMgrSuccess) {
             that.onCancel();
           } else {
@@ -80,9 +82,9 @@ struct Index {
 
   aboutToAppear(): void {
     LogUtils.debug(TAG, 'aboutToAppear test');
-    if (globalThis.wantParams) {
-      LogUtils.debug(TAG, 'globalThis.wantParams： ' + JSON.stringify(globalThis.wantParams));
-      this.getParams(globalThis.wantParams);
+    if (AppStorage.get("wantParams") as WantParams) {
+      LogUtils.debug(TAG, 'wantParams： ' + JSON.stringify(AppStorage.get("wantParams") as WantParams));
+      this.getParams(AppStorage.get("wantParams") as WantParams);
     } else {
       LogUtils.error(TAG, 'aboutToAppear wantParams null');
     }
@@ -93,7 +95,7 @@ struct Index {
     LogUtils.info(TAG, 'aboutToDisappear');
     if (userAuthWidgetMgr) {
       userAuthWidgetMgr.off('command', {
-        callback: function (result) {
+        sendCommand (result) {
           LogUtils.info(TAG, 'aboutToDisappear userAuthWidgetMgr offCommand result: ' + JSON.stringify(result));
         }
       });
@@ -112,26 +114,27 @@ struct Index {
     LogUtils.info(TAG, 'onBackPress');
   }
 
-  getParams(result): void {
+  getParams(result: WantParams): void {
     LogUtils.info(TAG, 'getParams');
-    const { pinSubType, windowModeType, cmd, type, widgetContextId } = result;
-    this.pinSubType = pinSubType;
-    const newType = type && type.map(item => {
-      switch (item) {
-        case Constants.noticeTypePin:
-          return userAuth.UserAuthType.PIN;
-        case Constants.noticeTypeFinger:
-          return userAuth.UserAuthType.FINGERPRINT;
-        case Constants.noticeTypeFace:
-          return userAuth.UserAuthType.FACE;
+    const resultInfo: WantParams = result;
+    this.pinSubType = resultInfo?.pinSubType;
+    const newType = resultInfo?.type && resultInfo?.type.map(item => {
+      if (item === Constants.noticeTypePin) {
+        return userAuth.UserAuthType.PIN;
+      } else if (item === Constants.noticeTypeFinger) {
+        return userAuth.UserAuthType.FINGERPRINT;
+      } else if (item === Constants.noticeTypeFace) {
+        return userAuth.UserAuthType.FACE;
+      } else {
+        return userAuth.UserAuthType.PIN;
       }
     })
-    globalThis.widgetContextId = widgetContextId;
+    AppStorage.setOrCreate("widgetContextId", resultInfo.widgetContextId as number);
     this.authType = newType;
-    this.type = type;
-    this.windowModeType = windowModeType;
+    this.type = resultInfo.type;
+    this.windowModeType = resultInfo.windowModeType;
     this.dialogType = FuncUtils.getDialogType(newType);
-    this.cmdData = cmd || [];
+    this.cmdData = resultInfo.cmd || [];
   }
 
   getWindowHeight(): void {
@@ -142,11 +145,12 @@ struct Index {
         JSON.stringify(data));
         for (let i = 0; i < data.regionTint.length; i++) {
           let regionData = data.regionTint[i];
-          if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
+          if (regionData.region === undefined) {
+            continue;
+          } else if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
             this.topHeight = px2vp(regionData.region.height);
             continue;
-          }
-          if (regionData.type === window.WindowType.TYPE_NAVIGATION_BAR) {
+          } else if (regionData.type === window.WindowType.TYPE_NAVIGATION_BAR) {
             this.bottomHeight = px2vp(regionData.region.top);
             continue;
           }

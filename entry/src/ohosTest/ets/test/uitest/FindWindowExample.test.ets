@@ -16,6 +16,7 @@
 import { describe, expect, it, TestType } from '@ohos/hypium';
 import { Driver } from '@ohos.UiTest';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import Want from '@ohos.app.ability.Want';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -23,9 +24,9 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delays = 1000;
 
 export default function FindWindowExampleTest() {
-  describe('FindWindowExampleTest', function () {
-    it('findWindowExampleTest_bundleName', TestType.FUNCTION, async function (done) {
-      let want = {
+  describe('FindWindowExampleTest', () => {
+    it('findWindowExampleTest_bundleName', TestType.FUNCTION, async (done: Function) => {
+      let want: Want = {
         bundleName: bundleName,
         abilityName: "TestAbility"
       }

@@ -16,6 +16,8 @@
 import { Driver, ON } from '@ohos.UiTest';
 import { beforeAll, describe, expect, it } from '@ohos/hypium';
 import abilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import { WantParams } from '../../../../main/ets/common/vm/Constants';
+import Want from '@ohos.app.ability.Want';
 
 const delegator = abilityDelegatorRegistry.getAbilityDelegator();
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
@@ -23,20 +25,26 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const delayTime: number = 1000;
 
 export default function PinFingerFailTest() {
-  describe('PinFingerFailTest', function () {
-    beforeAll(async function () {
-      const data = {
+  describe('PinFingerFailTest', () => {
+    beforeAll(async () => {
+      const data: WantParams = {
         "cmd": [{
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
-            "lockoutDuration": 34343, "remainAttempts": 0, "type": "pin"
-          }, "version": "1"
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
+            "lockoutDuration": 34343,
+            "remainAttempts": 0,
+            "type": "pin",
+            "result": 0
+          },
         }, {
-          "event": "CMD_NOTIFY_AUTH_START", "payload": {
+          "event": "CMD_NOTIFY_AUTH_START",
+          "payload": {
             "lockoutDuration": 2343,
             "remainAttempts": 0,
             "sensorInfo": "{\"sensorType\":\"SensorType1\",\"udSensorCenterXInThousandth\":500,\"udSensorCenterYInThousandth\":500,\"udSensorRadiusInPx\":30}",
-            "type": "fingerprint"
-          }, "version": "1"
+            "type": "fingerprint",
+            "result": 0
+          },
         }],
         "pinSubType": "PIN_SIX",
         "title": "",
@@ -44,16 +52,18 @@ export default function PinFingerFailTest() {
         "widgetContextId": 10234972519197798000,
         "windowModeType": "DIALOG_BOX"
       }
-      globalThis.wantParams = data;
 
-      let want = {
+      let want: Want = {
         bundleName: bundleName,
-        abilityName: 'FingerFailAbility'
+        abilityName: 'FingerFailAbility',
+        parameters: {
+          useriamCmdData: data
+        }
       }
       await delegator.startAbility(want);
     })
 
-    it('cancelBth_state3_fingerprintAuth_test', 0, async function (done) {
+    it('cancelBth_state3_fingerprintAuth_test', 0, async (done: Function) => {
       let driver = Driver.create();
       await driver.delayMs(delayTime);
       await driver.findComponent(ON.id('cancelBthState3FingerprintAuth'));

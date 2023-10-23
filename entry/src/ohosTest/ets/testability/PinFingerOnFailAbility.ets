@@ -13,13 +13,20 @@
 * limitations under the License.
 */
 
-import UIAbility from '@ohos.app.ability.UIAbility';
+import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import window from '@ohos.window';
+import Want from '@ohos.app.ability.Want';
+import AbilityConstant from '@ohos.app.ability.AbilityConstant';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 
-export default class PinFingerOnFailAbility extends UIAbility {
-  onCreate(want, launchParam) {
-    globalThis.context = this.context;
-    globalThis.session = {};
+export default class PinFingerOnFailAbility extends UserAuthExtensionAbility {
+  onCreate() {
+    AppStorage.setOrCreate("context", this.context as Context);
+  }
+
+  onSessionCreate(want, session): void {
+    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
+    AppStorage.setOrCreate("session", session);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage) {

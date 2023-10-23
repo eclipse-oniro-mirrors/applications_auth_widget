@@ -18,23 +18,24 @@ import userAuth from '@ohos.userIAM.userAuth';
 import FullScreen from '../../common/components/FullScreen';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
-import Constants from '../../common/vm/Constants';
+import Constants, { CmdType, WantParams } from '../../common/vm/Constants';
 import AuthUtils from '../../common/utils/AuthUtils';
+import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 
 const TAG = 'CustomPassword';
 const BLUR_OPACITY = 0.5;
 const SATURATE = 1.3;
 const BLUR_RADIUS = 242;
 const BACK_BLUR = 80;
-const PADDING_ZERO = 0;
-let pinAuthManager;
+const PADDING_SIXTEEN = 16;
+let pinAuthManager: account_osAccount.PINAuth;
 let pinData = '';
 
 @Component
 export default struct CustomPassword {
   @Link pinSubType: string;
   @Link authType: Array<userAuth.UserAuthType>;
-  @Link cmdData: [];
+  @Link cmdData: Array<CmdType>;
   @State isBackTouched: boolean = false;
   @State cancelImageShow: boolean = false;
   @State @Watch('onTextValueChange') textValue: string = '';
@@ -52,7 +53,7 @@ export default struct CustomPassword {
       pinAuthManager = new account_osAccount.PINAuth();
       // register input
       pinAuthManager.registerInputer({
-        onGetData: (authSubType, callback) => {
+        onGetData: (authSubType: account_osAccount.AuthSubType, callback: account_osAccount.IInputData) => {
           LogUtils.info(TAG, 'aboutToAppear registerInputer onGetData');
           const uint8PW = FuncUtils.getUint8PW(pinData);
           callback.onSetData(authSubType, uint8PW);
@@ -60,7 +61,7 @@ export default struct CustomPassword {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      globalThis.session?.terminateSelf?.();
+      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -88,18 +89,20 @@ export default struct CustomPassword {
             .id('cancelImgCustomPwd')
             .width($r('app.float.image_back_size'))
             .height($r('app.float.image_back_size'))
-            .margin({ left: $r('sys.float.ohos_id_max_padding_start'), top: $r('app.float.content_padding') })
+            .margin({ left: $r('sys.float.ohos_id_max_padding_start'), top: this.SYSTEM_STATUS_BAR_HEIGHT + PADDING_SIXTEEN })
             .backgroundColor(this.isBackTouched
-              ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
+              ? $r('sys.color.ohos_id_color_hover'): Color.Transparent)
             .onClick(() => {
-              globalThis.session?.terminateSelf?.();
-              AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, globalThis?.wantParams?.type || []);
+              (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
+                (AppStorage.get("wantParams") as WantParams)?.type as string[]);
             })
-            .onTouch((event: TouchEvent) => {
-              if (event.type === TouchType.Down) {
+            .onTouch((event?: TouchEvent) => {
+              if (event == undefined) {
+                return;
+              } else if (event.type === TouchType.Down) {
                 this.isBackTouched = true;
-              }
-              if (event.type === TouchType.Up) {
+              } else if (event.type === TouchType.Up) {
                 this.isBackTouched = false;
               }
             });
@@ -126,9 +129,6 @@ export default struct CustomPassword {
           }
         }
       }
-      .padding(this.IS_LANDSCAPE
-        ? PADDING_ZERO
-        : { top: this.SYSTEM_STATUS_BAR_HEIGHT, bottom: this.SYSTEM_NAVIGATION_BAR_HEIGHT })
       .justifyContent(FlexAlign.SpaceBetween)
       .width(Constants.fullContainerWidth)
       .height(Constants.fullContainerWidth)
