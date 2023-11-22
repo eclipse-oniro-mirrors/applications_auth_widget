@@ -22,7 +22,11 @@
     "rom": "",
     "ram": "",
     "deps": {
-      "components": [],
+      "components": [
+        "user_auth_framework",
+        "crypto_framework",
+        "bundle_framework"
+      ],
       "third_party": []
     },
     "build": {
