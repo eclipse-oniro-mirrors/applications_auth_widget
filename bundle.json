@@ -19,9 +19,7 @@
     "rom": "",
     "ram": "",
     "deps": {
-      "components": [
-        "user_auth_framework"
-      ],
+      "components": [],
       "third_party": []
     },
     "build": {
