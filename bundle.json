@@ -5,22 +5,19 @@
   "license": "Apache License 2.0",
   "publishAs": "code-segment",
   "segment": {
-    "destPath": "base/useriam/auth_widget"
+    "destPath": "applications/standard/auth_widget"
   },
   "dirs": {},
   "scripts": {},
   "component": {
     "name": "auth_widget",
     "subsystem": "applications",
-    "syscap": [
-      "SystemCapability.UserIAM.UserAuth.Core"
-    ],
     "features": [],
     "adapted_system_type": [
       "standard"
     ],
-    "rom": "",
-    "ram": "",
+    "rom": "860KB",
+    "ram": "0KB",
     "deps": {
       "components": [],
       "third_party": []
