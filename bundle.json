@@ -12,9 +12,6 @@
   "component": {
     "name": "auth_widget",
     "subsystem": "applications",
-    "syscap": [
-      "SystemCapability.UserIAM.UserAuth.AuthWidget"
-    ],
     "features": [],
     "adapted_system_type": [
       "standard"
@@ -23,8 +20,7 @@
     "ram": "",
     "deps": {
       "components": [
-        "user_auth_framework",
-        "bundle_framework"
+        "user_auth_framework"
       ],
       "third_party": []
     },
