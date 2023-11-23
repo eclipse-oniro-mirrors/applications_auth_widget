@@ -16,8 +16,8 @@
     "adapted_system_type": [
       "standard"
     ],
-    "rom": "",
-    "ram": "",
+    "rom": "860KB",
+    "ram": "0KB",
     "deps": {
       "components": [],
       "third_party": []
