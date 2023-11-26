@@ -27,7 +27,7 @@
 
 import hiLog from '@ohos.hilog';
 
-const DOMAIN: number = 0x002A;
+const DOMAIN: number = 0x0007;
 const TAG = 'useriam_auth_widget';
 const SYMBOL = ' --> ';
 
