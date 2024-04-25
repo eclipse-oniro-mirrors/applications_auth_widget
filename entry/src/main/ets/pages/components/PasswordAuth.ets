@@ -53,6 +53,12 @@ export default struct PasswordAuth {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
       const payload: CmdData = item.payload;
       if (payload.type === Constants.noticeTypePin) {
+        if (payload.result && payload.result === Constants.authResultPinExpired) {
+          this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
+          this.textValue = '';
+          return;
+        }
         if (payload.remainAttempts && payload.remainAttempts < MAX_FAIL_TIMES) {
           this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
