@@ -119,6 +119,11 @@ export default struct FingerprintAuth {
       if (payload.type === Constants.noticeTypePin) {
         if (payload.result === 0) {
           (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+        } else if (payload.result && payload.result === Constants.authResultPinExpired) {
+            this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
+            this.textValue = '';
+            return;
         } else {
           if (payload.remainAttempts) {
             this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
@@ -165,7 +170,7 @@ export default struct FingerprintAuth {
               break;
           }
         }
-        if (payload.remainAttempts && payload.result !== 0) {
+        if ((payload.remainAttempts && payload.result !== 0) || payload.result === Constants.authResultPinExpired) {
           this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
           this.fingerLock = false;

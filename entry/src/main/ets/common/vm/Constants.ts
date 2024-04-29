@@ -32,6 +32,8 @@ export default class Constants {
   static userAuthWidgetMgrVersion = 1;
   // command result success
   static userAuthWidgetMgrSuccess = 0;
+  // auth result that pin expired from auth service
+  static authResultPinExpired = 13;
 
   // sendNotice params
   // version
