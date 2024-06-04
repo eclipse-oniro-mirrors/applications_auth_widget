@@ -41,10 +41,10 @@ export default struct SixPassword {
 
   build() {
     Column() {
-      if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
+      if (AppStorage.Get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
         Scroll() {
           Column() {
-            Text((AppStorage.get("wantParams") as WantParams)?.title)
+            Text((AppStorage.get('wantParams') as WantParams)?.title)
 	            .draggable(false)
               .fontSize($r('sys.float.ohos_id_text_size_body1'))
               .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -115,7 +115,7 @@ export default struct SixPassword {
         .scrollable(ScrollDirection.Vertical)
         .scrollBarColor(Color.Gray)
       } else {
-        Text((AppStorage.get("wantParams") as WantParams)?.title)
+        Text((AppStorage.get('wantParams') as WantParams)?.title)
           .draggable(false)
           .margin({ top: $r('app.float.title_padding_top') })
           .fontSize($r('sys.float.ohos_id_text_size_body1'))
