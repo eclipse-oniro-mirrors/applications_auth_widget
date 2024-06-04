@@ -46,7 +46,7 @@ struct Index {
 
   onCancel(): void {
     LogUtils.debug(TAG, 'Callback when the first button is clicked');
-    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+    (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
   }
 
   onAccept(): void {
@@ -55,7 +55,7 @@ struct Index {
 
   existApp(): void {
     LogUtils.debug(TAG, 'Click the callback in the blank area');
-    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+    (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
   }
 
   handleAuthStart(): void {
@@ -82,9 +82,9 @@ struct Index {
 
   aboutToAppear(): void {
     LogUtils.debug(TAG, 'aboutToAppear test');
-    if (AppStorage.get("wantParams") as WantParams) {
-      LogUtils.debug(TAG, 'wantParams： ' + JSON.stringify(AppStorage.get("wantParams") as WantParams));
-      this.getParams(AppStorage.get("wantParams") as WantParams);
+    if (AppStorage.get('wantParams') as WantParams) {
+      LogUtils.debug(TAG, 'wantParams： ' + JSON.stringify(AppStorage.get('wantParams') as WantParams));
+      this.getParams(AppStorage.get('wantParams') as WantParams);
     } else {
       LogUtils.error(TAG, 'aboutToAppear wantParams null');
     }
@@ -129,7 +129,7 @@ struct Index {
         return userAuth.UserAuthType.PIN;
       }
     })
-    AppStorage.setOrCreate("widgetContextId", resultInfo.widgetContextId as number);
+    AppStorage.setOrCreate('widgetContextId', resultInfo.widgetContextId as number);
     this.authType = newType;
     this.type = resultInfo.type;
     this.windowModeType = resultInfo.windowModeType;

@@ -52,28 +52,28 @@ struct Index {
       screen.getAllScreens((err, data) => {
         if (err.code) {
           LogUtils.error(TAG, 'Failed to get all screens. err: ' + err.code);
-          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
           return;
         }
         LogUtils.debug(TAG, ' get all screens. result:-- ' + JSON.stringify(data));
-        this.isLandscape = data[0]?.orientation === LANDSCAPE
-          || data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
+        this.isLandscape = data[0]?.orientation === LANDSCAPE ||
+          data[0]?.supportedModeInfo[0]?.width > data[0]?.supportedModeInfo[0]?.height;
         AppStorage.SetOrCreate('titleLength', (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)))
         LogUtils.debug(TAG, 'titleLength: ' + (data[0]?.supportedModeInfo[0]?.width * 0.8 / fp2px(16)));
-        LogUtils.debug(TAG, 'title: ' + (AppStorage.get("wantParams") as WantParams)?.title.length);
+        LogUtils.debug(TAG, 'title: ' + (AppStorage.get('wantParams') as WantParams)?.title.length);
         AppStorage.SetOrCreate('IS_LANDSCAPE', this.isLandscape);
-        LogUtils.debug(TAG, 'WantParams： ' + JSON.stringify(AppStorage.get("wantParams") as WantParams));
-        if ((AppStorage.get("wantParams") as WantParams)) {
-          this.getParams((AppStorage.get("wantParams") as WantParams));
+        LogUtils.debug(TAG, 'WantParams： ' + JSON.stringify(AppStorage.get('wantParams') as WantParams));
+        if ((AppStorage.get('wantParams') as WantParams)) {
+          this.getParams((AppStorage.get('wantParams') as WantParams));
           this.handleAuthStart();
-          this.cmdData = (AppStorage.get("wantParams") as WantParams)?.cmd as CmdType[];
+          this.cmdData = (AppStorage.get('wantParams') as WantParams)?.cmd as CmdType[];
         } else {
           LogUtils.error(TAG, 'aboutToAppear wantParams null');
-          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         }
         if (this.isLandscape && this.underFingerPrint) {
           setTimeout(() => {
-            (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
           }, FIVE_SECOND)
         } else {
           this.loadFlag = true;
@@ -81,7 +81,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getAllScreens catch error: ' + error?.code);
-      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -102,7 +102,7 @@ struct Index {
       });
     } catch (error) {
       LogUtils.error(TAG, 'getUserAuthWidgetMgr catch error: ' + error?.code);
-      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -159,7 +159,7 @@ struct Index {
         return userAuth.UserAuthType.PIN;
       }
     })
-    AppStorage.setOrCreate("widgetContextId", resultInfo?.widgetContextId);
+    AppStorage.setOrCreate('widgetContextId', resultInfo?.widgetContextId);
     this.authType = newType;
     this.type = resultInfo?.type;
     this.windowModeType = resultInfo?.windowModeType;
@@ -173,7 +173,7 @@ struct Index {
       if (this.isLandscape && this.underFingerPrint) {
         Flex({ direction: FlexDirection.Row, justifyContent: FlexAlign.Center, alignItems: ItemAlign.End }) {
           Column() {
-            Text((AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            Text((AppStorage.get('context') as common.ExtensionContext)?.resourceManager
               .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode').id))
               .draggable(false)
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))

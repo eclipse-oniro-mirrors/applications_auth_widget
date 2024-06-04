@@ -21,12 +21,12 @@ import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility
 
 export default class CustomMixFailTimesAbility extends UserAuthExtensionAbility {
   onCreate() {
-    AppStorage.setOrCreate("context", this.context as Context);
+    AppStorage.setOrCreate('context', this.context as Context);
   }
 
   onSessionCreate(want, session): void {
-    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
-    AppStorage.setOrCreate("session", session);
+    AppStorage.setOrCreate('wantParams', want?.parameters?.useriamCmdData);
+    AppStorage.setOrCreate('session', session);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage) {

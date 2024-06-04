@@ -108,7 +108,8 @@ export default struct NumKeyBoard {
               }
             }
             .onClick(() => {
-                setTimeout((index: number, callback: Function):void => this.onKeyPress?.(index, callback), 0, item.index, () => {
+                setTimeout((index: number, callback: Function):void =>
+                  this.onKeyPress?.(index, callback), 0, item.index, () => {
                 });
             })
             .id('numKeyBordCustomPwd' + item.index)
