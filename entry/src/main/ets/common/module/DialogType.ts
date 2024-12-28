@@ -24,6 +24,8 @@ export enum DialogType {
   PIN_FACE = 6,
   // PIN and FINGER
   PIN_FINGER = 7,
+  // FACE and FINGER
+  FACE_FINGER_NAVIGATION = 8,
   // ALL
   ALL = 10,
 }

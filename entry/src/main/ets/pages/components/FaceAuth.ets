@@ -34,6 +34,7 @@ const PADDING_24 = 24;
 const MARGIN_TOP = 113;
 const PIN_FACE = 1;
 const PIN_FACE_FINGER = 2;
+const FACE_FINGER_NAVIGATION = 3;
 const MULTI_PIN = 4;
 const SIX_PIN = 5;
 const SINGLE_FACE = 6;
@@ -58,8 +59,7 @@ export default struct FaceAuth {
   @Link pinSubType: string;
   @Link dialogType: DialogType;
   @State inputValue: string = '';
-  @State dialogTypeFlag: number = this.dialogType === DialogType.PIN_FACE ?
-    PIN_FACE : (this.dialogType === DialogType.ALL ? PIN_FACE_FINGER : SINGLE_FACE);
+  @State dialogTypeFlag: number = this.initDialogTypeFlag();
   // 1:Portrait screen 2:Landscape mode
   @State screenType: number = 0;
   @State fingerPositionY: number = 0;
@@ -88,15 +88,42 @@ export default struct FaceAuth {
     this.inputValue = promptText;
   }
 
+  initDialogTypeFlag(): number {
+    if (this.dialogType === DialogType.PIN_FACE) {
+      return PIN_FACE;
+    } else if (this.dialogType === DialogType.ALL) {
+      return PIN_FACE_FINGER;
+    } else if (this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
+      return FACE_FINGER_NAVIGATION;
+    } else {
+      return SINGLE_FACE;
+    }
+  }
+
   aboutToAppear(): void {
     LogUtils.debug(TAG, 'aboutToAppear');
     try {
+      if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.FACE) {
+        this.prompt =
+          (AppStorage.get("context") as common.ExtensionContext)?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognition')
+            .id);
+        AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+      } else if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
+        AuthUtils.getInstance()
+          .sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+      } else {
+        LogUtils.error(TAG, 'aboutToAppear not support type');
+        AuthUtils.getInstance().sendNotice(Constants.noticeEventInvalidParam, [Constants.noticeTypePin]);
+        (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      }
+
       if (this.cmdData && this.cmdData.length > 0) {
         this.onCmdDataChange('first');
       }
 
-      if (this.isPinFaceFinger && this.fingerPosition.udSensorCenterYInThousandth !== undefined &&
-          this.fingerPosition.udSensorRadiusInPx !== undefined) {
+      if ((this.isPinFaceFinger || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) &&
+        this.fingerPosition.udSensorCenterYInThousandth !== undefined &&
+        this.fingerPosition.udSensorRadiusInPx !== undefined) {
         let tempPosition = this.fingerPosition.udSensorCenterYInThousandth / this.screen[1];
         FuncUtils.judgmentOverflow(tempPosition);
         let tempFingerPositionY = px2vp(this.screen[1]) * this.fingerPosition.udSensorCenterYInThousandth;
@@ -111,17 +138,6 @@ export default struct FaceAuth {
         FuncUtils.judgmentOverflow(this.fingerPositionY);
       }
       LogUtils.info(TAG, 'aboutToAppear this.fingerPositionY: ' + this.fingerPositionY);
-      if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.FACE) {
-        this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
-        AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
-      } else if (this.dialogType === DialogType.ALL) {
-        AuthUtils.getInstance()
-          .sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
-      } else {
-        LogUtils.error(TAG, 'aboutToAppear not support type');
-        (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
-      }
       pinAuthManager = new account_osAccount.PINAuth();
       pinAuthManager.registerInputer({
         onGetData: (authSubType, callback) => {
@@ -277,7 +293,9 @@ export default struct FaceAuth {
               break;
             }
             default:
-              this.isPinFaceFinger = true;
+              if (this.dialogType !== DialogType.FACE_FINGER_NAVIGATION) {
+                this.isPinFaceFinger = true;
+              }
               let tempPositionLine = JSON.parse(payload.sensorInfo).udSensorCenterYInThousandth / displayClass.height;
               FuncUtils.judgmentOverflow(tempPositionLine);
               if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
@@ -296,11 +314,6 @@ export default struct FaceAuth {
           this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
           this.fingerLock = false;
-          if (num !== 'first' && payload.remainAttempts > 0 && payload.result !== 0) {
-            setTimeout(() => {
-              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-            }, NOTICE_DELAY);
-          }
         }
         if (num === 'first') {
           this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
@@ -684,7 +697,130 @@ export default struct FaceAuth {
                 bottom: ($r('sys.float.ohos_id_dialog_margin_bottom'))
               })
             }
+          } else if (this.dialogType === DialogType.FACE_FINGER_NAVIGATION &&
+            (AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string) {
+            Column() {
+              if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
+                Scroll() {
+                  Column() {
+                    // Facial fingerprint password, second form
+                    Image($r('app.media.error_faceID'))
+                      .draggable(false)
+                      .id('errFaceImgFaceAuth')
+                      .width($r('app.float.image_small'))
+                      .height($r('app.float.image_small'))
+                      .margin({bottom: $r('app.float.content_padding') })
+                      .colorBlend($r('sys.color.ohos_id_color_activated'))
+                      .onClick(() => {
+                        this.sendFaceEvent();
+                      })
+                    Text((AppStorage.get("wantParams") as WantParams)?.title)
+                      .draggable(false)
+                      .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                      .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                      .fontWeight(FontWeight.Medium)
+                  }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
+                }
+                .width('100%')
+                .height($r('app.float.scroll_height_90'))
+                .margin({ top: $r('app.float.content_padding_top')})
+                .scrollable(ScrollDirection.Vertical)
+                .scrollBarColor(Color.Gray)
+              } else {
+                // Facial fingerprint password, second form
+                Image($r('app.media.error_faceID'))
+                  .draggable(false)
+                  .id('errFaceImgFaceAuth')
+                  .width($r('app.float.image_small'))
+                  .height($r('app.float.image_small'))
+                  .margin({ top: $r('app.float.content_padding_top'), bottom: $r('app.float.content_padding') })
+                  .colorBlend($r('sys.color.ohos_id_color_activated'))
+                  .onClick(() => {
+                    this.sendFaceEvent();
+                  })
+                Text((AppStorage.get("wantParams") as WantParams)?.title)
+                  .draggable(false)
+                  .fontSize($r('sys.float.ohos_id_text_size_body1'))
+                  .fontColor($r('sys.color.ohos_id_color_text_primary'))
+                  .height($r('app.float.size_24'))
+                  .fontWeight(FontWeight.Medium)
+              }
+              Image($r('app.media.ic_blue_fingerprint'))
+                .draggable(false)
+                .id('blueFingerprintImgFaceAuth')
+                  // radius
+                .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+                .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
+                .margin({ top: $r('app.float.content_padding') })
+                .colorBlend($r('sys.color.ohos_id_color_activated'))
+                .onClick(() => {
+                  this.sendFingerEvent();
+                })
+              Text(this.prompt)
+                .draggable(false)
+                .margin({ top: $r('app.float.content_padding') })
+                .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                .height($r('app.float.size_24'))
+                .fontColor(this.onFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                .onClick(() => {
+                  if (this.prompt === (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                  ?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id)) {
+                    this.sendFaceEvent();
+                  }
+                })
+              Row() {
+                Column() {
+                  Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
+                    .id('cancelBtnFaceAuth')
+                    .margin({ left: $r('app.float.content_padding') })
+                    .width(Constants.ninetyPercentWidth)
+                    .height($r('app.float.btn_height'))
+                    .fontSize($r('sys.float.ohos_id_text_size_button1'))
+                    .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
+                    .fontWeight(FontWeight.Medium)
+                    .backgroundColor(Color.Transparent)
+                    .onClick(() => {
+                      this.handleCancel();
+                      this.textValue = '';
+                    })
+                }.width(Constants.halfContainerWidth)
 
+                Divider()
+                  .vertical(true)
+                  .height($r('app.float.digital_password_mask_height'))
+                  .color($r('sys.color.ohos_id_color_list_separator'))
+                  .width($r('app.float.divider_width'))
+                Column() {
+                  Button((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string)
+                    .id('usePwdBtnFaceAuth')
+                    .margin({ right: $r('app.float.content_padding') })
+                    .width(Constants.ninetyPercentWidth)
+                    .height($r('app.float.btn_height'))
+                    .fontSize($r('sys.float.ohos_id_text_size_button1'))
+                    .fontColor($r('sys.color.ohos_id_color_text_primary_activated'))
+                    .fontWeight(FontWeight.Medium)
+                    .backgroundColor(Color.Transparent)
+                    .onClick(() => {
+                      AuthUtils.getInstance()
+                        .sendNotice('EVENT_AUTH_USER_NAVIGATION',
+                          [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+                      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+                    })
+
+                }.width(Constants.halfContainerWidth)
+
+              }
+              .height($r('app.float.btn_height'))
+              .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
+            }
+            .position({ y: this.fingerPositionY })
+            .backgroundColor($r('sys.color.ohos_id_color_dialog_bg'))
+            .borderRadius($r('sys.float.ohos_id_corner_radius_dialog'))
+            .margin({
+              left: ($r('sys.float.ohos_id_dialog_margin_start')),
+              right: ($r('sys.float.ohos_id_dialog_margin_end')),
+              bottom: ($r('sys.float.ohos_id_dialog_margin_bottom'))
+            })
           } else {
             Column() {
               if (this.dialogTypeFlag === PIN_FACE) {

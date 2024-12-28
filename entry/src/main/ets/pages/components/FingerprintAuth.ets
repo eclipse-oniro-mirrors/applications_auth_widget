@@ -174,11 +174,6 @@ export default struct FingerprintAuth {
           this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
           this.fingerLock = false;
-          if (payload.remainAttempts > AUTH_LOCK && num !== 'first' && payload.result != 0) {
-            setTimeout(() => {
-              AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
-            }, NOTICE_DELAY);
-          }
         }
         if (num === 'first') {
           this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
