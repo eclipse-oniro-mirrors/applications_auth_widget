@@ -1,5 +1,5 @@
 {
-  "name": "@openharmony/auth_widget",
+  "name": "@ohos/auth_widget",
   "version": "4.0",
   "description": "User Authentication capability",
   "license": "Apache License 2.0",
