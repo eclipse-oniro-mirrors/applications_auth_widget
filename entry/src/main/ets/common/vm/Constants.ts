@@ -44,6 +44,7 @@ export default class Constants {
   static noticeTypeFinger = 'fingerprint';
   // event cancel
   static noticeEventCancel = 'EVENT_AUTH_USER_CANCEL';
+  static noticeEventInvalidParam = 'EVENT_AUTH_WIDGET_PARA_INVALID';
 
   static numKeyBoard : NumKeyBoardItem[]= [
     {

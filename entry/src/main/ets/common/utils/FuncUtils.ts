@@ -42,6 +42,9 @@ export class FuncUtils {
         }
         return DialogType.PIN;
       }
+      if (type.includes(userAuth.UserAuthType.FACE) && type.includes(userAuth.UserAuthType.FINGERPRINT)) {
+        return DialogType.FACE_FINGER_NAVIGATION;
+      }
       if (type.includes(userAuth.UserAuthType.FINGERPRINT)) {
         return DialogType.FINGER;
       }
