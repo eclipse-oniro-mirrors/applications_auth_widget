@@ -46,7 +46,7 @@ export default class Constants {
   static noticeEventCancel = 'EVENT_AUTH_USER_CANCEL';
   static noticeEventInvalidParam = 'EVENT_AUTH_WIDGET_PARA_INVALID';
 
-  static numKeyBoard : NumKeyBoardItem[]= [
+  static numKeyBoard : NumKeyBoardItem[] = [
     {
       index: 0,
       row1: '1',

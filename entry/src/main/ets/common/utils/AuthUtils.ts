@@ -33,7 +33,7 @@ export default class AuthUtils {
   sendNotice(cmd: string, type: Array<string>): void {
     try {
       const eventData = {
-        widgetContextId: AppStorage.get("widgetContextId"),
+        widgetContextId: AppStorage.get('widgetContextId'),
         event: cmd,
         version: Constants.noticeVersion,
         payload: {
@@ -46,7 +46,7 @@ export default class AuthUtils {
       LogUtils.info(TAG, 'sendNotice success');
     } catch (error) {
       LogUtils.error(TAG, 'sendNotice catch error: ' + error?.code);
-      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
     }
   }
 }
