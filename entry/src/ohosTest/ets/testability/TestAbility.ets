@@ -25,17 +25,17 @@ import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSessi
 
 export default class TestAbility extends UserAuthExtensionAbility {
   onCreate() {
-    let  abilityDelegator: AbilityDelegatorRegistry.AbilityDelegator;
+    let abilityDelegator: AbilityDelegatorRegistry.AbilityDelegator;
     abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
     let abilityDelegatorArguments: AbilityDelegatorRegistry.AbilityDelegatorArgs;
     abilityDelegatorArguments = AbilityDelegatorRegistry.getArguments();
     Hypium.hypiumTest(abilityDelegator, abilityDelegatorArguments, testsuite);
-    AppStorage.setOrCreate("context", this.context);
+    AppStorage.setOrCreate('context', this.context);
   }
 
   onSessionCreate(want, session): void {
-    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
-    AppStorage.setOrCreate("session", session);
+    AppStorage.setOrCreate('wantParams', want?.parameters?.useriamCmdData);
+    AppStorage.setOrCreate('session', session);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage) {

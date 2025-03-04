@@ -28,7 +28,7 @@ const MASK_THIN_COLOR = '#33182431';
 export default class UserAuthAbility extends UserAuthExtensionAbility {
   onCreate() {
     LogUtils.info(TAG, 'onCreate');
-    AppStorage.setOrCreate("context", this.context as common.ExtensionContext);
+    AppStorage.setOrCreate('context', this.context as common.ExtensionContext);
 
   }
 
@@ -38,7 +38,7 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onBackground(): void {
     LogUtils.info(TAG, 'onBackground');
-    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+    (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
   }
 
   onDestroy(): void | Promise<void> {
@@ -47,11 +47,11 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onSessionCreate(want, session): void {
     LogUtils.info(TAG, 'onSessionCreate');
-    AppStorage.setOrCreate("wantParams", want?.parameters?.useriamCmdData);
+    AppStorage.setOrCreate('wantParams', want?.parameters?.useriamCmdData);
 
     session?.loadContent('pages/Index');
     try {
-      if ((AppStorage.get("wantParams") as WantParams)?.windowModeType === 'DIALOG_BOX') {
+      if ((AppStorage.get('wantParams') as WantParams)?.windowModeType === 'DIALOG_BOX') {
         session?.setWindowBackgroundColor(MASK_THIN_COLOR);
       } else {
         session?.setWindowBackgroundColor(TRANSPARENT_COLOR);
