@@ -12,7 +12,7 @@
   "component": {
     "name": "auth_widget",
     "subsystem": "applications",
-    "features": [],
+    "features": ["auth_widget_enabled"],
     "adapted_system_type": [
       "standard"
     ],

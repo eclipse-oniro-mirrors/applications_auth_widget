@@ -13,6 +13,10 @@
 
 import("//build/ohos.gni")
 
+declare_args() {
+  auth_widget_enabled = true
+}
+
 ohos_app_scope("authwidget_app_profile") {
   app_profile = "./AppScope/app.json"
   sources = [ "./AppScope/resources" ]
