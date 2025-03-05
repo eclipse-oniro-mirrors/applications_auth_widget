@@ -53,7 +53,7 @@ export default struct FingerprintAuth {
   @Link type: string;
   @Link pinSubType: string;
   @Link dialogType: DialogType;
-  @State prompt: string = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+  @State prompt: string = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
     .getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp').id);
   @State @Watch('onTextValueChange') textValue: string = '';
   @Link @Watch('onCmdDataChange') cmdData: Array<CmdType>;
@@ -78,12 +78,13 @@ export default struct FingerprintAuth {
       if (this.cmdData && this.cmdData.length > 0) {
         this.onCmdDataChange('first');
       }
-      if (this.fingerPosition.udSensorCenterYInThousandth !== undefined && (this.screenType === ON_SCREEN || this.screenType === UNDER_SCREEN)) {
+      if (this.fingerPosition.udSensorCenterYInThousandth !== undefined && (this.screenType === ON_SCREEN ||
+        this.screenType === UNDER_SCREEN)) {
         let tempPositionY = px2vp(this.fingerPosition.udSensorCenterYInThousandth * this.screen[1]);
         FuncUtils.judgmentOverflow(tempPositionY);
         if (this.screenType === ON_SCREEN) {
-          this.fingerPositionY = px2vp(this.screen[1]) - tempPositionY / THOUSANDTH + BOTTOM_BUTTON
-          + PADDING_8 + BOTTOM_TEXT + PADDING_24;
+          this.fingerPositionY = px2vp(this.screen[1]) - tempPositionY / THOUSANDTH + BOTTOM_BUTTON +
+          PADDING_8 + BOTTOM_TEXT + PADDING_24;
         } else if (this.screenType === UNDER_SCREEN) {
           this.fingerPositionY = px2vp(this.screen[1]) - tempPositionY / THOUSANDTH + PADDING_24;
         }
@@ -100,7 +101,7 @@ export default struct FingerprintAuth {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -118,24 +119,24 @@ export default struct FingerprintAuth {
       const payload: CmdData = item.payload;
       if (payload.type === Constants.noticeTypePin) {
         if (payload.result === 0) {
-          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         } else if (payload.result && payload.result === Constants.authResultPinExpired) {
-            this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
             this.textValue = '';
             return;
         } else {
           if (payload.remainAttempts) {
-            this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
             this.textValue = '';
             if (num === 'first') {
               this.inputValue = '';
             }
             if (payload.remainAttempts < PIN_FAIL_TIP) {
-              this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+              this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
-              payload.remainAttempts + (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+              payload.remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_frequency').id);
             }
           }
@@ -171,18 +172,18 @@ export default struct FingerprintAuth {
           }
         }
         if ((payload.remainAttempts && payload.result !== 0) || payload.result === Constants.authResultPinExpired) {
-          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
           this.fingerLock = false;
         }
         if (num === 'first') {
-          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync(this.isOffFinger ?
             $r('app.string.unified_authwidget_hint_normal_fp_only').id :
             $r('app.string.unified_authwidget_hint_inscreen_fp').id);
         }
         if (payload.remainAttempts === AUTH_LOCK) {
-          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
           this.fingerLock = true;
           if (this.dialogType === DialogType.PIN_FINGER) {
@@ -195,15 +196,15 @@ export default struct FingerprintAuth {
           }
         }
         if (payload.result === 0) {
-          this.prompt = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
           setTimeout(() => {
-            (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
           }, SECOND);
         }
       } else {
         LogUtils.error(TAG, 'onCmdDataChange default');
-        (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+        (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
       }
     })
   }
@@ -215,14 +216,14 @@ export default struct FingerprintAuth {
   }
 
   countTime(freezingTime: number): void {
-    const TRY_AGAIN = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+    const TRY_AGAIN = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
       .getStringSync($r('app.string.unified_authwidget_postretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     // O: freezing FINISH
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get("context") as common.ExtensionContext));
-      promptText = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get('context') as common.ExtensionContext));
+      promptText = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
         .getStringSync($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
       setTimeout((t: number):void => this.countTime(t), INTERVAL, freezingTime - INTERVAL);
     } else {
@@ -263,9 +264,9 @@ export default struct FingerprintAuth {
       AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypePin]);
     } else {
       AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-        (AppStorage.get("wantParams") as WantParams)?.type as string[]);
+        (AppStorage.get('wantParams') as WantParams)?.type as string[]);
     }
-    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+    (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
   }
 
   toPin(): void {
@@ -294,10 +295,10 @@ export default struct FingerprintAuth {
           if (this.isOffFinger) {
             Column() {
               if ([PIN_FINGER, SINGLE_FINGER].includes(this.state) && this.fingerPosition !== undefined) {
-                if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
+                if (AppStorage.Get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
                   Scroll() {
                     Column() {
-                      Text((AppStorage.get("wantParams") as WantParams)?.title)
+                      Text((AppStorage.get('wantParams') as WantParams)?.title)
                         .draggable(false)
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -310,7 +311,7 @@ export default struct FingerprintAuth {
                         .id('outFingerImage')
                       Text(this.prompt)
                         .draggable(false)
-                        .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                        .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get('context') as common.ExtensionContext)))
                         .fontSize($r('sys.float.ohos_id_text_size_body2'))
                     }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                   }
@@ -320,7 +321,7 @@ export default struct FingerprintAuth {
                   .scrollable(ScrollDirection.Vertical)
                   .scrollBarColor(Color.Gray)
                 } else {
-                  Text((AppStorage.get("wantParams") as WantParams)?.title)
+                  Text((AppStorage.get('wantParams') as WantParams)?.title)
                     .draggable(false)
                     .margin({ top: $r('app.float.title_padding_top') })
                     .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -335,7 +336,7 @@ export default struct FingerprintAuth {
                     .id('outFingerImage')
                   Text(this.prompt)
                     .draggable(false)
-                    .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                    .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get('context') as common.ExtensionContext)))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                 }
               }
@@ -382,7 +383,7 @@ export default struct FingerprintAuth {
                 .height($r('app.float.btn_height'))
                 .margin({ top: $r('app.float.element_margin'), bottom: $r('app.float.content_padding') })
               } else if (this.state === SINGLE_FINGER) {
-                if (!((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string)) {
+                if (!((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string)) {
                   Row() {
                     Column() {
                       Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
@@ -424,11 +425,11 @@ export default struct FingerprintAuth {
                       .color($r('sys.color.ohos_id_color_list_separator'))
                       .width($r('app.float.divider_width'))
                     Column() {
-                      Button((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string)
+                      Button((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string)
                         .onClick(() => {
                           AuthUtils.getInstance()
                             .sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFinger]);
-                          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+                          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
                         })
                         .margin({ right: $r('app.float.content_padding') })
                         .width(Constants.ninetyPercentWidth)
@@ -614,9 +615,9 @@ export default struct FingerprintAuth {
             } else if (this.state === PIN_FINGER && this.fingerPosition.udSensorRadiusInPx !== undefined ) {
               Column() {
                 if (this.screenType === ON_SCREEN) {
-                  if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
+                  if (AppStorage.Get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
                     Scroll() {
-                      Text((AppStorage.get("wantParams") as WantParams)?.title)
+                      Text((AppStorage.get('wantParams') as WantParams)?.title)
                         .draggable(false)
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -629,7 +630,7 @@ export default struct FingerprintAuth {
                     .scrollable(ScrollDirection.Vertical)
                     .scrollBarColor(Color.Gray)
                   } else {
-                    Text((AppStorage.get("wantParams") as WantParams)?.title)
+                    Text((AppStorage.get('wantParams') as WantParams)?.title)
                       .draggable(false)
                       .margin({ top: $r('app.float.title_padding_top') })
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -637,7 +638,7 @@ export default struct FingerprintAuth {
                       .height($r('app.float.size_24'))
                       .fontWeight(FontWeight.Medium)
                   }
-                  Image(this.prompt === (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                  Image(this.prompt === (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
                     ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
                     .draggable(false)
@@ -654,7 +655,7 @@ export default struct FingerprintAuth {
                     })
                   Text(this.prompt)
                     .draggable(false)
-                    .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                    .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get('context') as common.ExtensionContext)))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   Row() {
                     Column() {
@@ -728,10 +729,10 @@ export default struct FingerprintAuth {
                       })
                   }
 
-                  if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
+                  if (AppStorage.Get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
                     Scroll() {
                       Column() {
-                        Text((AppStorage.get("wantParams") as WantParams)?.title)
+                        Text((AppStorage.get('wantParams') as WantParams)?.title)
                           .draggable(false)
                           .fontSize($r('sys.float.ohos_id_text_size_body1'))
                           .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -741,7 +742,7 @@ export default struct FingerprintAuth {
                           .margin({ top: $r('app.float.element_margin') })
                           .height($r('app.float.size_24'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                          .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                          .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get('context') as common.ExtensionContext)))
                       }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                     }
                     .width('100%')
@@ -749,7 +750,7 @@ export default struct FingerprintAuth {
                     .scrollable(ScrollDirection.Vertical)
                     .scrollBarColor(Color.Gray)
                   } else {
-                    Text((AppStorage.get("wantParams") as WantParams)?.title)
+                    Text((AppStorage.get('wantParams') as WantParams)?.title)
                       .draggable(false)
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
                       .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -760,9 +761,9 @@ export default struct FingerprintAuth {
                       .margin({ top: $r('app.float.element_margin') })
                       .height($r('app.float.size_24'))
                       .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                      .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                      .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get('context') as common.ExtensionContext)))
                   }
-                  Image(this.prompt === (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                  Image(this.prompt === (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
                     ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
                     .draggable(false)
@@ -789,9 +790,9 @@ export default struct FingerprintAuth {
             } else if (this.state === SINGLE_FINGER) {
               Column() {
                 if (this.screenType === ON_SCREEN && this.fingerPosition.udSensorRadiusInPx !== undefined) {
-                  if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
+                  if (AppStorage.Get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
                     Scroll() {
-                      Text((AppStorage.get("wantParams") as WantParams)?.title)
+                      Text((AppStorage.get('wantParams') as WantParams)?.title)
                         .draggable(false)
                         .fontSize($r('sys.float.ohos_id_text_size_body1'))
                         .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -804,7 +805,7 @@ export default struct FingerprintAuth {
                     .scrollable(ScrollDirection.Vertical)
                     .scrollBarColor(Color.Gray)
                   } else {
-                    Text((AppStorage.get("wantParams") as WantParams)?.title)
+                    Text((AppStorage.get('wantParams') as WantParams)?.title)
                       .draggable(false)
                       .margin({ top: $r('app.float.title_padding_top') })
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
@@ -812,7 +813,7 @@ export default struct FingerprintAuth {
                       .height($r('app.float.size_24'))
                       .fontWeight(FontWeight.Medium)
                   }
-                  Image(this.prompt === (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                  Image(this.prompt === (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
                     ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
                     .draggable(false)
@@ -829,9 +830,9 @@ export default struct FingerprintAuth {
                     })
                   Text(this.prompt)
                     .draggable(false)
-                    .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                    .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get('context') as common.ExtensionContext)))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                  if (!((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string)) {
+                  if (!((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string)) {
                     Row() {
                       Column() {
                         Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
@@ -873,11 +874,11 @@ export default struct FingerprintAuth {
                         .color($r('sys.color.ohos_id_color_list_separator'))
                         .width($r('app.float.divider_width'))
                       Column() {
-                        Button(((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string))
+                        Button(((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string))
                           .onClick(() => {
                             AuthUtils.getInstance()
                               .sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFinger]);
-                            (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+                            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
                           })
                           .id('navigationButtonTextFingerprintAuth')
                           .margin({ right: $r('app.float.content_padding') })
@@ -907,8 +908,8 @@ export default struct FingerprintAuth {
                         this.handleCancel();
                         this.textValue = '';
                       })
-                    if ((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string) {
-                      Button((AppStorage.get("wantParams") as WantParams)?.navigationButtonText as string)
+                    if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
+                      Button((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string)
                         .id('fingerUnderButton')
                         .backgroundColor(Color.White)
                         .height($r('app.float.digital_password_mask_height'))
@@ -923,15 +924,15 @@ export default struct FingerprintAuth {
                         .onClick(() => {
                           AuthUtils.getInstance()
                             .sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFinger]);
-                          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+                          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
                         })
                     }
                   }
 
-                  if (AppStorage.Get('titleLength') as number < (AppStorage.get("wantParams") as WantParams)?.title.length) {
+                  if (AppStorage.Get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
                     Scroll() {
                       Column() {
-                        Text((AppStorage.get("wantParams") as WantParams)?.title)
+                        Text((AppStorage.get('wantParams') as WantParams)?.title)
                           .draggable(false)
                           .fontSize($r('sys.float.ohos_id_text_size_body1'))
                           .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -941,7 +942,7 @@ export default struct FingerprintAuth {
                           .margin({ top: $r('app.float.element_margin') })
                           .height($r('app.float.size_24'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                          .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                          .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get('context') as common.ExtensionContext)))
                       }.margin({left: $r('app.float.size_24'), right: $r('app.float.size_24')})
                     }
                     .width('100%')
@@ -949,7 +950,7 @@ export default struct FingerprintAuth {
                     .scrollable(ScrollDirection.Vertical)
                     .scrollBarColor(Color.Gray)
                   } else {
-                    Text((AppStorage.get("wantParams") as WantParams)?.title)
+                    Text((AppStorage.get('wantParams') as WantParams)?.title)
                       .draggable(false)
                       .fontSize($r('sys.float.ohos_id_text_size_body1'))
                       .fontColor($r('sys.color.ohos_id_color_text_primary'))
@@ -960,9 +961,9 @@ export default struct FingerprintAuth {
                       .margin({ top: $r('app.float.element_margin') })
                       .height($r('app.float.size_24'))
                       .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                      .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get("context") as common.ExtensionContext)))
+                      .fontColor(this.onFingerPrintFontColor(this.prompt, (AppStorage.get('context') as common.ExtensionContext)))
                   }
-                  Image(this.prompt === (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+                  Image(this.prompt === (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                     .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
                     ? $r('app.media.right_faceID') : $r('app.media.ic_blue_fingerprint'))
                     .draggable(false)

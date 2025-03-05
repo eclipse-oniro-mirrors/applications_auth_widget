@@ -30,7 +30,7 @@ export class WindowPrivacyUtils {
       });
     } catch (error) {
       LogUtils.error(TAG, 'setWindowPrivacyMode catch error: ' + error?.code);
-      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
     }
   }
 }

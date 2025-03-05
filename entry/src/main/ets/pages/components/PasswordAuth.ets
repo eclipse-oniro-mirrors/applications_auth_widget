@@ -54,21 +54,21 @@ export default struct PasswordAuth {
       const payload: CmdData = item.payload;
       if (payload.type === Constants.noticeTypePin) {
         if (payload.result && payload.result === Constants.authResultPinExpired) {
-          this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+          this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
           this.textValue = '';
           return;
         }
         if (payload.remainAttempts && payload.remainAttempts < MAX_FAIL_TIMES) {
-          this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+          this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
           this.textValue = '';
 
           // pin auth Remaining number
           if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
-            this.inputValue = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id)
-            + payload.remainAttempts + (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+            this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+              .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
+            payload.remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
               .getStringSync($r('app.string.unified_authwidget_frequency').id);
           }
           if (num === 'first') {
@@ -84,7 +84,7 @@ export default struct PasswordAuth {
           return;
         }
         if (payload.result === 0) {
-          (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         }
         this.inputValue = ' ';
         this.textValue = '';
@@ -109,7 +109,7 @@ export default struct PasswordAuth {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -119,12 +119,12 @@ export default struct PasswordAuth {
   }
 
   countTime(freezingTime: number): void {
-    const TRY_AGAIN = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
+    const TRY_AGAIN = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get("context") as common.ExtensionContext));
-      promptText = (AppStorage.get("context") as common.ExtensionContext)?.resourceManager
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get('context') as common.ExtensionContext));
+      promptText = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
         .getStringSync($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
       setTimeout((t: number):void => this.countTime(t), INTERVAL, freezingTime - INTERVAL);
     } else {
@@ -136,8 +136,8 @@ export default struct PasswordAuth {
 
   handleCancel(): void {
     AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-      (AppStorage.get("wantParams") as WantParams)?.type as string[]);
-    (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      (AppStorage.get('wantParams') as WantParams)?.type as string[]);
+    (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
   }
 
   build() {

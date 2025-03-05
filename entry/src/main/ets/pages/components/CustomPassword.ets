@@ -61,7 +61,7 @@ export default struct CustomPassword {
       });
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
-      (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+      (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
     }
   }
 
@@ -91,11 +91,11 @@ export default struct CustomPassword {
             .height($r('app.float.image_back_size'))
             .margin({ left: $r('sys.float.ohos_id_max_padding_start'), top: this.SYSTEM_STATUS_BAR_HEIGHT + PADDING_SIXTEEN })
             .backgroundColor(this.isBackTouched
-              ? $r('sys.color.ohos_id_color_hover'): Color.Transparent)
+              ? $r('sys.color.ohos_id_color_hover') : Color.Transparent)
             .onClick(() => {
-              (AppStorage.get("session") as UIExtensionContentSession)?.terminateSelf();
+              (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
               AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-                (AppStorage.get("wantParams") as WantParams)?.type as string[]);
+                (AppStorage.get('wantParams') as WantParams)?.type as string[]);
             })
             .onTouch((event?: TouchEvent) => {
               if (event == undefined) {
