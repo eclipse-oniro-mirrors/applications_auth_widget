@@ -63,7 +63,7 @@ export class FuncUtils {
         JSON.stringify(data));
         for (let i = 0; i < data.regionTint.length; i++) {
           let regionData = data.regionTint[i];
-          if (regionData.region == undefined) {
+          if (regionData.region === undefined) {
             continue;
           } else if (regionData.type === window.WindowType.TYPE_STATUS_BAR) {
             AppStorage.SetOrCreate('SYSTEM_STATUS_BAR_HEIGHT', px2vp(regionData.region.height));
