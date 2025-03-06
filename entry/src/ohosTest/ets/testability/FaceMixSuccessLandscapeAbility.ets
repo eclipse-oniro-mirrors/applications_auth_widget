@@ -26,7 +26,7 @@ export default class FaceMixSuccessLandscapeAbility extends UserAuthExtensionAbi
 
   onSessionCreate(want, session): void {
     AppStorage.setOrCreate('wantParams', want?.parameters?.useriamCmdData);
-    AppStorage.setOrCreate('session' , session);
+    AppStorage.setOrCreate('session', session);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage) {

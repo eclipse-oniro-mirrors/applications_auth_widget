@@ -26,7 +26,7 @@ const TRANSPARENT_COLOR = '#00000000';
 const MASK_THIN_COLOR = '#33182431';
 
 export default class UserAuthAbility extends UserAuthExtensionAbility {
-  onCreate() {
+  onCreate(): void {
     LogUtils.info(TAG, 'onCreate');
     AppStorage.setOrCreate('context', this.context as common.ExtensionContext);
 
