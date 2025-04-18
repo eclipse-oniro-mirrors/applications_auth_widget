@@ -42,6 +42,6 @@ ohos_hap("auth_widget") {
   certificate_profile = "signature/auth_widget.p7b"
   hap_name = "AuthWidget"
   subsystem_name = "applications"
-  part_name = "prebuilt_hap"
+  part_name = "auth_widget"
   module_install_dir = "app/com.ohos.useriam.authwidget"
 }
