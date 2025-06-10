@@ -117,7 +117,11 @@ export default struct FingerprintAuth {
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
       const payload: CmdData = item.payload;
+      LogUtils.error(TAG, '-------payload: ' + JSON.stringify(payload));
+      payload.remainAttempts = 0;
+      payload.lockoutDuration = 30000;
       if (payload.type === Constants.noticeTypePin) {
+        LogUtils.error(TAG, '---------------0-------------------');
         if (payload.result === 0) {
           (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         } else if (payload.result && payload.result === Constants.authResultPinExpired) {
@@ -148,6 +152,7 @@ export default struct FingerprintAuth {
           }
         }
       } else if (payload.type === Constants.noticeTypeFinger) {
+        LogUtils.error(TAG, '---------------1-------------------');
         if ([MULTI_PIN, SIX_PIN].includes(this.state)) {
           return;
         }

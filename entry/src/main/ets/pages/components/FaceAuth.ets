@@ -211,6 +211,9 @@ export default struct FaceAuth {
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map(async (item) => {
       const payload: CmdData = item.payload;
+      LogUtils.error(TAG, '=====payload: ' + JSON.stringify(payload));
+      payload.remainAttempts = 0;
+      payload.lockoutDuration = 30000;
       if (payload.type === Constants.noticeTypePin) {
         if (payload.result === 0) {
           (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
