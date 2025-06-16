@@ -15,6 +15,7 @@
 
 import screen from '@ohos.screen';
 import userAuth from '@ohos.userIAM.userAuth';
+import AuthUtils from '../common/utils/AuthUtils';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 import { DialogType } from '../common/module/DialogType';
 import FuncUtils from '../common/utils/FuncUtils';
@@ -46,6 +47,9 @@ struct Index {
   @State isLandscape: boolean = false;
   @Provide underFingerPrint: boolean = false;
   @State loadFlag: boolean = false;
+  @State isFaceLocked: boolean = false;
+  @State isFingerprintLocked: boolean = false;
+  @State skipLockedBiometricAuth: boolean = false;
 
   onScreenChange(): void {
     try {
@@ -95,8 +99,60 @@ struct Index {
         sendCommand(result) {
           LogUtils.info(TAG, 'sendCommand result: ' + result);
           const cmdDataObj: WidgetCommand = JSON.parse(result || '{}');
+          that.skipLockedBiometricAuth = cmdDataObj?.skipLockedBiometricAuth ?? false
+          cmdDataObj.cmd?.map((item) => {
+            if (item.payload?.lockoutDuration !== 0 && item.payload?.remainAttempts === 0) {
+              if (item.payload?.type === 'face') {
+                that.isFaceLocked = true;
+              } else if (item.payload?.type === 'fingerprint') {
+                that.isFingerprintLocked = true;
+              }
+            }
+          })
+          if (that.skipLockedBiometricAuth) {
+            if (that.authType.length == 1 && that.authType.includes(userAuth.UserAuthType.FACE) && that.isFaceLocked) {
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
+              if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
+                AuthUtils.getInstance().sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFace]);
+              } else {
+                AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace]);
+              }
+              AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+              return;
+            }
+            if (that.authType.length == 1 && that.authType.includes(userAuth.UserAuthType.FINGERPRINT) &&
+            that.isFingerprintLocked) {
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+              if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
+                AuthUtils.getInstance().sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFinger]);
+              } else {
+                AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+              }
+              AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+              return;
+            }
+            if (that.authType.length == 2 && that.authType.includes(userAuth.UserAuthType.FACE) && that.isFaceLocked &&
+            that.authType.includes(userAuth.UserAuthType.FINGERPRINT) && that.isFingerprintLocked) {
+              AuthUtils.getInstance()
+                .sendNotice(Constants.noticeEventWidgetReleased,
+                  [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+              if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
+                AuthUtils.getInstance()
+                  .sendNotice(Constants.noticeEventUserNavigation,
+                    [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+              } else {
+                AuthUtils.getInstance()
+                  .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+              }
+              AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+              return;
+            }
+          }
+
           that.cmdData = cmdDataObj?.cmd || [];
-          that.pinSubType = cmdDataObj?.pinSubType;
+          if (cmdDataObj?.pinSubType !== null && cmdDataObj?.pinSubType !== undefined) {
+            that.pinSubType = cmdDataObj?.pinSubType;
+          }
           that.handleIsUnder(cmdDataObj?.cmd || []);
         }
       });
@@ -201,6 +257,7 @@ struct Index {
                 pinSubType: $pinSubType,
                 dialogType: $dialogType,
                 cmdData: $cmdData,
+                skipLockedBiometricAuth: $skipLockedBiometricAuth
               })
             } else if (this.authType.includes(userAuth.UserAuthType.FINGERPRINT)) {
               FingerprintAuth({
@@ -208,6 +265,7 @@ struct Index {
                 pinSubType: $pinSubType,
                 dialogType: $dialogType,
                 cmdData: $cmdData,
+                skipLockedBiometricAuth: $skipLockedBiometricAuth
               })
             } else {
               PasswordAuth({

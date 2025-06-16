@@ -45,6 +45,9 @@ export default class Constants {
   // event cancel
   static noticeEventCancel = 'EVENT_AUTH_USER_CANCEL';
   static noticeEventInvalidParam = 'EVENT_AUTH_WIDGET_PARA_INVALID';
+  static noticeEventWidgetLoaded = 'EVENT_AUTH_WIDGET_LOADED';
+  static noticeEventWidgetReleased = 'EVENT_AUTH_WIDGET_RELEASED';
+  static noticeEventUserNavigation = 'EVENT_AUTH_USER_NAVIGATION';
 
   static numKeyBoard : NumKeyBoardItem[] = [
     {
@@ -174,5 +177,16 @@ export interface WantParams {
 
 export interface WidgetCommand {
   cmd:Array<CmdType>,
-  pinSubType:string
+  pinSubType:string,
+  skipLockedBiometricAuth: boolean
+}
+
+export enum UserAuthTipType {
+  SINGLE_AUTH_RESULT = 10001
+}
+
+export enum CmdNotifyEvents {
+  CMD_NOTIFY_AUTH_START = 'CMD_NOTIFY_AUTH_START',
+  CMD_NOTIFY_AUTH_RESULT = 'CMD_NOTIFY_AUTH_RESULT',
+  CMD_NOTIFY_AUTH_TIP = 'CMD_NOTIFY_AUTH_TIP'
 }

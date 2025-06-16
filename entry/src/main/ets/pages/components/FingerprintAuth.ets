@@ -23,7 +23,14 @@ import AuthUtils from '../../common/utils/AuthUtils';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
-import Constants, { CmdData, CmdType, FingerPosition, WantParams } from '../../common/vm/Constants';
+import Constants, {
+  CmdData,
+  CmdNotifyEvents,
+  CmdType,
+  FingerPosition,
+  UserAuthTipType,
+  WantParams
+} from '../../common/vm/Constants';
 import common from '@ohos.app.ability.common';
 
 const TAG = 'FingerprintAuth';
@@ -71,6 +78,7 @@ export default struct FingerprintAuth {
   @StorageLink('IS_LANDSCAPE') IS_LANDSCAPE: boolean = false;
   @State isOffFinger: boolean = false;
   @State screenType: number = 0;
+  @Link skipLockedBiometricAuth: boolean;
 
   aboutToAppear(): void {
     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
@@ -84,7 +92,7 @@ export default struct FingerprintAuth {
         FuncUtils.judgmentOverflow(tempPositionY);
         if (this.screenType === ON_SCREEN) {
           this.fingerPositionY = px2vp(this.screen[1]) - tempPositionY / THOUSANDTH + BOTTOM_BUTTON +
-          PADDING_8 + BOTTOM_TEXT + PADDING_24;
+            PADDING_8 + BOTTOM_TEXT + PADDING_24;
         } else if (this.screenType === UNDER_SCREEN) {
           this.fingerPositionY = px2vp(this.screen[1]) - tempPositionY / THOUSANDTH + PADDING_24;
         }
@@ -99,6 +107,20 @@ export default struct FingerprintAuth {
           callback.onSetData(authSubType, uint8PW);
         }
       });
+
+      if (((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string)) {
+        if (!this.skipLockedBiometricAuth) {
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetLoaded, [Constants.noticeTypeFinger]);
+        }
+      } else {
+        if (!this.fingerLock) {
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetLoaded, [Constants.noticeTypeFinger]);
+        } else {
+          if (this.dialogType === DialogType.FINGER) {
+            AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetLoaded, [Constants.noticeTypeFinger]);
+          }
+        }
+      }
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
       (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
@@ -117,42 +139,63 @@ export default struct FingerprintAuth {
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
       const payload: CmdData = item.payload;
-      LogUtils.error(TAG, '-------payload: ' + JSON.stringify(payload));
-      payload.remainAttempts = 0;
-      payload.lockoutDuration = 30000;
-      if (payload.type === Constants.noticeTypePin) {
-        LogUtils.error(TAG, '---------------0-------------------');
-        if (payload.result === 0) {
-          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
-        } else if (payload.result && payload.result === Constants.authResultPinExpired) {
-            this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
-            this.textValue = '';
-            return;
+      let lockoutDuration: number;
+      let remainAttempts: number;
+      let authResult: number;
+      if (item?.event === CmdNotifyEvents.CMD_NOTIFY_AUTH_TIP) {
+        const tipInfo: string = FuncUtils.getStringFromCharCode(payload.tipInfo);
+        if (tipInfo) {
+          lockoutDuration = JSON.parse(tipInfo).lockoutDuration as number;
+          remainAttempts = JSON.parse(tipInfo).authRemainAttempts as number;
+          authResult = JSON.parse(tipInfo).authResult as number;
         } else {
-          if (payload.remainAttempts) {
+          return;
+        }
+      } else {
+        lockoutDuration = payload.lockoutDuration;
+        remainAttempts = payload.remainAttempts;
+        if (payload.result) {
+          authResult = payload.result;
+        } else {
+          authResult = -1;
+        }
+      }
+      LogUtils.info(TAG,
+        `lockoutDuration: ${lockoutDuration} remainAttempts: ${remainAttempts} authResult: ${authResult}`);
+      if (payload.type === Constants.noticeTypePin) {
+        if (authResult === 0) {
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+        } else if (authResult && authResult === Constants.authResultPinExpired) {
+          this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
+          this.textValue = '';
+          return;
+        } else {
+          if (remainAttempts) {
             this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
               .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
             this.textValue = '';
             if (num === 'first') {
               this.inputValue = '';
             }
-            if (payload.remainAttempts < PIN_FAIL_TIP) {
+            if (remainAttempts < PIN_FAIL_TIP) {
               this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
-              payload.remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+                remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_frequency').id);
             }
           }
-          if (payload.remainAttempts === AUTH_LOCK && payload.lockoutDuration) {
-            this.countTime(payload.lockoutDuration);
+          if (remainAttempts === AUTH_LOCK && lockoutDuration) {
+            AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+            AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+            this.countTime(lockoutDuration);
             this.textValue = '';
             this.toPin();
             this.isEdit = false;
           }
         }
       } else if (payload.type === Constants.noticeTypeFinger) {
-        LogUtils.error(TAG, '---------------1-------------------');
         if ([MULTI_PIN, SIX_PIN].includes(this.state)) {
           return;
         }
@@ -176,7 +219,7 @@ export default struct FingerprintAuth {
               break;
           }
         }
-        if ((payload.remainAttempts && payload.result !== 0) || payload.result === Constants.authResultPinExpired) {
+        if ((remainAttempts && authResult !== 0) || authResult === Constants.authResultPinExpired) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
           this.fingerLock = false;
@@ -187,25 +230,53 @@ export default struct FingerprintAuth {
             $r('app.string.unified_authwidget_hint_normal_fp_only').id :
             $r('app.string.unified_authwidget_hint_inscreen_fp').id);
         }
-        if (payload.remainAttempts === AUTH_LOCK) {
+        if (remainAttempts === AUTH_LOCK) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
           this.fingerLock = true;
-          if (this.dialogType === DialogType.PIN_FINGER) {
-            AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
-            if (this.pinSubType !== Constants.pinSix) {
-              this.state = MULTI_PIN;
-            } else {
-              this.state = SIX_PIN;
+          if (payload.tipType === UserAuthTipType.SINGLE_AUTH_RESULT) {
+            if (this.dialogType === DialogType.PIN_FINGER) {
+              if (this.pinSubType !== Constants.pinSix) {
+                this.state = MULTI_PIN;
+              } else {
+                this.state = SIX_PIN;
+              }
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+              this.toPin();
+            }
+            if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string &&
+            this.skipLockedBiometricAuth) {
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+              AuthUtils.getInstance()
+                .sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFinger]);
+              (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+              return;
+            }
+            if (this.dialogType === DialogType.FINGER && this.skipLockedBiometricAuth) {
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+              AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+              (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+              return;
+            }
+          } else {
+            if (this.dialogType === DialogType.PIN_FINGER) {
+              if (this.pinSubType !== Constants.pinSix) {
+                this.state = MULTI_PIN;
+              } else {
+                this.state = SIX_PIN;
+              }
+              this.toPin();
             }
           }
         }
-        if (payload.result === 0) {
+        if (authResult === 0) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
-          setTimeout(() => {
-            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
-          }, SECOND);
+          if (payload.tipType === UserAuthTipType.SINGLE_AUTH_RESULT) {
+            AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+          }
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         }
       } else {
         LogUtils.error(TAG, 'onCmdDataChange default');
@@ -276,7 +347,7 @@ export default struct FingerprintAuth {
 
   toPin(): void {
     LogUtils.debug(TAG, 'toPin this.pinSubType: ' + this.pinSubType);
-    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetLoaded, [Constants.noticeTypePin]);
     if (this.pinSubType !== Constants.pinSix) {
       this.state = MULTI_PIN;
     } else {
@@ -359,6 +430,8 @@ export default struct FingerprintAuth {
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
+                        AuthUtils.getInstance()
+                          .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                         this.handleCancel();
                         this.textValue = '';
                       })
@@ -381,6 +454,8 @@ export default struct FingerprintAuth {
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
                         this.inputValue = ' ';
+                        AuthUtils.getInstance()
+                          .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                         this.toPin();
                       })
                   }.width(Constants.halfContainerWidth)
@@ -394,6 +469,8 @@ export default struct FingerprintAuth {
                       Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                         .id('cancelDefBtnState3FingerprintAuth')
                         .onClick(() => {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                           this.handleCancel();
                         })
                         .backgroundColor(Color.Transparent)
@@ -420,6 +497,8 @@ export default struct FingerprintAuth {
                         .fontWeight(FontWeight.Medium)
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                           this.handleCancel();
                         })
                     }.width(Constants.halfContainerWidth)
@@ -433,7 +512,9 @@ export default struct FingerprintAuth {
                       Button((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string)
                         .onClick(() => {
                           AuthUtils.getInstance()
-                            .sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFinger]);
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFinger]);
                           (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
                         })
                         .margin({ right: $r('app.float.content_padding') })
@@ -469,6 +550,8 @@ export default struct FingerprintAuth {
                         .fontWeight(FontWeight.Medium)
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
                           this.handleCancel();
                           this.textValue = '';
                         })
@@ -507,6 +590,8 @@ export default struct FingerprintAuth {
                   Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                     .id('cancelState6FingerprintAuth')
                     .onClick(() => {
+                      AuthUtils.getInstance()
+                        .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
                       this.handleCancel();
                       this.textValue = '';
                     })
@@ -550,6 +635,8 @@ export default struct FingerprintAuth {
                         .fontWeight(FontWeight.Medium)
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
                           this.handleCancel();
                           this.textValue = '';
                         })
@@ -598,6 +685,8 @@ export default struct FingerprintAuth {
                   Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                     .id('sixPassCancel')
                     .onClick(() => {
+                      AuthUtils.getInstance()
+                        .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
                       this.handleCancel();
                       this.textValue = '';
                     })
@@ -674,6 +763,8 @@ export default struct FingerprintAuth {
                         .fontWeight(FontWeight.Medium)
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                           this.handleCancel();
                           this.textValue = '';
                         })
@@ -696,6 +787,8 @@ export default struct FingerprintAuth {
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
                           this.inputValue = ' ';
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                           this.toPin();
                         })
                     }.width(Constants.halfContainerWidth)
@@ -730,6 +823,8 @@ export default struct FingerprintAuth {
                       .fontWeight(FontWeight.Medium)
                       .onClick(() => {
                         this.inputValue = ' ';
+                        AuthUtils.getInstance()
+                          .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                         this.toPin();
                       })
                   }
@@ -843,6 +938,8 @@ export default struct FingerprintAuth {
                         Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                           .id('cancelDefBtnState1FingerprintAuth')
                           .onClick(() => {
+                            AuthUtils.getInstance()
+                              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                             this.handleCancel();
                           })
                           .backgroundColor(Color.Transparent)
@@ -869,6 +966,8 @@ export default struct FingerprintAuth {
                           .fontWeight(FontWeight.Medium)
                           .backgroundColor(Color.Transparent)
                           .onClick(() => {
+                            AuthUtils.getInstance()
+                              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
                             this.handleCancel();
                           })
                       }.width(Constants.halfContainerWidth)
@@ -882,7 +981,9 @@ export default struct FingerprintAuth {
                         Button(((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string))
                           .onClick(() => {
                             AuthUtils.getInstance()
-                              .sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFinger]);
+                              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+                            AuthUtils.getInstance()
+                              .sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFinger]);
                             (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
                           })
                           .id('navigationButtonTextFingerprintAuth')
@@ -928,7 +1029,9 @@ export default struct FingerprintAuth {
                         .fontWeight(FontWeight.Medium)
                         .onClick(() => {
                           AuthUtils.getInstance()
-                            .sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFinger]);
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFinger]);
                           (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
                         })
                     }

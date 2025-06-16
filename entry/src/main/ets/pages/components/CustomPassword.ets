@@ -59,6 +59,7 @@ export default struct CustomPassword {
           callback.onSetData(authSubType, uint8PW);
         }
       });
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetLoaded, [Constants.noticeTypePin]);
     } catch (error) {
       LogUtils.error(TAG, 'aboutToAppear PINAuth catch error: ' + error?.code);
       (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
@@ -67,6 +68,7 @@ export default struct CustomPassword {
 
   aboutToDisappear(): void {
     LogUtils.info(TAG, 'aboutToDisappear PINAuth unregisterInputer');
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
     pinAuthManager?.unregisterInputer?.();
   }
 
