@@ -22,7 +22,14 @@ import AuthUtils from '../../common/utils/AuthUtils';
 import FuncUtils from '../../common/utils/FuncUtils';
 import LogUtils from '../../common/utils/LogUtils';
 import TimeUtils from '../../common/utils/TimeUtils';
-import Constants, { CmdData, CmdType, FingerPosition, WantParams } from '../../common/vm/Constants';
+import Constants, {
+  CmdData,
+  CmdNotifyEvents,
+  CmdType,
+  FingerPosition,
+  UserAuthTipType,
+  WantParams
+} from '../../common/vm/Constants';
 import common from '@ohos.app.ability.common';
 
 const TAG = 'FaceAuth';
@@ -71,6 +78,7 @@ export default struct FaceAuth {
   @State fingerLock: boolean = false;
   @State isPinFaceFinger: boolean = false;
   @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
+  @Link skipLockedBiometricAuth: boolean;
 
   countTime(freezingTime: number): void {
     const TRY_AGAIN = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
@@ -108,9 +116,12 @@ export default struct FaceAuth {
           (AppStorage.get('context') as common.ExtensionContext)?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognition')
             .id);
         AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
+        AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetLoaded, [Constants.noticeTypeFace]);
       } else if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
         AuthUtils.getInstance()
           .sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+        AuthUtils.getInstance()
+          .sendNotice(Constants.noticeEventWidgetLoaded, [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
       } else {
         LogUtils.error(TAG, 'aboutToAppear not support type');
         AuthUtils.getInstance().sendNotice(Constants.noticeEventInvalidParam, [Constants.noticeTypePin]);
@@ -161,16 +172,39 @@ export default struct FaceAuth {
       LogUtils.debug(TAG, 'toPin this.dialogType: ' + this.dialogType);
       if (this.dialogType === DialogType.ALL) {
         AuthUtils.getInstance()
+          .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+        AuthUtils.getInstance()
           .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
       } else if (this.dialogType === DialogType.PIN_FACE) {
+        AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
         AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace]);
       } else {
+        AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
         AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
       }
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetLoaded, [Constants.noticeTypePin]);
       if (this.pinSubType !== Constants.pinSix) {
         this.dialogTypeFlag = MULTI_PIN;
       } else {
         this.dialogTypeFlag = SIX_PIN;
+      }
+    } else {
+      if (((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string)) {
+        if ([DialogType.FACE_FINGER_NAVIGATION].includes(this.dialogType)) {
+          AuthUtils.getInstance()
+            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+          AuthUtils.getInstance()
+            .sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+        } else {
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFace]);
+        }
+      } else {
+        if (this.skipLockedBiometricAuth) {
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace]);
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+        }
       }
     }
   }
@@ -209,16 +243,18 @@ export default struct FaceAuth {
   }
 
   onCmdDataChange(num?: string): void {
+    LogUtils.info(TAG, 'onCmdDataChange');
     this.cmdData.length > 0 && this.cmdData.map(async (item) => {
       const payload: CmdData = item.payload;
       if (payload.type === Constants.noticeTypePin) {
         if (payload.result === 0) {
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
           (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         } else if (payload.result && payload.result === Constants.authResultPinExpired) {
-            this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
-            this.textValue = '';
-            return;
+          this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+            .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
+          this.textValue = '';
+          return;
         } else {
           if (payload.remainAttempts) {
             this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
@@ -230,7 +266,7 @@ export default struct FaceAuth {
             if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
               this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
-                payload.remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+              payload.remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
                 .getStringSync($r('app.string.unified_authwidget_frequency').id);
             }
           }
@@ -264,22 +300,57 @@ export default struct FaceAuth {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id);
           this.faceLock = true;
-          if (this.dialogType === DialogType.ALL) {
-            if (this.fingerLock) {
+          if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
+            if (this.skipLockedBiometricAuth || this.fingerLock) {
               this.toPin();
             }
           } else {
-            this.toPin();
+            if (this.skipLockedBiometricAuth || this.dialogType === DialogType.PIN_FACE) {
+              this.toPin();
+            }
           }
         }
         if (payload.result === 0) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id)
-          setTimeout(() => {
-            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
-          }, SECOND);
+            .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id);
+          if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
+            AuthUtils.getInstance()
+              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+          } else {
+            AuthUtils.getInstance()
+              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
+          }
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         }
       } else if (payload.type === Constants.noticeTypeFinger) {
+        const payload: CmdData = item.payload;
+        let lockoutDuration: number;
+        let remainAttempts: number;
+        let authResult: number;
+        if (item?.event === CmdNotifyEvents.CMD_NOTIFY_AUTH_TIP) {
+          const tipInfo: string = FuncUtils.getStringFromCharCode(payload.tipInfo);
+          if (tipInfo) {
+            try {
+              lockoutDuration = JSON.parse(tipInfo).lockoutDuration as number;
+              remainAttempts = JSON.parse(tipInfo).authRemainAttempts as number;
+              authResult = JSON.parse(tipInfo).authResult as number;
+            } catch (e) {
+              LogUtils.error(TAG, 'finger tipInfo parse error');
+            }
+          } else {
+            return;
+          }
+        } else {
+          lockoutDuration = payload.lockoutDuration;
+          remainAttempts = payload.remainAttempts;
+          if (payload.result) {
+            authResult = payload.result;
+          } else {
+            authResult = -1;
+          }
+        }
+        LogUtils.info(TAG,
+          `lockoutDuration: ${lockoutDuration} remainAttempts: ${remainAttempts} authResult: ${authResult}`);
         if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
           return;
         }
@@ -311,7 +382,7 @@ export default struct FaceAuth {
               break;
           }
         }
-        if ((payload.remainAttempts && payload.result !== 0) || payload.result === Constants.authResultPinExpired) {
+        if ((remainAttempts && authResult !== 0) || authResult === Constants.authResultPinExpired) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
           this.fingerLock = false;
@@ -320,24 +391,28 @@ export default struct FaceAuth {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_normal_fp_only').id);
         }
-        if (payload.remainAttempts === 0) {
+        if (remainAttempts === 0) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
           this.fingerLock = true;
-          if (this.dialogType === DialogType.ALL) {
-            if (this.faceLock) {
+          if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
+            if (this.skipLockedBiometricAuth || this.faceLock) {
               this.toPin();
             }
           } else {
             this.toPin();
           }
         }
-        if (payload.result === 0) {
+        if (authResult === 0) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
-          setTimeout(() => {
-            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
-          }, SECOND);
+          if (payload.tipType === UserAuthTipType.SINGLE_AUTH_RESULT) {
+            AuthUtils.getInstance()
+              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+            AuthUtils.getInstance()
+              .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+          }
+          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         }
       } else {
         LogUtils.error(TAG, 'onCmdDataChange default');
@@ -393,6 +468,8 @@ export default struct FaceAuth {
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
                           this.textValue = '';
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
                           this.handleCancel();
                         })
                     }.width(Constants.halfContainerWidth)
@@ -440,6 +517,8 @@ export default struct FaceAuth {
                   Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                     .id('cancelBtnSixPinFaceAuth')
                     .onClick(() => {
+                      AuthUtils.getInstance()
+                        .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
                       this.handleCancel();
                       this.textValue = '';
                     })
@@ -460,7 +539,7 @@ export default struct FaceAuth {
                 bottom: this.IS_LANDSCAPE ? '0' : ($r('sys.float.ohos_id_dialog_margin_bottom'))
               })
             } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_PORTRAIT &&
-            this.fingerPosition.udSensorRadiusInPx !== undefined) {
+              this.fingerPosition.udSensorRadiusInPx !== undefined) {
               Column() {
                 // The first form of facial fingerprint password
                 Flex({ justifyContent: FlexAlign.SpaceBetween }) {
@@ -576,7 +655,7 @@ export default struct FaceAuth {
                 bottom: ($r('sys.float.ohos_id_dialog_margin_bottom'))
               })
             } else if (this.dialogTypeFlag === PIN_FACE_FINGER && this.screenType === SCREEN_LAND &&
-                this.fingerPosition.udSensorRadiusInPx !== undefined) {
+              this.fingerPosition.udSensorRadiusInPx !== undefined) {
               Column() {
                 if (AppStorage.Get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
                   Scroll() {
@@ -658,6 +737,9 @@ export default struct FaceAuth {
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
+                        AuthUtils.getInstance()
+                          .sendNotice(Constants.noticeEventWidgetReleased,
+                            [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
                         this.handleCancel();
                         this.textValue = '';
                       })
@@ -679,7 +761,7 @@ export default struct FaceAuth {
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
-			this.inputValue = ' ';
+                        this.inputValue = ' ';
                         this.toPin();
                       })
 
@@ -781,6 +863,9 @@ export default struct FaceAuth {
                     .fontWeight(FontWeight.Medium)
                     .backgroundColor(Color.Transparent)
                     .onClick(() => {
+                      AuthUtils.getInstance()
+                        .sendNotice(Constants.noticeEventWidgetReleased,
+                          [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
                       this.handleCancel();
                       this.textValue = '';
                     })
@@ -803,7 +888,10 @@ export default struct FaceAuth {
                     .backgroundColor(Color.Transparent)
                     .onClick(() => {
                       AuthUtils.getInstance()
-                        .sendNotice('EVENT_AUTH_USER_NAVIGATION',
+                        .sendNotice(Constants.noticeEventWidgetReleased,
+                          [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+                      AuthUtils.getInstance()
+                        .sendNotice(Constants.noticeEventUserNavigation,
                           [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
                       (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
                     })
@@ -904,6 +992,14 @@ export default struct FaceAuth {
                       .fontWeight(FontWeight.Medium)
                       .backgroundColor(Color.Transparent)
                       .onClick(() => {
+                        if (this.dialogType === DialogType.ALL) {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased,
+                              [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+                        } else {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
+                        }
                         this.handleCancel();
                       })
                   }.width(Constants.halfContainerWidth)
@@ -955,6 +1051,8 @@ export default struct FaceAuth {
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
                           this.textValue = '';
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
                           this.handleCancel();
                         })
                     }.width(Constants.halfContainerWidth)
@@ -995,6 +1093,8 @@ export default struct FaceAuth {
                   Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                     .id('cancelBtnSixPinFaceAuth')
                     .onClick(() => {
+                      AuthUtils.getInstance()
+                        .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
                       this.handleCancel();
                       this.textValue = '';
                     })
@@ -1089,6 +1189,8 @@ export default struct FaceAuth {
                       Button($r('app.string.unified_authwidget_cancel'), { stateEffect: true })
                         .id('cancelBtnAllFace')
                         .onClick(() => {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
                           this.handleCancel();
                         })
                         .backgroundColor(Color.Transparent)
@@ -1114,6 +1216,8 @@ export default struct FaceAuth {
                         .fontWeight(FontWeight.Medium)
                         .backgroundColor(Color.Transparent)
                         .onClick(() => {
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
                           this.handleCancel();
                         })
                     }.width(Constants.halfContainerWidth)
@@ -1126,7 +1230,10 @@ export default struct FaceAuth {
                     Column() {
                       Button((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string)
                         .onClick(() => {
-                          AuthUtils.getInstance().sendNotice('EVENT_AUTH_USER_NAVIGATION', [Constants.noticeTypeFace]);
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
+                          AuthUtils.getInstance()
+                            .sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFace]);
                           (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
                         })
                         .margin({ right: $r('app.float.content_padding') })
