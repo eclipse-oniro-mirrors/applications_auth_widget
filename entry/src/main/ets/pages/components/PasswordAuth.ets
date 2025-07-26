@@ -84,7 +84,6 @@ export default struct PasswordAuth {
           return;
         }
         if (payload.result === 0) {
-          AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
           (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
         }
         this.inputValue = ' ';
@@ -94,6 +93,7 @@ export default struct PasswordAuth {
   }
 
   aboutToAppear(): void {
+    AppStorage.setOrCreate('currentPageAuthType', Constants.noticeTypePin);
     try {
       if (this.cmdData && this.cmdData.length > 0) {
         this.onCmdDataChange('first');

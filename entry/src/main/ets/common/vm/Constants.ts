@@ -48,6 +48,7 @@ export default class Constants {
   static noticeEventWidgetLoaded = 'EVENT_AUTH_WIDGET_LOADED';
   static noticeEventWidgetReleased = 'EVENT_AUTH_WIDGET_RELEASED';
   static noticeEventUserNavigation = 'EVENT_AUTH_USER_NAVIGATION';
+  static noticeEventProcessTerminate = 'EVENT_AUTH_PROCESS_TERMINATE';
 
   static numKeyBoard : NumKeyBoardItem[] = [
     {

@@ -81,6 +81,7 @@ export default struct FingerprintAuth {
   @Link skipLockedBiometricAuth: boolean;
 
   aboutToAppear(): void {
+    AppStorage.setOrCreate('currentPageAuthType', Constants.noticeTypeFinger);
     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
     try {
       if (this.cmdData && this.cmdData.length > 0) {
@@ -154,7 +155,7 @@ export default struct FingerprintAuth {
       } else {
         lockoutDuration = payload.lockoutDuration;
         remainAttempts = payload.remainAttempts;
-        if (payload.result) {
+        if (payload.result || authResult === 0) {
           authResult = payload.result;
         } else {
           authResult = -1;
@@ -165,7 +166,9 @@ export default struct FingerprintAuth {
       if (payload.type === Constants.noticeTypePin) {
         if (authResult === 0) {
           AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
-          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          setTimeout(() => {
+            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          }, SECOND)
         } else if (authResult && authResult === Constants.authResultPinExpired) {
           this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
@@ -276,7 +279,9 @@ export default struct FingerprintAuth {
           if (payload.tipType === UserAuthTipType.SINGLE_AUTH_RESULT) {
             AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
           }
-          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          setTimeout(() => {
+            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          }, SECOND);
         }
       } else {
         LogUtils.error(TAG, 'onCmdDataChange default');

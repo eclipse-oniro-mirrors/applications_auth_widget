@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
+import AuthUtils from '../common/utils/AuthUtils';
+import Constants, { WantParams } from '../common/vm/Constants';
 import LogUtils from '../common/utils/LogUtils';
 import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import WindowPrivacyUtils from '../common/utils/WindowPrivacyUtils';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
-import { WantParams } from '../common/vm/Constants';
 
 const TAG = 'UserAuthAbility';
 // The current interface only support string type
@@ -63,6 +64,8 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onSessionDestroy(session): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionDestroy');
+    const currentPageAuthType: string = AppStorage.get('currentPageAuthType') as string ?? '';
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventProcessTerminate, [currentPageAuthType]);
     WindowPrivacyUtils.setWindowPrivacyMode(session, false);
   }
 }
