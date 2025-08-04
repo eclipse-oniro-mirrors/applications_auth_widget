@@ -110,7 +110,6 @@ export default struct FaceAuth {
 
   aboutToAppear(): void {
     LogUtils.debug(TAG, 'aboutToAppear');
-    AppStorage.setOrCreate('currentPageAuthType', Constants.noticeTypeFace);
     try {
       if (this.dialogType === DialogType.PIN_FACE || this.dialogType === DialogType.FACE) {
         this.prompt =
@@ -341,6 +340,7 @@ export default struct FaceAuth {
               authResult = JSON.parse(tipInfo).authResult as number;
             } catch (e) {
               LogUtils.error(TAG, 'finger tipInfo parse error');
+              return;
             }
           } else {
             return;
@@ -348,11 +348,7 @@ export default struct FaceAuth {
         } else {
           lockoutDuration = payload.lockoutDuration;
           remainAttempts = payload.remainAttempts;
-          if (payload.result) {
-            authResult = payload.result;
-          } else {
-            authResult = -1;
-          }
+          authResult = payload.result;
         }
         LogUtils.info(TAG,
           `lockoutDuration: ${lockoutDuration} remainAttempts: ${remainAttempts} authResult: ${authResult}`);
@@ -411,12 +407,10 @@ export default struct FaceAuth {
         if (authResult === 0) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
-          if (payload.tipType === UserAuthTipType.SINGLE_AUTH_RESULT) {
-            AuthUtils.getInstance()
-              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-            AuthUtils.getInstance()
-              .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-          }
+          AuthUtils.getInstance()
+            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+          AuthUtils.getInstance()
+            .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
           setTimeout(() => {
             (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
           }, SECOND);
@@ -432,7 +426,7 @@ export default struct FaceAuth {
     if (this.dialogTypeFlag === SIX_PIN || this.dialogTypeFlag === MULTI_PIN) {
       AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypePin]);
     } else {
-      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel,
         (AppStorage.get('wantParams') as WantParams)?.type as string[]);
     }
     (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();

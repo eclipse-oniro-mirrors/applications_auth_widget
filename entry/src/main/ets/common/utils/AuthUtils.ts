@@ -15,13 +15,15 @@
 
 import userAuth from '@ohos.userIAM.userAuth';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
-import Constants from '../vm/Constants';
+import Constants, { TipCode } from '../vm/Constants';
 import LogUtils from './LogUtils';
+import JSON from '@ohos.util.json';
 
 const TAG = 'AuthUtils';
 
 export default class AuthUtils {
   private static authUtilsInstance: AuthUtils;
+  private widgetContextId: bigint = BigInt(AppStorage.get<string>('widgetContextId')) ?? BigInt(-1);
 
   public static getInstance(): AuthUtils {
     if (!AuthUtils.authUtilsInstance) {
@@ -30,14 +32,15 @@ export default class AuthUtils {
     return AuthUtils.authUtilsInstance;
   }
 
-  sendNotice(cmd: string, type: Array<string>): void {
+  sendNotice(cmd: string, type: Array<string>, tipCode: TipCode = TipCode.NORMAL): void {
     try {
       const eventData = {
-        widgetContextId: AppStorage.get('widgetContextId'),
+        widgetContextId: this.widgetContextId,
         event: cmd,
         version: Constants.noticeVersion,
         payload: {
-          type: type
+          type: type,
+          tipCode: tipCode
         }
       };
       const jsonEventData = JSON.stringify(eventData);

@@ -81,7 +81,6 @@ export default struct FingerprintAuth {
   @Link skipLockedBiometricAuth: boolean;
 
   aboutToAppear(): void {
-    AppStorage.setOrCreate('currentPageAuthType', Constants.noticeTypeFinger);
     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
     try {
       if (this.cmdData && this.cmdData.length > 0) {
@@ -140,26 +139,30 @@ export default struct FingerprintAuth {
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
       const payload: CmdData = item.payload;
-      let lockoutDuration: number;
-      let remainAttempts: number;
-      let authResult: number;
-      if (item?.event === CmdNotifyEvents.CMD_NOTIFY_AUTH_TIP) {
-        const tipInfo: string = FuncUtils.getStringFromCharCode(payload.tipInfo);
-        if (tipInfo) {
-          lockoutDuration = JSON.parse(tipInfo).lockoutDuration as number;
-          remainAttempts = JSON.parse(tipInfo).authRemainAttempts as number;
-          authResult = JSON.parse(tipInfo).authResult as number;
+      let lockoutDuration: number = 0;
+      let remainAttempts: number = 0;
+      let authResult: number = -1;
+      if (payload.type === Constants.noticeTypeFinger){
+        if (item?.event === CmdNotifyEvents.CMD_NOTIFY_AUTH_TIP) {
+          const tipInfo: string = FuncUtils.getStringFromCharCode(payload.tipInfo);
+          if (tipInfo) {
+            lockoutDuration = JSON.parse(tipInfo).lockoutDuration as number;
+            remainAttempts = JSON.parse(tipInfo).authRemainAttempts as number;
+            authResult = JSON.parse(tipInfo).authResult as number;
+          } else {
+            return;
+          }
         } else {
-          return;
+          lockoutDuration = payload.lockoutDuration;
+          remainAttempts = payload.remainAttempts;
+          authResult = payload.result;
         }
-      } else {
+      } else if (payload.type === Constants.noticeTypePin){
         lockoutDuration = payload.lockoutDuration;
         remainAttempts = payload.remainAttempts;
-        if (payload.result || authResult === 0) {
-          authResult = payload.result;
-        } else {
-          authResult = -1;
-        }
+        authResult = payload.result;
+      } else {
+        return;
       }
       LogUtils.info(TAG,
         `lockoutDuration: ${lockoutDuration} remainAttempts: ${remainAttempts} authResult: ${authResult}`);
@@ -275,10 +278,8 @@ export default struct FingerprintAuth {
         }
         if (authResult === 0) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
-          if (payload.tipType === UserAuthTipType.SINGLE_AUTH_RESULT) {
-            AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
-          }
+            .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id);
+          AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
           setTimeout(() => {
             (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
           }, SECOND);
@@ -344,7 +345,7 @@ export default struct FingerprintAuth {
     if (this.state === SIX_PIN || this.state === MULTI_PIN) {
       AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypePin]);
     } else {
-      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel,
         (AppStorage.get('wantParams') as WantParams)?.type as string[]);
     }
     (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();

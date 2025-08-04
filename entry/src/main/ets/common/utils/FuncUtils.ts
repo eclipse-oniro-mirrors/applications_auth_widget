@@ -28,6 +28,10 @@ export class FuncUtils {
     return textEncoder.encode(value);
   }
 
+  getStringFromCharCode(input: Uint8Array): string {
+    return String.fromCharCode(...input);
+  }
+
   getDialogType(type: Array<userAuth.UserAuthType>): DialogType {
     if (type) {
       if (type.includes(userAuth.UserAuthType.PIN)) {

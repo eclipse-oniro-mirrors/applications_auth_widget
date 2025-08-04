@@ -49,6 +49,7 @@ export default class Constants {
   static noticeEventWidgetReleased = 'EVENT_AUTH_WIDGET_RELEASED';
   static noticeEventUserNavigation = 'EVENT_AUTH_USER_NAVIGATION';
   static noticeEventProcessTerminate = 'EVENT_AUTH_PROCESS_TERMINATE';
+  static noticeEventAuthSendTip = 'EVENT_AUTH_SEND_TIP';
 
   static numKeyBoard : NumKeyBoardItem[] = [
     {
@@ -150,7 +151,9 @@ export interface CmdData {
   remainAttempts: number,
   lockoutDuration: number,
   result: number,
-  sensorInfo?: string
+  sensorInfo?: string,
+  tipType?: number,
+  tipInfo?: Uint8Array
 }
 
 export interface CmdType {
@@ -174,6 +177,7 @@ export interface WantParams {
   navigationButtonText?: string,
   windowModeType: string,
   cmd: CmdType[],
+  widgetContextIdStr?: string,
 }
 
 export interface WidgetCommand {
@@ -190,4 +194,14 @@ export enum CmdNotifyEvents {
   CMD_NOTIFY_AUTH_START = 'CMD_NOTIFY_AUTH_START',
   CMD_NOTIFY_AUTH_RESULT = 'CMD_NOTIFY_AUTH_RESULT',
   CMD_NOTIFY_AUTH_TIP = 'CMD_NOTIFY_AUTH_TIP'
+}
+
+export enum TipCode {
+  NORMAL = -1,
+  // 超时
+  TIMEOUT = 2,
+  // 临时冻结
+  TEMPORARILY_LOCKED = 3,
+  // 永久冻结
+  PERMANENTLY_LOCKED = 4,
 }
