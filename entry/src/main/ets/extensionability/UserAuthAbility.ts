@@ -17,7 +17,9 @@ import LogUtils from '../common/utils/LogUtils';
 import UserAuthExtensionAbility from '@ohos.app.ability.UserAuthExtensionAbility';
 import WindowPrivacyUtils from '../common/utils/WindowPrivacyUtils';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
-import { WantParams } from '../common/vm/Constants';
+import Constants, { WantParams } from '../common/vm/Constants';
+import type Want from '@ohos.app.ability.Want';
+import AuthUtils from '../common/utils/AuthUtils';
 
 const TAG = 'UserAuthAbility';
 // The current interface only support string type
@@ -43,7 +45,7 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onDestroy');
   }
 
-  onSessionCreate(want, session): void {
+  onSessionCreate(want: Want, session: UIExtensionContentSession): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionCreate');
     AppStorage.setOrCreate('wantParams', want?.parameters?.useriamCmdData);
     AppStorage.setOrCreate('session', session);
@@ -63,6 +65,7 @@ export default class UserAuthAbility extends UserAuthExtensionAbility {
 
   onSessionDestroy(session): void {
     LogUtils.info(TAG, 'UserAuthExtensionAbility onSessionDestroy');
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventProcessTerminate, [Constants.noticeTypePin]);
     WindowPrivacyUtils.setWindowPrivacyMode(session, false);
   }
 }

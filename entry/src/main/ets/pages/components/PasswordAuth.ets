@@ -117,7 +117,6 @@ export default struct PasswordAuth {
 
   aboutToDisappear(): void {
     LogUtils.info(TAG, 'aboutToAppear pinAuthManager unregisterInputer');
-    AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
     pinAuthManager?.unregisterInputer?.();
   }
 
@@ -138,8 +137,9 @@ export default struct PasswordAuth {
   }
 
   handleCancel(): void {
-    AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
-      (AppStorage.get('wantParams') as WantParams)?.type as string[]);
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
+    AuthUtils.getInstance()
+      .sendNotice(Constants.noticeEventCancel, (AppStorage.get('wantParams') as WantParams)?.type as string[]);
     (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
   }
 

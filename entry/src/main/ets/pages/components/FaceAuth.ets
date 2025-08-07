@@ -249,7 +249,9 @@ export default struct FaceAuth {
       if (payload.type === Constants.noticeTypePin) {
         if (payload.result === 0) {
           AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
-          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          setTimeout(() => {
+            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          }, SECOND);
         } else if (payload.result && payload.result === Constants.authResultPinExpired) {
           this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
@@ -320,13 +322,15 @@ export default struct FaceAuth {
             AuthUtils.getInstance()
               .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
           }
-          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          setTimeout(() => {
+            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          }, SECOND);
         }
       } else if (payload.type === Constants.noticeTypeFinger) {
         const payload: CmdData = item.payload;
-        let lockoutDuration: number;
-        let remainAttempts: number;
-        let authResult: number;
+        let lockoutDuration: number = 0;
+        let remainAttempts: number = 0;
+        let authResult: number = 0;
         if (item?.event === CmdNotifyEvents.CMD_NOTIFY_AUTH_TIP) {
           const tipInfo: string = FuncUtils.getStringFromCharCode(payload.tipInfo);
           if (tipInfo) {
@@ -336,6 +340,7 @@ export default struct FaceAuth {
               authResult = JSON.parse(tipInfo).authResult as number;
             } catch (e) {
               LogUtils.error(TAG, 'finger tipInfo parse error');
+              return;
             }
           } else {
             return;
@@ -343,11 +348,7 @@ export default struct FaceAuth {
         } else {
           lockoutDuration = payload.lockoutDuration;
           remainAttempts = payload.remainAttempts;
-          if (payload.result) {
-            authResult = payload.result;
-          } else {
-            authResult = -1;
-          }
+          authResult = payload.result;
         }
         LogUtils.info(TAG,
           `lockoutDuration: ${lockoutDuration} remainAttempts: ${remainAttempts} authResult: ${authResult}`);
@@ -406,13 +407,13 @@ export default struct FaceAuth {
         if (authResult === 0) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
-          if (payload.tipType === UserAuthTipType.SINGLE_AUTH_RESULT) {
-            AuthUtils.getInstance()
-              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-            AuthUtils.getInstance()
-              .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-          }
-          (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          AuthUtils.getInstance()
+            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+          AuthUtils.getInstance()
+            .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+          setTimeout(() => {
+            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+          }, SECOND);
         }
       } else {
         LogUtils.error(TAG, 'onCmdDataChange default');
@@ -425,7 +426,7 @@ export default struct FaceAuth {
     if (this.dialogTypeFlag === SIX_PIN || this.dialogTypeFlag === MULTI_PIN) {
       AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypePin]);
     } else {
-      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [] ||
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel,
         (AppStorage.get('wantParams') as WantParams)?.type as string[]);
     }
     (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();

@@ -215,7 +215,7 @@ struct Index {
         return userAuth.UserAuthType.PIN;
       }
     })
-    AppStorage.setOrCreate('widgetContextId', resultInfo?.widgetContextId);
+    AppStorage.setOrCreate('widgetContextId', resultInfo?.widgetContextIdStr);
     this.authType = newType;
     this.type = resultInfo?.type;
     this.windowModeType = resultInfo?.windowModeType;
