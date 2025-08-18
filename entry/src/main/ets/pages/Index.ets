@@ -89,6 +89,41 @@ struct Index {
     }
   }
 
+  handleFaceLocked(): void {
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
+    if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFace]);
+    } else {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace]);
+    }
+    AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+  }
+
+  handleFingerprintLocked(): void {
+    AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+    if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFinger]);
+    } else {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+    }
+    AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+  }
+
+  handleFaceAndFingerprintLocked(): void {
+    AuthUtils.getInstance()
+      .sendNotice(Constants.noticeEventWidgetReleased,
+        [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+    if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
+      AuthUtils.getInstance()
+        .sendNotice(Constants.noticeEventUserNavigation,
+          [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+    } else {
+      AuthUtils.getInstance()
+        .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
+    }
+    AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+  }
+
   handleAuthStart(): void {
     LogUtils.info(TAG, 'handleAuthStart');
     try {
@@ -111,40 +146,17 @@ struct Index {
           })
           if (that.skipLockedBiometricAuth) {
             if (that.authType.length == 1 && that.authType.includes(userAuth.UserAuthType.FACE) && that.isFaceLocked) {
-              AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
-              if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
-                AuthUtils.getInstance().sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFace]);
-              } else {
-                AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace]);
-              }
-              AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+              that.handleFaceLocked();
               return;
             }
             if (that.authType.length == 1 && that.authType.includes(userAuth.UserAuthType.FINGERPRINT) &&
             that.isFingerprintLocked) {
-              AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
-              if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
-                AuthUtils.getInstance().sendNotice(Constants.noticeEventUserNavigation, [Constants.noticeTypeFinger]);
-              } else {
-                AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
-              }
-              AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+              that.handleFingerprintLocked()
               return;
             }
             if (that.authType.length == 2 && that.authType.includes(userAuth.UserAuthType.FACE) && that.isFaceLocked &&
             that.authType.includes(userAuth.UserAuthType.FINGERPRINT) && that.isFingerprintLocked) {
-              AuthUtils.getInstance()
-                .sendNotice(Constants.noticeEventWidgetReleased,
-                  [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
-              if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string) {
-                AuthUtils.getInstance()
-                  .sendNotice(Constants.noticeEventUserNavigation,
-                    [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
-              } else {
-                AuthUtils.getInstance()
-                  .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger, Constants.noticeTypeFace]);
-              }
-              AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
+              that.handleFaceAndFingerprintLocked();
               return;
             }
           }
