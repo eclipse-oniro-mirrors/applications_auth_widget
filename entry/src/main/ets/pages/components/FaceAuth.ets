@@ -227,18 +227,152 @@ export default struct FaceAuth {
     pinData = this.textValue;
   }
 
-  onFontColor(prompt: string, context: Context): Resource {
-    if (prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id) ||
+  isColorWarning(prompt: string, context: Context): boolean {
+    return prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id) ||
       prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id) ||
       prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id) ||
-      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id)) {
-      return $r('sys.color.ohos_id_color_warning');
-    } else if (prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognition').id) ||
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id)
+  }
+
+  isColorTextSecondary(prompt: string, context: Context): boolean {
+    return prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognition').id) ||
       prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id) ||
-      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp').id)) {
+      prompt === context?.resourceManager?.getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp').id)
+  }
+
+  onFontColor(prompt: string, context: Context): Resource {
+    if (this.isColorWarning(prompt,context)) {
+      return $r('sys.color.ohos_id_color_warning');
+    } else if (this.isColorTextSecondary(prompt,context)) {
       return $r('sys.color.ohos_id_color_text_secondary');
     } else {
       return $r('sys.color.ohos_id_color_text_secondary');
+    }
+  }
+
+  handleOtherResult(payload: CmdData,num?: string): void {
+    if (payload.remainAttempts) {
+      this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
+      this.textValue = '';
+      if (num === 'first') {
+        this.inputValue = '';
+      }
+      if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
+        this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+          .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
+        payload.remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+          .getStringSync($r('app.string.unified_authwidget_frequency').id);
+      }
+    }
+    if (payload.remainAttempts === 0 && payload.lockoutDuration) {
+      this.countTime(payload.lockoutDuration);
+      this.textValue = '';
+      this.toPin();
+      this.isEdit = false;
+    }
+  }
+
+  handleNoticeTypePinExcludesDialogTypeFlag(payload: CmdData,num?: string): void {
+    if (payload.remainAttempts && payload.result !== 0) {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id);
+      this.faceLock = false;
+    }
+    if (num === 'first') {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
+    }
+    if (payload.remainAttempts === 0) {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id);
+      this.faceLock = true;
+      if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
+        if (this.skipLockedBiometricAuth || this.fingerLock) {
+          this.toPin();
+        }
+      } else {
+        if (this.skipLockedBiometricAuth || this.dialogType === DialogType.PIN_FACE) {
+          this.toPin();
+        }
+      }
+    }
+    if (payload.result === 0) {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id);
+      if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
+        AuthUtils.getInstance()
+          .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+      } else {
+        AuthUtils.getInstance()
+          .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
+      }
+      setTimeout(() => {
+        (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+      }, SECOND);
+    }
+  }
+
+  handleNoticeTypeFingerFlag(payload: CmdData, remainAttempts: number, authResult: number, num?: string): void {
+    if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
+      this.fingerPosition = JSON.parse(payload.sensorInfo);
+      const displayClass = display.getDefaultDisplaySync();
+      this.screen = [displayClass.width, displayClass.height];
+      switch (JSON.parse(payload.sensorInfo)?.sensorType as string) {
+        case 'NON_SENSOR':
+        case 'OUT_OF_SCREEN_SENSOR': {
+          this.dialogTypeFlag = PIN_FACE;
+          break;
+        }
+        default:
+          if (this.dialogType !== DialogType.FACE_FINGER_NAVIGATION) {
+            this.isPinFaceFinger = true;
+          }
+          let tempPositionLine = JSON.parse(payload.sensorInfo).udSensorCenterYInThousandth / displayClass.height;
+          FuncUtils.judgmentOverflow(tempPositionLine);
+          if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
+            if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+              this.screenType = SCREEN_LAND;
+            }
+          } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
+            if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
+              this.screenType = SCREEN_PORTRAIT;
+            }
+          }
+          break;
+      }
+    }
+    if ((remainAttempts && authResult !== 0) || authResult === Constants.authResultPinExpired) {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
+      this.fingerLock = false;
+    }
+    if (num === 'first') {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_normal_fp_only').id);
+    }
+    if (remainAttempts === 0) {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
+      this.fingerLock = true;
+      if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
+        if (this.skipLockedBiometricAuth || this.faceLock) {
+          this.toPin();
+        }
+      } else {
+        this.toPin();
+      }
+    }
+    if (authResult === 0) {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
+      AuthUtils.getInstance()
+        .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+      AuthUtils.getInstance()
+        .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
+      setTimeout(() => {
+        (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+      }, SECOND);
     }
   }
 
@@ -258,26 +392,7 @@ export default struct FaceAuth {
           this.textValue = '';
           return;
         } else {
-          if (payload.remainAttempts) {
-            this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
-            this.textValue = '';
-            if (num === 'first') {
-              this.inputValue = '';
-            }
-            if (payload.remainAttempts < HINT_TIMES_BY_FAIL_LESS) {
-              this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
-              payload.remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_frequency').id);
-            }
-          }
-          if (payload.remainAttempts === 0 && payload.lockoutDuration) {
-            this.countTime(payload.lockoutDuration);
-            this.textValue = '';
-            this.toPin();
-            this.isEdit = false;
-          }
+          this.handleOtherResult(payload,num)
         }
       } else if (payload.type === Constants.noticeTypeFace) {
         if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
@@ -289,43 +404,7 @@ export default struct FaceAuth {
           this.faceLock = false;
           return;
         }
-        if (payload.remainAttempts && payload.result !== 0) {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id);
-          this.faceLock = false;
-        }
-        if (num === 'first') {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
-        }
-        if (payload.remainAttempts === 0) {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id);
-          this.faceLock = true;
-          if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
-            if (this.skipLockedBiometricAuth || this.fingerLock) {
-              this.toPin();
-            }
-          } else {
-            if (this.skipLockedBiometricAuth || this.dialogType === DialogType.PIN_FACE) {
-              this.toPin();
-            }
-          }
-        }
-        if (payload.result === 0) {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_recognize_success').id);
-          if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
-            AuthUtils.getInstance()
-              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-          } else {
-            AuthUtils.getInstance()
-              .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace]);
-          }
-          setTimeout(() => {
-            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
-          }, SECOND);
-        }
+        this.handleNoticeTypePinExcludesDialogTypeFlag(payload,num);
       } else if (payload.type === Constants.noticeTypeFinger) {
         const payload: CmdData = item.payload;
         let lockoutDuration: number = 0;
@@ -355,66 +434,7 @@ export default struct FaceAuth {
         if ([SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
           return;
         }
-        if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
-          this.fingerPosition = JSON.parse(payload.sensorInfo);
-          const displayClass = display.getDefaultDisplaySync();
-          this.screen = [displayClass.width, displayClass.height];
-          switch (JSON.parse(payload.sensorInfo)?.sensorType as string) {
-            case 'NON_SENSOR':
-            case 'OUT_OF_SCREEN_SENSOR': {
-              this.dialogTypeFlag = PIN_FACE;
-              break;
-            }
-            default:
-              if (this.dialogType !== DialogType.FACE_FINGER_NAVIGATION) {
-                this.isPinFaceFinger = true;
-              }
-              let tempPositionLine = JSON.parse(payload.sensorInfo).udSensorCenterYInThousandth / displayClass.height;
-              FuncUtils.judgmentOverflow(tempPositionLine);
-              if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
-                if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-                  this.screenType = SCREEN_LAND;
-                }
-              } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
-                if (!this.IS_LANDSCAPE && ![SIX_PIN, MULTI_PIN].includes(this.dialogTypeFlag)) {
-                  this.screenType = SCREEN_PORTRAIT;
-                }
-              }
-              break;
-          }
-        }
-        if ((remainAttempts && authResult !== 0) || authResult === Constants.authResultPinExpired) {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
-          this.fingerLock = false;
-        }
-        if (num === 'first') {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_normal_fp_only').id);
-        }
-        if (remainAttempts === 0) {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
-          this.fingerLock = true;
-          if (this.dialogType === DialogType.ALL || this.dialogType === DialogType.FACE_FINGER_NAVIGATION) {
-            if (this.skipLockedBiometricAuth || this.faceLock) {
-              this.toPin();
-            }
-          } else {
-            this.toPin();
-          }
-        }
-        if (authResult === 0) {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_fp_verify_success').id)
-          AuthUtils.getInstance()
-            .sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-          AuthUtils.getInstance()
-            .sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFace, Constants.noticeTypeFinger]);
-          setTimeout(() => {
-            (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
-          }, SECOND);
-        }
+        this.handleNoticeTypeFingerFlag(payload,remainAttempts,authResult,num);
       } else {
         LogUtils.error(TAG, 'onCmdDataChange default');
         (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
@@ -635,7 +655,7 @@ export default struct FaceAuth {
                 Image($r('app.media.ic_blue_fingerprint'))
                   .draggable(false)
                   .id('blueFingerprintImgAllFaceAuth')
-                    // radius
+                  // radius
                   .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                   .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                   .margin({
@@ -706,7 +726,7 @@ export default struct FaceAuth {
                 Image($r('app.media.ic_blue_fingerprint'))
                   .draggable(false)
                   .id('blueFingerprintImgFaceAuth')
-                    // radius
+                  // radius
                   .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                   .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                   .margin({ top: $r('app.float.content_padding') })
@@ -832,7 +852,7 @@ export default struct FaceAuth {
               Image($r('app.media.ic_blue_fingerprint'))
                 .draggable(false)
                 .id('blueFingerprintImgFaceAuth')
-                  // radius
+                // radius
                 .width(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                 .height(px2vp(this.fingerPosition.udSensorRadiusInPx * 2))
                 .margin({ top: $r('app.float.content_padding') })

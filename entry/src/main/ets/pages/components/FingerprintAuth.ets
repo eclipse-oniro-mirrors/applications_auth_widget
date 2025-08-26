@@ -136,6 +136,89 @@ export default struct FingerprintAuth {
     pinData = this.textValue;
   }
 
+  handleNoticeTypePinOtherAuthResult(lockoutDuration: number, remainAttempts: number, num?: string): void {
+    if (remainAttempts) {
+      this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
+      this.textValue = '';
+      if (num === 'first') {
+        this.inputValue = '';
+      }
+      if (remainAttempts < PIN_FAIL_TIP) {
+        this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+          .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
+          remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+          .getStringSync($r('app.string.unified_authwidget_frequency').id);
+      }
+    }
+    if (remainAttempts === AUTH_LOCK && lockoutDuration) {
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+      this.countTime(lockoutDuration);
+      this.textValue = '';
+      this.toPin();
+      this.isEdit = false;
+    }
+  }
+
+  handlePinFingerDialogType(): void {
+    if (this.dialogType === DialogType.PIN_FINGER) {
+      if (this.pinSubType !== Constants.pinSix) {
+        this.state = MULTI_PIN;
+      } else {
+        this.state = SIX_PIN;
+      }
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
+      AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
+      this.toPin();
+    }
+  }
+
+  handleOtherSingleAuthResult(): void {
+    if (this.dialogType === DialogType.PIN_FINGER) {
+      if (this.pinSubType !== Constants.pinSix) {
+        this.state = MULTI_PIN;
+      } else {
+        this.state = SIX_PIN;
+      }
+      this.toPin();
+    }
+  }
+
+  handleNoticeTypeFingerFirst(payload: CmdData,remainAttempts: number,authResult: number, num?: string): void {
+    const displayClass = display.getDefaultDisplaySync();
+    this.screen = [displayClass.width, displayClass.height];
+    if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
+      this.fingerPosition = JSON.parse(payload.sensorInfo);
+      switch (this.fingerPosition.sensorType) {
+        case 'OUT_OF_SCREEN_SENSOR': {
+          this.isOffFinger = true;
+          break;
+        }
+        default:
+          let tempPositionLine = JSON.parse(payload.sensorInfo).udSensorCenterYInThousandth / displayClass.height;
+          FuncUtils.judgmentOverflow(tempPositionLine);
+          if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
+            this.screenType = ON_SCREEN;
+          } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
+            this.screenType = UNDER_SCREEN;
+          }
+          break;
+      }
+    }
+    if ((remainAttempts && authResult !== 0) || authResult === Constants.authResultPinExpired) {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
+      this.fingerLock = false;
+    }
+    if (num === 'first') {
+      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+        .getStringSync(this.isOffFinger ?
+          $r('app.string.unified_authwidget_hint_normal_fp_only').id :
+          $r('app.string.unified_authwidget_hint_inscreen_fp').id);
+    }
+  }
+
   onCmdDataChange(num?: string): void {
     this.cmdData.length > 0 && this.cmdData.map((item) => {
       const payload: CmdData = item.payload;
@@ -178,79 +261,20 @@ export default struct FingerprintAuth {
           this.textValue = '';
           return;
         } else {
-          if (remainAttempts) {
-            this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
-            this.textValue = '';
-            if (num === 'first') {
-              this.inputValue = '';
-            }
-            if (remainAttempts < PIN_FAIL_TIP) {
-              this.inputValue = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
-                remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                .getStringSync($r('app.string.unified_authwidget_frequency').id);
-            }
-          }
-          if (remainAttempts === AUTH_LOCK && lockoutDuration) {
-            AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
-            AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
-            this.countTime(lockoutDuration);
-            this.textValue = '';
-            this.toPin();
-            this.isEdit = false;
-          }
+          this.handleNoticeTypePinOtherAuthResult(lockoutDuration, remainAttempts, num);
         }
       } else if (payload.type === Constants.noticeTypeFinger) {
         if ([MULTI_PIN, SIX_PIN].includes(this.state)) {
           return;
         }
-        const displayClass = display.getDefaultDisplaySync();
-        this.screen = [displayClass.width, displayClass.height];
-        if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
-          this.fingerPosition = JSON.parse(payload.sensorInfo);
-          switch (this.fingerPosition.sensorType) {
-            case 'OUT_OF_SCREEN_SENSOR': {
-              this.isOffFinger = true;
-              break;
-            }
-            default:
-              let tempPositionLine = JSON.parse(payload.sensorInfo).udSensorCenterYInThousandth / displayClass.height;
-              FuncUtils.judgmentOverflow(tempPositionLine);
-              if (tempPositionLine < FINGER_SENSOR_POSITION_LINE) {
-                this.screenType = ON_SCREEN;
-              } else if (tempPositionLine > FINGER_SENSOR_POSITION_LINE) {
-                this.screenType = UNDER_SCREEN;
-              }
-              break;
-          }
-        }
-        if ((remainAttempts && authResult !== 0) || authResult === Constants.authResultPinExpired) {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
-          this.fingerLock = false;
-        }
-        if (num === 'first') {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync(this.isOffFinger ?
-            $r('app.string.unified_authwidget_hint_normal_fp_only').id :
-            $r('app.string.unified_authwidget_hint_inscreen_fp').id);
-        }
+        this.handleNoticeTypeFingerFirst(payload, remainAttempts, authResult, num);
+
         if (remainAttempts === AUTH_LOCK) {
           this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
             .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
           this.fingerLock = true;
           if (payload.tipType === UserAuthTipType.SINGLE_AUTH_RESULT) {
-            if (this.dialogType === DialogType.PIN_FINGER) {
-              if (this.pinSubType !== Constants.pinSix) {
-                this.state = MULTI_PIN;
-              } else {
-                this.state = SIX_PIN;
-              }
-              AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
-              AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
-              this.toPin();
-            }
+            this.handlePinFingerDialogType();
             if ((AppStorage.get('wantParams') as WantParams)?.navigationButtonText as string &&
             this.skipLockedBiometricAuth) {
               AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypeFinger]);
@@ -266,14 +290,7 @@ export default struct FingerprintAuth {
               return;
             }
           } else {
-            if (this.dialogType === DialogType.PIN_FINGER) {
-              if (this.pinSubType !== Constants.pinSix) {
-                this.state = MULTI_PIN;
-              } else {
-                this.state = SIX_PIN;
-              }
-              this.toPin();
-            }
+            this.handleOtherSingleAuthResult();
           }
         }
         if (authResult === 0) {
