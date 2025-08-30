@@ -124,6 +124,20 @@ struct Index {
     AppStorage.get<UIExtensionContentSession>('session')?.terminateSelf();
   }
 
+  isFaceLockedFn(): boolean {
+    return this.authType.length == 1 && this.authType.includes(userAuth.UserAuthType.FACE) && this.isFaceLocked
+  }
+
+  isFingerprintLockedFn(): boolean {
+    return this.authType.length == 1 && this.authType.includes(userAuth.UserAuthType.FINGERPRINT) &&
+    this.isFingerprintLocked
+  }
+
+  isFaceAndFingerprintLocked(): boolean {
+    return this.authType.length == 2 && this.authType.includes(userAuth.UserAuthType.FACE) && this.isFaceLocked &&
+    this.authType.includes(userAuth.UserAuthType.FINGERPRINT) && this.isFingerprintLocked
+  }
+
   handleAuthStart(): void {
     LogUtils.info(TAG, 'handleAuthStart');
     try {
@@ -145,22 +159,19 @@ struct Index {
             }
           })
           if (that.skipLockedBiometricAuth) {
-            if (that.authType.length == 1 && that.authType.includes(userAuth.UserAuthType.FACE) && that.isFaceLocked) {
+            if (that.isFaceLockedFn()) {
               that.handleFaceLocked();
               return;
             }
-            if (that.authType.length == 1 && that.authType.includes(userAuth.UserAuthType.FINGERPRINT) &&
-            that.isFingerprintLocked) {
+            if (that.isFingerprintLockedFn()) {
               that.handleFingerprintLocked()
               return;
             }
-            if (that.authType.length == 2 && that.authType.includes(userAuth.UserAuthType.FACE) && that.isFaceLocked &&
-            that.authType.includes(userAuth.UserAuthType.FINGERPRINT) && that.isFingerprintLocked) {
+            if (that.isFaceAndFingerprintLocked()) {
               that.handleFaceAndFingerprintLocked();
               return;
             }
           }
-
           that.cmdData = cmdDataObj?.cmd || [];
           if (cmdDataObj?.pinSubType !== null && cmdDataObj?.pinSubType !== undefined) {
             that.pinSubType = cmdDataObj?.pinSubType;
