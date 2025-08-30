@@ -186,7 +186,12 @@ export default struct FingerprintAuth {
   }
 
   handleNoticeTypeFingerFirst(payload: CmdData,remainAttempts: number,authResult: number, num?: string): void {
-    const displayClass = display.getDefaultDisplaySync();
+    try {
+      const displayClass = display.getDefaultDisplaySync();
+    } catch (error) {
+      LogUtils.error(TAG, `getDefaultDisplaySync catch error: ${error?.code}`);
+      (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+    }
     this.screen = [displayClass.width, displayClass.height];
     if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
       this.fingerPosition = JSON.parse(payload.sensorInfo);
