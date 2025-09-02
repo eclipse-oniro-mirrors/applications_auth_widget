@@ -161,6 +161,28 @@ export default struct FullScreen {
     }
   }
 
+  isSensorType(sensor: FingerPosition): boolean {
+    return sensor.sensorType === 'UNDER_SCREEN_SENSOR' ||
+      sensor.sensorType === 'BOTH_SENSOR' ||
+      sensor.sensorType === 'SensorType1'
+  }
+
+  handleRemainAttempts(payload: CmdData, num?: string): void {
+    if (payload.remainAttempts === 0) {
+      if (num === 'first') {
+        this.controlType.isShowFinger = false;
+      } else {
+        this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+          .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
+        this.fingerText = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+          .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
+      }
+      this.faceFingerLockArr[1] = true;
+      this.controlType.jumpFinger = false;
+      this.cancelImage = false;
+    }
+  }
+
   handleNoticeTypeFinger(payload: CmdData, num?: string): void {
     let sensor: FingerPosition = { sensorType: '' };
     if (payload.sensorInfo && JSON.stringify(payload.sensorInfo) !== '{}') {
@@ -174,9 +196,7 @@ export default struct FullScreen {
       }
       if (sensor && this.fingerPosition.udSensorCenterYInThousandth !== undefined &&
         this.fingerPosition.udSensorRadiusInPx !== undefined) {
-        if (sensor.sensorType === 'UNDER_SCREEN_SENSOR' ||
-          sensor.sensorType === 'BOTH_SENSOR' ||
-          sensor.sensorType === 'SensorType1') {
+        if (this.isSensorType(sensor)) {
           if (num !== 'first' && payload.remainAttempts > 0 && payload.result != 0) {
             setTimeout(() => {
               AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
@@ -198,19 +218,7 @@ export default struct FullScreen {
         }
       }
     }
-    if (payload.remainAttempts === 0) {
-      if (num === 'first') {
-        this.controlType.isShowFinger = false;
-      } else {
-        this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
-        this.fingerText = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
-      }
-      this.faceFingerLockArr[1] = true;
-      this.controlType.jumpFinger = false;
-      this.cancelImage = false;
-    }
+    this.handleRemainAttempts(payload, num);
     if (payload.result === 0) {
       (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
     }
@@ -288,16 +296,23 @@ export default struct FullScreen {
   }
 
   countdown(freezingTime: number): void {
-    const TRY_AGAIN = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry').id);
-    const PLEASE_TRY = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_pleaseretry').id);
+    const TRY_AGAIN =
+      (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry')
+        .id);
+    const PLEASE_TRY =
+      (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_pleaseretry')
+        .id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get('context') as common.ExtensionContext));
+      promptText =
+        TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get('context') as common.ExtensionContext));
       promptText = PLEASE_TRY + promptText + TRY_AGAIN;
-      setTimeout((t: number):void => this.countdown(t), INTERVAL, freezingTime - INTERVAL);
+      setTimeout((t: number): void => this.countdown(t), INTERVAL, freezingTime - INTERVAL);
     } else {
-      promptText = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_use_pwd').id);
+      promptText =
+        (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_use_pwd')
+          .id);
       this.clearPassword();
       // 0: pin unlock
       this.pinLock = 0;
@@ -349,7 +364,7 @@ export default struct FullScreen {
               })
               .visibility(Visibility.Hidden)
           }
-          .position({ y: px2vp(this.screen[1] * LOCK_POSITION) - CANCEL_HIGH - this.SYSTEM_STATUS_BAR_HEIGHT})
+          .position({ y: px2vp(this.screen[1] * LOCK_POSITION) - CANCEL_HIGH - this.SYSTEM_STATUS_BAR_HEIGHT })
           .width(Constants.fullContainerWidth)
         } else {
           Column() {
@@ -530,6 +545,7 @@ export default struct FullScreen {
               }
             }
             .height($r('app.float.text_high'))
+
             Button(($r('app.string.unified_authwidget_forgotpwd')), {
               stateEffect: false
             })
@@ -584,8 +600,9 @@ export default struct FullScreen {
                       } else if (index === 1) {
                         this.passwordArray[index - 1] = '';
                         this.numKeyboard[11].value = GO_BACK;
-                        this.numKeyboard[11].row1 = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                          .getStringSync($r('app.string.unified_authwidget_back').id);
+                        this.numKeyboard[11].row1 =
+                          (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+                            .getStringSync($r('app.string.unified_authwidget_back').id);
                       } else {
                         this.passwordArray[index - 1] = '';
                       }
@@ -611,10 +628,12 @@ export default struct FullScreen {
               }
               .width(Constants.fullContainerWidth)
               .height('37%')
-              .position({ y: px2vp(this.screen[1] * NUM_KEY_BOTTOM) -
-                CANCEL_HIGH - MARGIN - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS) -
-              px2vp((THOUSANDTH - this.fingerPosition.udSensorCenterYInThousandth) / THOUSANDTH * this.screen[1]) -
-              this.SYSTEM_STATUS_BAR_HEIGHT })
+              .position({
+                y: px2vp(this.screen[1] * NUM_KEY_BOTTOM) -
+                  CANCEL_HIGH - MARGIN - px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS) -
+                  px2vp((THOUSANDTH - this.fingerPosition.udSensorCenterYInThousandth) / THOUSANDTH * this.screen[1]) -
+                  this.SYSTEM_STATUS_BAR_HEIGHT
+              })
             } else {
               Column() {
                 NumKeyBoard({
@@ -644,8 +663,9 @@ export default struct FullScreen {
                       } else if (index === 1) {
                         this.passwordArray[index - 1] = '';
                         this.numKeyboard[11].value = GO_BACK;
-                        this.numKeyboard[11].row1 = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                          .getStringSync($r('app.string.unified_authwidget_back').id);
+                        this.numKeyboard[11].row1 =
+                          (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+                            .getStringSync($r('app.string.unified_authwidget_back').id);
                       } else {
                         this.passwordArray[index - 1] = '';
                       }
@@ -670,8 +690,10 @@ export default struct FullScreen {
               }
               .width(Constants.fullContainerWidth)
               .height('37%')
-              .position({ y: px2vp(this.screen[1] * NUM_KEY_BOTTOM) - CANCEL_HIGH - BOTTOM -
-              this.SYSTEM_STATUS_BAR_HEIGHT - this.SYSTEM_NAVIGATION_BAR_HEIGHT })
+              .position({
+                y: px2vp(this.screen[1] * NUM_KEY_BOTTOM) - CANCEL_HIGH - BOTTOM -
+                  this.SYSTEM_STATUS_BAR_HEIGHT - this.SYSTEM_NAVIGATION_BAR_HEIGHT
+              })
             }
           } else {
             Column() {
@@ -702,8 +724,9 @@ export default struct FullScreen {
                     } else if (index === 1) {
                       this.passwordArray[index - 1] = '';
                       this.numKeyboard[11].value = GO_BACK;
-                      this.numKeyboard[11].row1 = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                        .getStringSync($r('app.string.unified_authwidget_back').id);
+                      this.numKeyboard[11].row1 =
+                        (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
+                          .getStringSync($r('app.string.unified_authwidget_back').id);
                     } else {
                       this.passwordArray[index - 1] = '';
                     }
@@ -729,8 +752,10 @@ export default struct FullScreen {
             }
             .width(Constants.fullContainerWidth)
             .height('37%')
-            .position({ y: px2vp(this.screen[1] * NUM_KEY_POSITION) - CANCEL_HIGH -
-            this.SYSTEM_STATUS_BAR_HEIGHT })
+            .position({
+              y: px2vp(this.screen[1] * NUM_KEY_POSITION) - CANCEL_HIGH -
+                this.SYSTEM_STATUS_BAR_HEIGHT
+            })
           }
         }
 
@@ -756,9 +781,11 @@ export default struct FullScreen {
                       }
                     })
                 }
-                .position({ y: px2vp(this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH * this.screen[1]) -
-                px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS) -
-                  CANCEL_HIGH - this.SYSTEM_STATUS_BAR_HEIGHT })
+                .position({
+                  y: px2vp(this.fingerPosition.udSensorCenterYInThousandth / THOUSANDTH * this.screen[1]) -
+                    px2vp(this.fingerPosition.udSensorRadiusInPx * RADIUS) -
+                    CANCEL_HIGH - this.SYSTEM_STATUS_BAR_HEIGHT
+                })
                 .width(Constants.fullContainerWidth)
                 .height(this.controlType.isShowFinger ? $r('app.float.finger_high') : '9%')
                 .justifyContent(FlexAlign.Start)
@@ -785,8 +812,10 @@ export default struct FullScreen {
                 .height(this.controlType.isShowFinger ? $r('app.float.finger_high') : '9%')
                 .justifyContent(FlexAlign.Start)
                 .alignItems(HorizontalAlign.Center)
-                .position({ y: px2vp(this.screen[1]) - CANCEL_HIGH - BOTTOM -
-                this.SYSTEM_STATUS_BAR_HEIGHT - this.SYSTEM_NAVIGATION_BAR_HEIGHT })
+                .position({
+                  y: px2vp(this.screen[1]) - CANCEL_HIGH - BOTTOM -
+                    this.SYSTEM_STATUS_BAR_HEIGHT - this.SYSTEM_NAVIGATION_BAR_HEIGHT
+                })
               }
             }
           }
@@ -813,7 +842,7 @@ export default struct FullScreen {
                 .fontWeight(FontWeight.Regular)
                 .textAlign(TextAlign.Center)
                 .margin({ top: $r('app.float.padding_8') })
-            }.margin({left: $r('app.float.margin_36'), right: $r('app.float.size_24')})
+            }.margin({ left: $r('app.float.margin_36'), right: $r('app.float.size_24') })
           }
           .width('96%')
           .id('titleFullScreen')
