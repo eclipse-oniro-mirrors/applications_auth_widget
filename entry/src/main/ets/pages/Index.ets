@@ -138,6 +138,24 @@ struct Index {
     this.authType.includes(userAuth.UserAuthType.FINGERPRINT) && this.isFingerprintLocked
   }
 
+  handleLocked(): boolean {
+    if (this.skipLockedBiometricAuth) {
+      if (this.isFaceLockedFn()) {
+        this.handleFaceLocked();
+        return true;
+      }
+      if (this.isFingerprintLockedFn()) {
+        this.handleFingerprintLocked();
+        return true;
+      }
+      if (this.isFaceAndFingerprintLocked()) {
+        this.handleFaceAndFingerprintLocked();
+        return true;
+      }
+    }
+    return false;
+  }
+
   handleAuthStart(): void {
     LogUtils.info(TAG, 'handleAuthStart');
     try {
@@ -158,19 +176,8 @@ struct Index {
               }
             }
           })
-          if (that.skipLockedBiometricAuth) {
-            if (that.isFaceLockedFn()) {
-              that.handleFaceLocked();
-              return;
-            }
-            if (that.isFingerprintLockedFn()) {
-              that.handleFingerprintLocked()
-              return;
-            }
-            if (that.isFaceAndFingerprintLocked()) {
-              that.handleFaceAndFingerprintLocked();
-              return;
-            }
+          if (that.handleLocked()) {
+            return;
           }
           that.cmdData = cmdDataObj?.cmd || [];
           if (cmdDataObj?.pinSubType !== null && cmdDataObj?.pinSubType !== undefined) {
