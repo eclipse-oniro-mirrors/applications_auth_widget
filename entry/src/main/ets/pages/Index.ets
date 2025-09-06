@@ -138,45 +138,51 @@ struct Index {
     this.authType.includes(userAuth.UserAuthType.FINGERPRINT) && this.isFingerprintLocked
   }
 
+  handleLocked(): boolean {
+    if (this.skipLockedBiometricAuth) {
+      if (this.isFaceLockedFn()) {
+        this.handleFaceLocked();
+        return true;
+      }
+      if (this.isFingerprintLockedFn()) {
+        this.handleFingerprintLocked();
+        return true;
+      }
+      if (this.isFaceAndFingerprintLocked()) {
+        this.handleFaceAndFingerprintLocked();
+        return true;
+      }
+    }
+    return false;
+  }
+
   handleAuthStart(): void {
     LogUtils.info(TAG, 'handleAuthStart');
     try {
       userAuthWidgetMgr = userAuth.getUserAuthWidgetMgr(Constants.userAuthWidgetMgrVersion);
       LogUtils.info(TAG, 'getUserAuthWidgetMgr success');
-      let that = this;
       userAuthWidgetMgr.on('command', {
-        sendCommand(result) {
+        sendCommand: (result) => {
           LogUtils.info(TAG, 'sendCommand result: ' + result);
           const cmdDataObj: WidgetCommand = JSON.parse(result || '{}');
-          that.skipLockedBiometricAuth = cmdDataObj?.skipLockedBiometricAuth ?? false
+          this.skipLockedBiometricAuth = cmdDataObj?.skipLockedBiometricAuth ?? false
           cmdDataObj.cmd?.map((item) => {
             if (item.payload?.lockoutDuration !== 0 && item.payload?.remainAttempts === 0) {
               if (item.payload?.type === 'face') {
-                that.isFaceLocked = true;
+                this.isFaceLocked = true;
               } else if (item.payload?.type === 'fingerprint') {
-                that.isFingerprintLocked = true;
+                this.isFingerprintLocked = true;
               }
             }
           })
-          if (that.skipLockedBiometricAuth) {
-            if (that.isFaceLockedFn()) {
-              that.handleFaceLocked();
-              return;
-            }
-            if (that.isFingerprintLockedFn()) {
-              that.handleFingerprintLocked()
-              return;
-            }
-            if (that.isFaceAndFingerprintLocked()) {
-              that.handleFaceAndFingerprintLocked();
-              return;
-            }
+          if (this.handleLocked()) {
+            return;
           }
-          that.cmdData = cmdDataObj?.cmd || [];
+          this.cmdData = cmdDataObj?.cmd || [];
           if (cmdDataObj?.pinSubType !== null && cmdDataObj?.pinSubType !== undefined) {
-            that.pinSubType = cmdDataObj?.pinSubType;
+            this.pinSubType = cmdDataObj?.pinSubType;
           }
-          that.handleIsUnder(cmdDataObj?.cmd || []);
+          this.handleIsUnder(cmdDataObj?.cmd || []);
         }
       });
     } catch (error) {
