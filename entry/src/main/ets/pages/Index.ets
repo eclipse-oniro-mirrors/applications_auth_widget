@@ -138,6 +138,18 @@ struct Index {
     this.authType.includes(userAuth.UserAuthType.FINGERPRINT) && this.isFingerprintLocked
   }
 
+  handleCmdDataObjItems(cmdDataObj: WidgetCommand): void {
+    cmdDataObj.cmd?.map((item) => {
+      if (item.payload?.lockoutDuration !== 0 && item.payload?.remainAttempts === 0) {
+        if (item.payload?.type === 'face') {
+          this.isFaceLocked = true;
+        } else if (item.payload?.type === 'fingerprint') {
+          this.isFingerprintLocked = true;
+        }
+      }
+    })
+  }
+
   handleLocked(): boolean {
     if (this.skipLockedBiometricAuth) {
       if (this.isFaceLockedFn()) {
@@ -166,15 +178,7 @@ struct Index {
           LogUtils.info(TAG, 'sendCommand result: ' + result);
           const cmdDataObj: WidgetCommand = JSON.parse(result || '{}');
           this.skipLockedBiometricAuth = cmdDataObj?.skipLockedBiometricAuth ?? false
-          cmdDataObj.cmd?.map((item) => {
-            if (item.payload?.lockoutDuration !== 0 && item.payload?.remainAttempts === 0) {
-              if (item.payload?.type === 'face') {
-                this.isFaceLocked = true;
-              } else if (item.payload?.type === 'fingerprint') {
-                this.isFingerprintLocked = true;
-              }
-            }
-          })
+          this.handleCmdDataObjItems(cmdDataObj);
           if (this.handleLocked()) {
             return;
           }
