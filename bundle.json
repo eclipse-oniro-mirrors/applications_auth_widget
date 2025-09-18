@@ -24,7 +24,7 @@
     },
     "build": {
       "sub_component": [
-        "//applications/standard/applications_auth_widget:auth_widget"
+        "//applications/standard/auth_widget:auth_widget"
       ],
       "inner_kits": [],
       "test": []
