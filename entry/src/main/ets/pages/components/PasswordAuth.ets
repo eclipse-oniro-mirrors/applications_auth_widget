@@ -115,9 +115,17 @@ export default struct PasswordAuth {
     }
   }
 
+  clearPassword(): void {
+    this.textValue = '';
+    this.inputValue = '';
+    pinData = '';
+    LogUtils.info(TAG, 'clearPassword');
+  }
+
   aboutToDisappear(): void {
     LogUtils.info(TAG, 'aboutToAppear pinAuthManager unregisterInputer');
     pinAuthManager?.unregisterInputer?.();
+    this.clearPassword();
   }
 
   countTime(freezingTime: number): void {
