@@ -66,10 +66,17 @@ export default struct CustomPassword {
     }
   }
 
+  clearPassword(): void {
+    this.textValue = '';
+    pinData = '';
+    LogUtils.info(TAG, 'clearPassword');
+  }
+
   aboutToDisappear(): void {
     LogUtils.info(TAG, 'aboutToDisappear PINAuth unregisterInputer');
     AuthUtils.getInstance().sendNotice(Constants.noticeEventWidgetReleased, [Constants.noticeTypePin]);
     pinAuthManager?.unregisterInputer?.();
+    this.clearPassword();
   }
 
   build() {

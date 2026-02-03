@@ -41,7 +41,7 @@ export default struct SixPassword {
 
   build() {
     Column() {
-      if (AppStorage.Get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
+      if (AppStorage.get('titleLength') as number < (AppStorage.get('wantParams') as WantParams)?.title.length) {
         Scroll() {
           Column() {
             Text((AppStorage.get('wantParams') as WantParams)?.title)
