@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import common from '@ohos.app.ability.common';
 import util from '@ohos.util';
 import userAuth from '@ohos.userIAM.userAuth';
 import { DialogType } from '../module/DialogType';
@@ -87,6 +88,25 @@ export class FuncUtils {
     if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
       LogUtils.error(TAG, 'judgmentOverflow spill code value: ' + value);
       (AppStorage.get('session') as UIExtensionContentSession)?.terminateSelf();
+    }
+  }
+
+  /**
+   * 安全地获取资源字符串
+   * @param resourceId 资源ID
+   * @defaultValue 默认值，当获取失败时返回
+   * @returns 资源字符串或默认值
+   */
+  getResourceString(resourceId: number, defaultValue: string = ''): string {
+    const context = AppStorage.get('context') as common.ExtensionContext;
+    if (!context?.resourceManager) {
+      return defaultValue;
+    }
+    try {
+      return context.resourceManager.getStringSync(resourceId);
+    } catch (error) {
+      LogUtils.error(TAG, `getStringSync error, code is ${error?.code}`);
+      return defaultValue;
     }
   }
 }
