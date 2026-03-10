@@ -76,10 +76,8 @@ export default struct FullScreen {
   @StorageLink('passwordArrayNumber') passwordArrayNumber: string[] = [];
   @State passwordObj: string = '';
   numKeyboard: NumKeyBoardItem[] = Constants.numKeyBoard;
-  @State prompt: string = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-    .getStringSync($r('app.string.unified_authwidget_use_pwd').id);
-  @State fingerText: string = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-    .getStringSync($r('app.string.unified_authwidget_hint_inscreen_fp').id);
+  @State prompt: string = FuncUtils.getResourceString($r('app.string.unified_authwidget_use_pwd').id);
+  @State fingerText: string = FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_inscreen_fp').id);
   @StorageLink('screenLockDirection') screenLockDirection: number = 1;
   @StorageLink('SYSTEM_STATUS_BAR_HEIGHT') SYSTEM_STATUS_BAR_HEIGHT: number = 0;
   @StorageLink('SYSTEM_NAVIGATION_BAR_HEIGHT') SYSTEM_NAVIGATION_BAR_HEIGHT: number = 0;
@@ -101,19 +99,15 @@ export default struct FullScreen {
   handleNoticeTypePin(payload: CmdData, num?: string): void {
     this.clearPassword();
     if (payload.remainAttempts) {
-      this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-        .getStringSync($r('app.string.unified_authwidget_hint_pwd_error').id);
-      if (num === 'first' && this.prompt !== (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-        .getStringSync($r('app.string.unified_authwidget_hint_recognition').id)) {
-        this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_use_pwd').id);
+      this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_pwd_error').id);
+      if (num === 'first' &&
+        this.prompt !== FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_recognition').id)) {
+        this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_use_pwd').id);
       }
       // 3: pin Residual number
       if (payload.remainAttempts < 3 && num !== 'first') {
-        this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_pwd_error_can_try').id) +
-        payload.remainAttempts + (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_frequency').id);
+        this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_pwd_error_can_try').id) +
+        payload.remainAttempts + FuncUtils.getResourceString($r('app.string.unified_authwidget_frequency').id);
       }
     }
     if (payload.remainAttempts === 0 && payload.lockoutDuration) {
@@ -134,8 +128,7 @@ export default struct FullScreen {
   handleNoticeTypeFace(payload: CmdData, num?: string): void {
     if (payload.remainAttempts < 5 && payload.remainAttempts > 0) {
       if (this.pinLock !== 1) {
-        this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id);
+        this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id);
         this.faceFingerLockArr[0] = false;
       }
     }
@@ -144,15 +137,14 @@ export default struct FullScreen {
         this.controlType.isShowFace = false;
       } else {
         if (this.pinLock !== 1) {
-          this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-            .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
+          this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_recognition').id);
         }
       }
     }
     if (payload.remainAttempts === 0) {
       if (num !== 'first') {
-        this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id);
+        this.prompt =
+          FuncUtils.getResourceString($r('app.string.unified_authwidget_title_number_failed_face_forbidden').id);
       }
       this.faceFingerLockArr[0] = true;
     }
@@ -172,10 +164,10 @@ export default struct FullScreen {
       if (num === 'first') {
         this.controlType.isShowFinger = false;
       } else {
-        this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
-        this.fingerText = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
+        this.prompt =
+          FuncUtils.getResourceString($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
+        this.fingerText =
+          FuncUtils.getResourceString($r('app.string.unified_authwidget_title_number_failed_fp_forbidden').id);
       }
       this.faceFingerLockArr[1] = true;
       this.controlType.jumpFinger = false;
@@ -191,8 +183,7 @@ export default struct FullScreen {
     }
     if (payload.remainAttempts && payload.result !== 0) {
       if (this.controlType.jumpFinger) {
-        this.fingerText = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-          .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
+        this.fingerText = FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
       }
       if (sensor && this.fingerPosition.udSensorCenterYInThousandth !== undefined &&
         this.fingerPosition.udSensorRadiusInPx !== undefined) {
@@ -201,8 +192,7 @@ export default struct FullScreen {
             setTimeout(() => {
               AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFinger]);
             }, NOTICE_DELAY);
-            this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
+            this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_fp_retry_s2').id);
           }
 
           this.fingerButtonPositionY =
@@ -285,8 +275,7 @@ export default struct FullScreen {
     this.passwordArray = ['', '', '', '', '', ''];
     this.passwordObj = '';
     this.numKeyboard[11].value = GO_BACK;
-    this.numKeyboard[11].row1 = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-      .getStringSync($r('app.string.unified_authwidget_back').id);
+    this.numKeyboard[11].row1 = FuncUtils.getResourceString($r('app.string.unified_authwidget_back').id);
     this.updateStorage(() => {
     })
   }
@@ -297,11 +286,9 @@ export default struct FullScreen {
 
   countdown(freezingTime: number): void {
     const TRY_AGAIN =
-      (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_postretry')
-        .id);
+      FuncUtils.getResourceString($r('app.string.unified_authwidget_postretry').id);
     const PLEASE_TRY =
-      (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_pleaseretry')
-        .id);
+      FuncUtils.getResourceString($r('app.string.unified_authwidget_pleaseretry').id);
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
@@ -311,8 +298,7 @@ export default struct FullScreen {
       setTimeout((t: number): void => this.countdown(t), INTERVAL, freezingTime - INTERVAL);
     } else {
       promptText =
-        (AppStorage.get('context') as common.ExtensionContext)?.resourceManager.getStringSync($r('app.string.unified_authwidget_use_pwd')
-          .id);
+        FuncUtils.getResourceString($r('app.string.unified_authwidget_use_pwd').id);
       this.clearPassword();
       // 0: pin unlock
       this.pinLock = 0;
@@ -377,12 +363,11 @@ export default struct FullScreen {
                 .margin({ bottom: $r('app.float.content_padding') })
                 .onClick(() => {
                   if (!this.faceFingerLockArr[0]) {
-                    this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
+                    this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_recognition').id);
                     AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                   } else {
-                    this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                      .getStringSync($r('app.string.unified_authwidget_title_face_forbidden').id);
+                    this.prompt =
+                      FuncUtils.getResourceString($r('app.string.unified_authwidget_title_face_forbidden').id);
                   }
                 })
             }
@@ -404,10 +389,10 @@ export default struct FullScreen {
               .textOverflow({ overflow: TextOverflow.None })
               .height($r('app.float.size_24'))
               .onClick(() => {
-                if (this.prompt === (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                  .getStringSync($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1').id)) {
-                  this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                    .getStringSync($r('app.string.unified_authwidget_hint_recognition').id);
+                if (this.prompt ===
+                FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_face_verify_fail_click_retry_s1')
+                  .id)) {
+                  this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_hint_recognition').id);
                   AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', [Constants.noticeTypeFace]);
                 }
               })
@@ -601,8 +586,7 @@ export default struct FullScreen {
                         this.passwordArray[index - 1] = '';
                         this.numKeyboard[11].value = GO_BACK;
                         this.numKeyboard[11].row1 =
-                          (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                            .getStringSync($r('app.string.unified_authwidget_back').id);
+                          FuncUtils.getResourceString($r('app.string.unified_authwidget_back').id);
                       } else {
                         this.passwordArray[index - 1] = '';
                       }
@@ -664,8 +648,7 @@ export default struct FullScreen {
                         this.passwordArray[index - 1] = '';
                         this.numKeyboard[11].value = GO_BACK;
                         this.numKeyboard[11].row1 =
-                          (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                            .getStringSync($r('app.string.unified_authwidget_back').id);
+                          FuncUtils.getResourceString($r('app.string.unified_authwidget_back').id);
                       } else {
                         this.passwordArray[index - 1] = '';
                       }
@@ -725,8 +708,7 @@ export default struct FullScreen {
                       this.passwordArray[index - 1] = '';
                       this.numKeyboard[11].value = GO_BACK;
                       this.numKeyboard[11].row1 =
-                        (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-                          .getStringSync($r('app.string.unified_authwidget_back').id);
+                        FuncUtils.getResourceString($r('app.string.unified_authwidget_back').id);
                     } else {
                       this.passwordArray[index - 1] = '';
                     }
@@ -905,8 +887,7 @@ export default struct FullScreen {
             this.controlType.jumpFinger = false;
             this.cancelImage = false;
             AuthUtils.getInstance().sendNotice(Constants.noticeEventCancel, [Constants.noticeTypeFinger]);
-            this.prompt = (AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_use_pwd').id);
+            this.prompt = FuncUtils.getResourceString($r('app.string.unified_authwidget_use_pwd').id);
           })
       }
       .justifyContent(FlexAlign.End)
