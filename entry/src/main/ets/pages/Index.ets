@@ -25,7 +25,6 @@ import CustomPassword from './components/CustomPassword';
 import FaceAuth from './components/FaceAuth';
 import FingerprintAuth from './components/FingerprintAuth';
 import PasswordAuth from './components/PasswordAuth';
-import common from '@ohos.app.ability.common';
 
 const DEFAULT_SIZE = 72;
 const FIVE_SECOND = 5000;
@@ -262,8 +261,7 @@ struct Index {
       if (this.isLandscape && this.underFingerPrint) {
         Flex({ direction: FlexDirection.Row, justifyContent: FlexAlign.Center, alignItems: ItemAlign.End }) {
           Column() {
-            Text((AppStorage.get('context') as common.ExtensionContext)?.resourceManager
-              .getStringSync($r('app.string.unified_authwidget_tip_verify_in_portrait_mode').id))
+            Text(FuncUtils.getResourceString($r('app.string.unified_authwidget_tip_verify_in_portrait_mode').id))
               .draggable(false)
               .fontColor($r('sys.color.ohos_id_color_text_primary_contrary'))
               .fontSize($r('sys.float.ohos_id_text_size_body2'))
