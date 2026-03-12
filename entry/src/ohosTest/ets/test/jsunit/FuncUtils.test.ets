@@ -20,7 +20,6 @@ import FuncUtils from '../../../../main/ets/common/utils/FuncUtils';
 import LogUtils from '../../../../main/ets/common/utils/LogUtils';
 import TimeUtils from '../../../../main/ets/common/utils/TimeUtils';
 import WindowPrivacyUtils from '../../../../main/ets/common/utils/WindowPrivacyUtils';
-import common from '@ohos.app.ability.common';
 
 const TAG = 'FuncUtilsTest';
 
@@ -82,13 +81,13 @@ export default function FuncUtilsTest() {
       done();
     })
 
-    it('judgmentOverflowFunc_test', 0, function (done) {
+    it('judgmentOverflowFunc_test', 0, (done: Function) => {
       FuncUtils.judgmentOverflow(Number.POSITIVE_INFINITY);
       FuncUtils.judgmentOverflow(Number.NEGATIVE_INFINITY);
       done();
     })
 
-    it('sendNoticeFunc_test', 0, async function (done) {
+    it('sendNoticeFunc_test', 0, async (done: Function) => {
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_READY', ['pin']);
       AuthUtils.getInstance().sendNotice('EVENT_AUTH_TYPE_START', ['pin']);
       done();
@@ -103,9 +102,9 @@ export default function FuncUtilsTest() {
       done();
     })
 
-    it('getFreezingTimeNmFunc_test', 0, async function (done) {
-      TimeUtils.getFreezingTimeNm(10000, globalThis.context);
-      TimeUtils.getFreezingTimeNm(100000, globalThis.context);
+    it('getFreezingTimeNmFunc_test', 0, async (done: Function) => {
+      TimeUtils.getFreezingTimeNm(10000);
+      TimeUtils.getFreezingTimeNm(100000);
       done();
     })
 

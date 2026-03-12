@@ -21,7 +21,6 @@ import FuncUtils from '../utils/FuncUtils';
 import LogUtils from '../utils/LogUtils';
 import TimeUtils from '../utils/TimeUtils';
 import NumKeyBoard from './NumkeyBoard';
-import common from '@ohos.app.ability.common';
 import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 
 const TAG = 'FullScreen';
@@ -292,8 +291,7 @@ export default struct FullScreen {
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText =
-        TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get('context') as common.ExtensionContext));
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond);
       promptText = PLEASE_TRY + promptText + TRY_AGAIN;
       setTimeout((t: number): void => this.countdown(t), INTERVAL, freezingTime - INTERVAL);
     } else {

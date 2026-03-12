@@ -84,8 +84,7 @@ export default struct FaceAuth {
     let promptText: string = '';
     let freezingMillisecond = freezingTime;
     if (freezingMillisecond > 0) {
-      promptText =
-        TimeUtils.getFreezingTimeNm(freezingMillisecond, (AppStorage.get('context') as common.ExtensionContext));
+      promptText = TimeUtils.getFreezingTimeNm(freezingMillisecond);
       promptText = FuncUtils.getResourceString($r('app.string.unified_authwidget_many_failures').id) + promptText + TRY_AGAIN;
       setTimeout((t: number): void => this.countTime(t), INTERVAL, freezingTime - INTERVAL);
     } else {
